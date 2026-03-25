@@ -1,12 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="lt">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="ManoKRM – asmeninė CRM sistema projektų, kontaktų, darbų ir sąskaitų valdymui" />
+    <meta name="theme-color" content="#0f0f1a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ManoKRM" />
+
+    <!-- Security headers via meta -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mano-crm</title>
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <title>ManoKRM – CRM Sistema</title>
+
+    <!-- Preconnect to Google APIs for Calendar integration -->
+    <link rel="preconnect" href="https://accounts.google.com" />
+    <link rel="preconnect" href="https://www.googleapis.com" />
   </head>
   <body>
+    <noscript>
+      <div style="padding:40px;text-align:center;font-family:system-ui;color:#e2e8f0;background:#0f0f1a;min-height:100vh">
+        <h1>ManoKRM</h1>
+        <p>Šiai sistemai reikalingas JavaScript. Prašome įjungti JavaScript naršyklėje.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
