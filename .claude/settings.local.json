@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ln -sf /etc/nginx/sites-available/mano.oktoja.lt /etc/nginx/sites-enabled/)",
+      "Bash(nginx -t)",
+      "Bash(systemctl reload:*)",
+      "Bash(certbot --nginx -d mano.oktoja.lt --non-interactive --agree-tos -m admin@oktoja.lt)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://mano.oktoja.lt)",
+      "Bash(npm install:*)",
+      "Bash(chmod +x /root/backup-crm.sh)",
+      "Bash(bash /root/backup-crm.sh)",
+      "Bash(npm run:*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(pm2 restart:*)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\" https://mano.oktoja.lt)",
+      "Bash(crontab -l)"
+    ],
+    "additionalDirectories": [
+      "/etc/nginx/sites-available",
+      "/root"
+    ]
+  }
+}
