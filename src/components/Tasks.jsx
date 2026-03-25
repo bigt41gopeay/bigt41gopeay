@@ -1,14 +1,30 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, formatDateLT } from '../utils/helpers'
 import { gcalCreateEvent, gcalUpdateEvent } from '../utils/gcal'
+import { RECURRENCE_OPTIONS } from '../utils/constants'
 import { useToast } from '../contexts/ToastContext'
 import {
   Modal, Badge, SectionHeader, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
 } from './ui'
 
+function getNextRecurrenceDate(deadline, recurrence) {
+  const d = new Date(deadline)
+  switch (recurrence) {
+    case 'daily': d.setDate(d.getDate() + 1); break
+    case 'weekly': d.setDate(d.getDate() + 7); break
+    case 'biweekly': d.setDate(d.getDate() + 14); break
+    case 'monthly': d.setMonth(d.getMonth() + 1); break
+    case 'quarterly': d.setMonth(d.getMonth() + 3); break
+    default: return null
+  }
+  return d.toISOString().slice(0, 16)
+}
+
+const RECURRENCE_LABELS = { daily: '🔁 Kasdien', weekly: '🔁 Kas savaitę', biweekly: '🔁 Kas 2 sav.', monthly: '🔁 Kas mėn.', quarterly: '🔁 Kas ketv.' }
+
 function TaskForm({ initial, projects, contacts, onSave, onClose }) {
-  const [form, setForm] = useState(initial || { title: '', projectId: '', contactId: '', type: 'darbas', status: 'laukia', deadline: '', notes: '' })
+  const [form, setForm] = useState(initial || { title: '', projectId: '', contactId: '', type: 'darbas', status: 'laukia', deadline: '', notes: '', recurrence: '' })
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   return (
     <form onSubmit={e => { e.preventDefault(); if (form.title.trim()) { onSave(form); onClose() } }}>
@@ -36,6 +52,10 @@ function TaskForm({ initial, projects, contacts, onSave, onClose }) {
         </select></div>
       <div style={formGroup}><label style={labelStyle}>Terminas</label>
         <input style={inputStyle} type="datetime-local" value={form.deadline} onChange={e => set('deadline', e.target.value)} /></div>
+      <div style={formGroup}><label style={labelStyle}>Kartojimas</label>
+        <select style={inputStyle} value={form.recurrence || ''} onChange={e => set('recurrence', e.target.value)}>
+          {RECURRENCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select></div>
       <div style={formGroup}><label style={labelStyle}>Pastabos</label>
         <textarea style={{ ...inputStyle, height: 70, resize: 'vertical' }} value={form.notes} onChange={e => set('notes', e.target.value)} /></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -84,6 +104,20 @@ export const Tasks = memo(function Tasks({ tasks, setTasks, projects, contacts, 
   const markDone = useCallback(async (t) => {
     setTasks(ts => ts.map(x => x.id === t.id ? { ...x, status: 'baigtas' } : x))
     toast.success(`„${t.title}" pažymėtas kaip baigtas`)
+
+    // Auto-create next recurring task
+    if (t.recurrence && t.deadline) {
+      const nextDate = getNextRecurrenceDate(t.deadline, t.recurrence)
+      if (nextDate) {
+        const nextTask = {
+          ...t, id: genId(), status: 'laukia', deadline: nextDate,
+          gcalEventId: '', createdAt: new Date().toISOString(),
+        }
+        setTasks(ts => [...ts, nextTask])
+        toast.info(`Sukurtas kartotinis darbas: ${formatDateLT(nextDate)}`)
+      }
+    }
+
     if (gcalToken && t.gcalEventId) {
       try {
         await gcalUpdateEvent(gcalToken, t.gcalEventId, { summary: '✅ ' + t.title, colorId: '2' })
@@ -131,6 +165,7 @@ export const Tasks = memo(function Tasks({ tasks, setTasks, projects, contacts, 
                   <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{t.title}</span>
                   <Badge status={t.type} />
                   <Badge status={t.status} />
+                  {t.recurrence && <span style={{ fontSize: 10, color: '#06b6d4' }}>{RECURRENCE_LABELS[t.recurrence] || '🔁'}</span>}
                   {t.gcalEventId && <span title="Sinchronizuota su Google Calendar" style={{ fontSize: 11, color: '#4285f4' }}>📅</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>

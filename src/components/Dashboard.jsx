@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo, memo } from 'react'
 import { formatDateLT, formatCurrency } from '../utils/helpers'
 import { gcalListEvents } from '../utils/gcal'
 import { Badge, cardStyle } from './ui'
+import { QuickLinks } from './QuickLinks'
 
-export const Dashboard = memo(function Dashboard({ contacts, projects, tasks, communications, invoices, gcalToken }) {
+export const Dashboard = memo(function Dashboard({ contacts, projects, tasks, communications, invoices, credentials, leads, gcalToken }) {
   const [gcalEvents, setGcalEvents] = useState([])
   const [gcalLoading, setGcalLoading] = useState(false)
 
@@ -49,12 +50,17 @@ export const Dashboard = memo(function Dashboard({ contacts, projects, tasks, co
     <div>
       <h2 style={{ color: '#e2e8f0', marginBottom: 20 }}>Apžvalga</h2>
 
+      {/* Quick Links */}
+      {credentials && <QuickLinks credentials={credentials} />}
+
       {/* Stats */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
         {statCard('Kontaktai', contacts.length, '#6366f1')}
         {statCard('Aktyvūs projektai', stats.activeProjects, '#3b82f6')}
         {statCard('Laukiantys darbai', stats.pendingTasks, '#f59e0b')}
         {statCard('Vėluojantys', stats.overdueTasks.length, '#ef4444')}
+        {leads && leads.filter(l => !['laimeta', 'prarasta'].includes(l.stage)).length > 0 &&
+          statCard('Pipeline', leads.filter(l => !['laimeta', 'prarasta'].includes(l.stage)).length, '#8b5cf6')}
         {stats.totalUnpaid > 0 && statCard('Neapmokėta', formatCurrency(stats.totalUnpaid), '#f97316')}
       </div>
 

@@ -1,17 +1,20 @@
-import { useState, useCallback, lazy, Suspense } from 'react'
+import { useState, useCallback } from 'react'
 import { STORAGE_KEYS, TABS } from './utils/constants'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useSync } from './hooks/useSync'
 import { ToastProvider } from './contexts/ToastContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { NotificationBar } from './components/NotificationBar'
 import { Dashboard } from './components/Dashboard'
+import { Leads } from './components/Leads'
 import { Contacts } from './components/Contacts'
 import { Projects } from './components/Projects'
 import { Tasks } from './components/Tasks'
 import { Communications } from './components/Communications'
 import { Credentials } from './components/Credentials'
 import { Invoices } from './components/Invoices'
+import { Notes } from './components/Notes'
 import { Settings } from './components/Settings'
 
 function AppContent() {
@@ -23,9 +26,12 @@ function AppContent() {
   const [credentials, setCredentials] = useLocalStorage(STORAGE_KEYS.credentials, [])
   const [invoices, setInvoices] = useLocalStorage(STORAGE_KEYS.invoices, [])
   const [settings, setSettings] = useLocalStorage(STORAGE_KEYS.settings, {})
+  const [leads, setLeads] = useLocalStorage(STORAGE_KEYS.leads, [])
+  const [notes, setNotes] = useLocalStorage(STORAGE_KEYS.notes, [])
   const [menuOpen, setMenuOpen] = useState(false)
   const [gcalToken, setGcalToken] = useState(() => sessionStorage.getItem('gcal_token') || '')
 
+  const sync = useSync(settings)
   useKeyboardShortcuts(setTab)
 
   const handleTabChange = useCallback((id) => {
@@ -115,19 +121,21 @@ function AppContent() {
 
       {/* Main content */}
       <main style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px', minHeight: 'calc(100vh - 52px)' }}>
-        {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} invoices={invoices} gcalToken={gcalToken} />}
+        {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} invoices={invoices} credentials={credentials} leads={leads} gcalToken={gcalToken} />}
+        {tab === 'leads' && <Leads leads={leads} setLeads={setLeads} contacts={contacts} />}
         {tab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
-        {tab === 'projects' && <Projects projects={projects} setProjects={setProjects} contacts={contacts} />}
+        {tab === 'projects' && <Projects projects={projects} setProjects={setProjects} contacts={contacts} tasks={tasks} setTasks={setTasks} />}
         {tab === 'tasks' && <Tasks tasks={tasks} setTasks={setTasks} projects={projects} contacts={contacts} gcalToken={gcalToken} />}
-        {tab === 'communications' && <Communications communications={communications} setCommunications={setCommunications} projects={projects} contacts={contacts} />}
-        {tab === 'credentials' && <Credentials credentials={credentials} setCredentials={setCredentials} projects={projects} />}
         {tab === 'invoices' && <Invoices invoices={invoices} setInvoices={setInvoices} contacts={contacts} />}
-        {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} gcalToken={gcalToken} setGcalToken={setGcalToken} tasks={tasks} setTasks={setTasks} />}
+        {tab === 'credentials' && <Credentials credentials={credentials} setCredentials={setCredentials} projects={projects} />}
+        {tab === 'notes' && <Notes notes={notes} setNotes={setNotes} projects={projects} />}
+        {tab === 'communications' && <Communications communications={communications} setCommunications={setCommunications} projects={projects} contacts={contacts} />}
+        {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} gcalToken={gcalToken} setGcalToken={setGcalToken} tasks={tasks} setTasks={setTasks} sync={sync} />}
       </main>
 
-      {/* Bottom nav for mobile */}
+      {/* Bottom nav for mobile — show most important tabs */}
       <nav className="bottom-nav" aria-label="Greitoji navigacija">
-        {TABS.slice(0, 5).map(t => (
+        {[TABS[0], TABS[1], TABS[4], TABS[6], TABS[7]].map(t => (
           <button
             key={t.id}
             onClick={() => handleTabChange(t.id)}
@@ -149,7 +157,7 @@ function AppContent() {
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
             gap: 2, padding: '8px 4px', border: 'none', cursor: 'pointer',
-            background: 'none', color: '#64748b', fontSize: 9,
+            background: 'none', color: menuOpen ? '#6366f1' : '#64748b', fontSize: 9,
           }}
         >
           <span style={{ fontSize: 18 }}>☰</span>

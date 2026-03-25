@@ -8,7 +8,7 @@ import {
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, cardStyle,
 } from './ui'
 
-export const Settings = memo(function Settings({ settings, setSettings, gcalToken, setGcalToken, tasks, setTasks }) {
+export const Settings = memo(function Settings({ settings, setSettings, gcalToken, setGcalToken, tasks, setTasks, sync }) {
   const [clientId, setClientId] = useState(settings.gcalClientId || '')
   const [status, setStatus] = useState('')
   const [gcalEvents, setGcalEvents] = useState([])
@@ -182,6 +182,76 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
             {status}
           </div>
         )}
+      </section>
+
+      {/* Multi-device Sync */}
+      <section style={{ ...cardStyle, marginBottom: 20 }}>
+        <h3 style={{ color: '#e2e8f0', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 20 }}>🔄</span> Sinchronizacija tarp įrenginių
+        </h3>
+        <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
+          Sinchronizuokite duomenis tarp kompiuterio ir telefono. Reikia paleisti sync serverį jūsų VPS.
+        </p>
+        <div style={formGroup}><label style={labelStyle}>Sync serverio URL</label>
+          <input style={inputStyle} value={settings.syncUrl || ''} placeholder="https://mano.oktoja.lt:3001"
+            onChange={e => setSettings(s => ({ ...s, syncUrl: e.target.value }))} /></div>
+        <div style={formGroup}><label style={labelStyle}>Sync raktas (slaptažodis)</label>
+          <input style={inputStyle} type="password" value={settings.syncKey || ''} placeholder="jūsų-slaptas-raktas"
+            onChange={e => setSettings(s => ({ ...s, syncKey: e.target.value }))} /></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <label style={{ display: 'flex', gap: 6, alignItems: 'center', color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>
+            <input type="checkbox" checked={settings.autoSync || false}
+              onChange={e => setSettings(s => ({ ...s, autoSync: e.target.checked }))} />
+            Automatinė sinchronizacija kas 5 min.
+          </label>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+          <button style={btnPrimary} disabled={sync?.syncing}
+            onClick={async () => {
+              const ok = await sync?.pushData()
+              if (ok) toast.success('Duomenys nusiųsti į serverį')
+              else toast.error(sync?.syncError || 'Sinchronizacijos klaida')
+            }}>
+            {sync?.syncing ? '⏳' : '⬆️'} Siųsti į serverį
+          </button>
+          <button style={btnSecondary} disabled={sync?.syncing}
+            onClick={async () => {
+              const ok = await sync?.pullData()
+              if (ok) { toast.success('Duomenys atnaujinti iš serverio. Perkraukite puslapį.'); setTimeout(() => window.location.reload(), 1500) }
+              else toast.error(sync?.syncError || 'Sinchronizacijos klaida')
+            }}>
+            {sync?.syncing ? '⏳' : '⬇️'} Gauti iš serverio
+          </button>
+        </div>
+        {sync?.lastSync && (
+          <div style={{ color: '#64748b', fontSize: 12 }}>
+            Paskutinė sinchronizacija: {formatDateLT(sync.lastSync)}
+          </div>
+        )}
+        {sync?.syncError && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{sync.syncError}</div>}
+
+        <details style={{ marginTop: 12 }}>
+          <summary style={{ color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>📋 Kaip paleisti sync serverį?</summary>
+          <div style={{ color: '#64748b', fontSize: 12, lineHeight: 1.8, marginTop: 8, fontFamily: 'monospace' }}>
+            <div>1. Prisijunkite prie serverio per SSH</div>
+            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+              ssh root@161.97.159.241
+            </div>
+            <div>2. Eikite į projektą</div>
+            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+              cd /var/www/mano-crm/server
+            </div>
+            <div>3. Nustatykite sync raktą ir paleiskite</div>
+            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+              SYNC_KEY=jusu-slaptas-raktas node sync-server.js
+            </div>
+            <div>4. Arba su PM2 (auto-restart):</div>
+            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+              npm install -g pm2<br/>
+              SYNC_KEY=jusu-slaptas-raktas pm2 start sync-server.js --name manocrm-sync
+            </div>
+          </div>
+        </details>
       </section>
 
       {/* Keyboard shortcuts info */}

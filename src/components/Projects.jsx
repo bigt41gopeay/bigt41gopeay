@@ -1,17 +1,39 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, formatCurrency } from '../utils/helpers'
 import { useToast } from '../contexts/ToastContext'
-import { STATUS_COLORS } from '../utils/constants'
+import { STATUS_COLORS, PROJECT_TEMPLATES } from '../utils/constants'
 import {
   Modal, Badge, SectionHeader, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
 } from './ui'
 
 function ProjectForm({ initial, contacts, onSave, onClose }) {
-  const [form, setForm] = useState(initial || { name: '', contactId: '', status: 'vykdomas', description: '', deadline: '', budget: '' })
+  const [form, setForm] = useState(initial || { name: '', contactId: '', status: 'vykdomas', description: '', deadline: '', budget: '', _template: '' })
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const applyTemplate = (tplName) => {
+    const tpl = PROJECT_TEMPLATES.find(t => t.name === tplName)
+    if (tpl) {
+      setForm(f => ({
+        ...f,
+        name: f.name || tpl.name,
+        description: f.description || tpl.description,
+        _template: tpl.name,
+      }))
+    }
+  }
+
   return (
     <form onSubmit={e => { e.preventDefault(); if (form.name.trim()) { onSave(form); onClose() } }}>
+      {!initial && (
+        <div style={formGroup}>
+          <label style={labelStyle}>📋 Šablonas (sukurs darbus automatiškai)</label>
+          <select style={inputStyle} value={form._template || ''} onChange={e => { set('_template', e.target.value); applyTemplate(e.target.value) }}>
+            <option value="">— Tuščias projektas —</option>
+            {PROJECT_TEMPLATES.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+          </select>
+        </div>
+      )}
       <div style={formGroup}><label style={labelStyle}>Projekto pavadinimas *</label>
         <input style={inputStyle} required value={form.name} onChange={e => set('name', e.target.value)} /></div>
       <div style={formGroup}><label style={labelStyle}>Klientas</label>
@@ -37,7 +59,7 @@ function ProjectForm({ initial, contacts, onSave, onClose }) {
   )
 }
 
-export const Projects = memo(function Projects({ projects, setProjects, contacts }) {
+export const Projects = memo(function Projects({ projects, setProjects, contacts, tasks, setTasks }) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
   const [filter, setFilter] = useState('visi')
@@ -52,11 +74,36 @@ export const Projects = memo(function Projects({ projects, setProjects, contacts
       setProjects(ps => ps.map(p => p.id === editing.id ? { ...p, ...form } : p))
       toast.success('Projektas atnaujintas')
     } else {
-      setProjects(ps => [...ps, { ...form, id: genId(), createdAt: new Date().toISOString() }])
+      const newProject = { ...form, id: genId(), createdAt: new Date().toISOString() }
+      setProjects(ps => [...ps, newProject])
       toast.success('Projektas sukurtas')
+      // Auto-create tasks from template if applicable
+      if (form._template) {
+        const template = PROJECT_TEMPLATES.find(t => t.name === form._template)
+        if (template && setTasks) {
+          template.defaultTasks.forEach(title => {
+            setTasks(ts => [...ts, {
+              id: genId(), title, projectId: newProject.id, contactId: form.contactId || '',
+              type: 'darbas', status: 'laukia', deadline: '', notes: '', recurrence: '',
+              createdAt: new Date().toISOString(),
+            }])
+          })
+          toast.info(`Sukurta ${template.defaultTasks.length} darbai iš šablono`)
+        }
+      }
     }
     setEditing(null)
-  }, [editing, setProjects, toast])
+  }, [editing, setProjects, setTasks, toast])
+
+  const createFromTemplate = useCallback((template) => {
+    setEditing(null)
+    setShowForm(true)
+    // Pre-fill with template data
+    setTimeout(() => {
+      const form = document.querySelector('form input[required]')
+      if (form) form.focus()
+    }, 100)
+  }, [])
 
   return (
     <div>
