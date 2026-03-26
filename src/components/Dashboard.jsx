@@ -48,7 +48,7 @@ export const Dashboard = memo(function Dashboard({ contacts, projects, tasks, co
 
   return (
     <div>
-      <h2 style={{ color: '#e2e8f0', marginBottom: 20 }}>Sveiki! Apžvalga</h2>
+      <h2 style={{ color: '#e2e8f0', marginBottom: 20 }}>Apžvalga</h2>
 
       {/* Quick Links */}
       {credentials && <QuickLinks credentials={credentials} />}
