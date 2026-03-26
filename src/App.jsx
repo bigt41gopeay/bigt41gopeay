@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { STORAGE_KEYS, TABS } from './utils/constants'
+import { STORAGE_KEYS, TABS, BRAND } from './utils/constants'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useSync } from './hooks/useSync'
@@ -16,6 +16,9 @@ import { Credentials } from './components/Credentials'
 import { Invoices } from './components/Invoices'
 import { Notes } from './components/Notes'
 import { Settings } from './components/Settings'
+
+// Bottom nav tabs (most used on mobile)
+const BOTTOM_TABS = ['dashboard', 'leads', 'tasks', 'credentials', 'notes']
 
 function AppContent() {
   const [tab, setTab] = useState('dashboard')
@@ -39,23 +42,46 @@ function AppContent() {
     setMenuOpen(false)
   }, [])
 
+  const bottomTabs = TABS.filter(t => BOTTOM_TABS.includes(t.id))
+
   return (
-    <div style={{ minHeight: '100vh', background: '#0f0f1a', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', minHeight: '100dvh', background: BRAND.dark, color: BRAND.textPrimary }}>
       {/* Header */}
       <header style={{
-        background: '#1e1e2e', borderBottom: '1px solid #2e2e3e',
+        background: 'rgba(19, 16, 28, 0.88)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        borderBottom: `1px solid ${BRAND.darkBorder}`,
         padding: '0 16px', position: 'sticky', top: 0, zIndex: 100,
       }}>
         <div style={{
           maxWidth: 1200, margin: '0 auto',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          height: 56,
         }}>
+          {/* Logo */}
           <div
-            style={{ fontWeight: 800, fontSize: 18, color: '#6366f1', letterSpacing: -0.5, whiteSpace: 'nowrap', cursor: 'pointer' }}
+            style={{
+              fontWeight: 800, fontSize: 20,
+              background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.cyan})`,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: -0.5, whiteSpace: 'nowrap', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}
             onClick={() => handleTabChange('dashboard')}
             role="banner"
           >
-            ⚡ ManoKRM
+            <span style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.purpleDeep})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 14, WebkitTextFillColor: '#fff',
+              boxShadow: '0 2px 8px rgba(134,59,255,0.3)',
+            }}>
+              ⚡
+            </span>
+            ManoKRM
           </div>
 
           {/* Desktop nav */}
@@ -66,12 +92,16 @@ function AppContent() {
                 onClick={() => handleTabChange(t.id)}
                 aria-current={tab === t.id ? 'page' : undefined}
                 title={`${t.label} (Alt+${t.shortcut})`}
+                className="btn-press"
                 style={{
-                  background: tab === t.id ? '#6366f1' : 'none',
-                  color: tab === t.id ? '#fff' : '#94a3b8',
-                  border: 'none', borderRadius: 8, padding: '6px 10px',
-                  cursor: 'pointer', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap',
-                  transition: 'background 0.2s',
+                  background: tab === t.id
+                    ? `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.purpleDeep})`
+                    : 'none',
+                  color: tab === t.id ? '#fff' : BRAND.textSecondary,
+                  border: 'none', borderRadius: 10, padding: '7px 12px',
+                  cursor: 'pointer', fontSize: 13, fontWeight: tab === t.id ? 700 : 500,
+                  whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+                  boxShadow: tab === t.id ? '0 2px 8px rgba(134,59,255,0.3)' : 'none',
                 }}
               >
                 {t.icon} {t.label}
@@ -86,32 +116,56 @@ function AppContent() {
             aria-label="Meniu"
             aria-expanded={menuOpen}
             style={{
-              display: 'none', background: 'none', border: 'none',
-              color: '#94a3b8', fontSize: 22, cursor: 'pointer',
+              display: 'none', background: menuOpen ? BRAND.darkCard : 'none',
+              border: `1px solid ${menuOpen ? BRAND.darkBorder : 'transparent'}`,
+              color: menuOpen ? BRAND.purple : BRAND.textSecondary,
+              fontSize: 20, cursor: 'pointer', borderRadius: 10,
+              width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s ease',
             }}
           >
             {menuOpen ? '✕' : '☰'}
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile dropdown menu */}
         {menuOpen && (
-          <nav className="mobile-nav" aria-label="Mobilusis meniu" style={{ borderTop: '1px solid #2e2e3e', padding: '8px 0' }}>
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                onClick={() => handleTabChange(t.id)}
-                aria-current={tab === t.id ? 'page' : undefined}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  background: tab === t.id ? '#6366f155' : 'none',
-                  color: tab === t.id ? '#6366f1' : '#94a3b8',
-                  border: 'none', padding: '12px 16px', cursor: 'pointer', fontSize: 15,
-                }}
-              >
-                {t.icon} {t.label}
-              </button>
-            ))}
+          <nav
+            className="mobile-nav"
+            aria-label="Mobilusis meniu"
+            style={{
+              borderTop: `1px solid ${BRAND.darkBorder}`,
+              padding: '8px 0 12px',
+              animation: 'slideUp 0.2s ease-out',
+            }}
+          >
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6,
+              padding: '0 4px',
+            }}>
+              {TABS.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => handleTabChange(t.id)}
+                  aria-current={tab === t.id ? 'page' : undefined}
+                  className="btn-press"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: tab === t.id
+                      ? `linear-gradient(135deg, rgba(134,59,255,0.15), rgba(126,20,255,0.08))`
+                      : BRAND.darkCard,
+                    color: tab === t.id ? BRAND.purple : BRAND.textSecondary,
+                    border: `1px solid ${tab === t.id ? BRAND.purple + '33' : BRAND.darkBorder}`,
+                    borderRadius: 12, padding: '12px 14px', cursor: 'pointer', fontSize: 14,
+                    fontWeight: tab === t.id ? 700 : 500,
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{t.icon}</span>
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </nav>
         )}
       </header>
@@ -120,7 +174,10 @@ function AppContent() {
       <NotificationBar tasks={tasks} />
 
       {/* Main content */}
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px', minHeight: 'calc(100vh - 52px)' }}>
+      <main style={{
+        maxWidth: 1200, margin: '0 auto', padding: '20px 16px',
+        minHeight: 'calc(100vh - 56px)', minHeight: 'calc(100dvh - 56px)',
+      }}>
         {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} invoices={invoices} credentials={credentials} leads={leads} gcalToken={gcalToken} />}
         {tab === 'leads' && <Leads leads={leads} setLeads={setLeads} contacts={contacts} />}
         {tab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
@@ -133,35 +190,60 @@ function AppContent() {
         {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} gcalToken={gcalToken} setGcalToken={setGcalToken} tasks={tasks} setTasks={setTasks} sync={sync} />}
       </main>
 
-      {/* Bottom nav for mobile — show most important tabs */}
+      {/* Bottom nav for mobile */}
       <nav className="bottom-nav" aria-label="Greitoji navigacija">
-        {[TABS[0], TABS[1], TABS[4], TABS[6], TABS[7]].map(t => (
-          <button
-            key={t.id}
-            onClick={() => handleTabChange(t.id)}
-            aria-current={tab === t.id ? 'page' : undefined}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 2, padding: '8px 4px', border: 'none', cursor: 'pointer',
-              background: 'none',
-              color: tab === t.id ? '#6366f1' : '#64748b',
-              fontSize: 9, fontWeight: tab === t.id ? 700 : 400,
-            }}
-          >
-            <span style={{ fontSize: 18 }}>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
+        {bottomTabs.map(t => {
+          const isActive = tab === t.id
+          return (
+            <button
+              key={t.id}
+              onClick={() => handleTabChange(t.id)}
+              aria-current={isActive ? 'page' : undefined}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 3, padding: '6px 4px', border: 'none', cursor: 'pointer',
+                background: 'none',
+                color: isActive ? BRAND.purple : BRAND.textMuted,
+                fontSize: 10, fontWeight: isActive ? 700 : 500,
+                transition: 'color 0.15s ease',
+                position: 'relative',
+              }}
+            >
+              <span style={{
+                fontSize: 20,
+                transform: isActive ? 'scale(1.15)' : 'scale(1)',
+                transition: 'transform 0.2s ease',
+              }}>
+                {t.icon}
+              </span>
+              <span style={{ letterSpacing: 0.2 }}>{t.label}</span>
+              {/* Active indicator dot */}
+              {isActive && (
+                <span style={{
+                  position: 'absolute', bottom: 0, left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 4, height: 4, borderRadius: '50%',
+                  background: BRAND.purple,
+                  boxShadow: `0 0 6px ${BRAND.purple}`,
+                }} />
+              )}
+            </button>
+          )
+        })}
+        {/* More button */}
         <button
           onClick={() => setMenuOpen(o => !o)}
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: 2, padding: '8px 4px', border: 'none', cursor: 'pointer',
-            background: 'none', color: menuOpen ? '#6366f1' : '#64748b', fontSize: 9,
+            gap: 3, padding: '6px 4px', border: 'none', cursor: 'pointer',
+            background: 'none',
+            color: menuOpen ? BRAND.purple : BRAND.textMuted,
+            fontSize: 10, fontWeight: menuOpen ? 700 : 500,
+            transition: 'color 0.15s ease',
           }}
         >
-          <span style={{ fontSize: 18 }}>☰</span>
-          Daugiau
+          <span style={{ fontSize: 20 }}>☰</span>
+          <span>Daugiau</span>
         </button>
       </nav>
     </div>

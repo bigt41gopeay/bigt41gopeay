@@ -18,20 +18,21 @@ export class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div style={{
-          minHeight: '100vh', background: '#0f0f1a', color: '#e2e8f0',
+          minHeight: '100vh', background: '#08060d', color: '#f0ecf6',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'system-ui, sans-serif', padding: 20,
+          fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', padding: 20,
         }}>
           <div style={{
-            background: '#1e1e2e', border: '1px solid #ef444444', borderRadius: 12,
-            padding: 32, maxWidth: 480, textAlign: 'center',
+            background: '#1a1625', border: '1px solid #ef444433', borderRadius: 18,
+            padding: 36, maxWidth: 480, textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-            <h2 style={{ margin: '0 0 12px', color: '#ef4444' }}>Kažkas nutiko ne taip</h2>
-            <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 20 }}>
+            <div style={{ fontSize: 52, marginBottom: 18 }}>⚠️</div>
+            <h2 style={{ margin: '0 0 12px', color: '#ef4444', fontSize: 20, fontWeight: 700 }}>Kažkas nutiko ne taip</h2>
+            <p style={{ color: '#a99fc4', fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>
               Įvyko nenumatyta klaida. Jūsų duomenys yra saugūs naršyklėje.
             </p>
-            <p style={{ color: '#64748b', fontSize: 12, fontFamily: 'monospace', marginBottom: 20, wordBreak: 'break-all' }}>
+            <p style={{ color: '#6e6287', fontSize: 12, fontFamily: 'monospace', marginBottom: 24, wordBreak: 'break-all' }}>
               {this.state.error?.message}
             </p>
             <button
@@ -39,9 +40,12 @@ export class ErrorBoundary extends Component {
                 this.setState({ hasError: false, error: null })
                 window.location.reload()
               }}
+              className="btn-press"
               style={{
-                background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8,
-                padding: '10px 24px', cursor: 'pointer', fontWeight: 600, fontSize: 14,
+                background: 'linear-gradient(135deg, #863bff, #7e14ff)',
+                color: '#fff', border: 'none', borderRadius: 12,
+                padding: '12px 28px', cursor: 'pointer', fontWeight: 700, fontSize: 15,
+                boxShadow: '0 4px 16px rgba(134,59,255,0.3)',
               }}
             >
               Perkrauti puslapį

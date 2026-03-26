@@ -1,7 +1,7 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, formatDateLT } from '../utils/helpers'
 import { gcalCreateEvent, gcalUpdateEvent } from '../utils/gcal'
-import { RECURRENCE_OPTIONS } from '../utils/constants'
+import { RECURRENCE_OPTIONS, BRAND } from '../utils/constants'
 import { useToast } from '../contexts/ToastContext'
 import {
   Modal, Badge, SectionHeader, FilterBar, EmptyState,
@@ -59,8 +59,8 @@ function TaskForm({ initial, projects, contacts, onSave, onClose }) {
       <div style={formGroup}><label style={labelStyle}>Pastabos</label>
         <textarea style={{ ...inputStyle, height: 70, resize: 'vertical' }} value={form.notes} onChange={e => set('notes', e.target.value)} /></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
-        <button type="submit" style={btnPrimary}>Išsaugoti</button>
+        <button type="button" style={btnSecondary} className="btn-press" onClick={onClose}>Atšaukti</button>
+        <button type="submit" style={btnPrimary} className="btn-press">Išsaugoti</button>
       </div>
     </form>
   )
@@ -146,7 +146,7 @@ export const Tasks = memo(function Tasks({ tasks, setTasks, projects, contacts, 
   return (
     <div>
       <SectionHeader title="Darbai ir susitarimai">
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
+        <button data-action="add" style={btnPrimary} className="btn-press" onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
       </SectionHeader>
 
       <FilterBar options={statuses} value={filter} onChange={setFilter} />
@@ -158,36 +158,36 @@ export const Tasks = memo(function Tasks({ tasks, setTasks, projects, contacts, 
         const contact = getContact(t.contactId)
         const overdue = t.deadline && t.status !== 'baigtas' && new Date(t.deadline) < new Date()
         return (
-          <article key={t.id} style={{ ...cardStyle, borderLeft: `3px solid ${t.type === 'susitikimas' ? '#8b5cf6' : '#3b82f6'}` }}>
+          <article key={t.id} className="card-interactive" style={{ ...cardStyle, borderLeft: `3px solid ${t.type === 'susitikimas' ? BRAND.purple : BRAND.cyan}`, borderRadius: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{t.title}</span>
+                  <span style={{ fontWeight: 700, color: BRAND.textPrimary }}>{t.title}</span>
                   <Badge status={t.type} />
                   <Badge status={t.status} />
                   {t.recurrence && <span style={{ fontSize: 10, color: '#06b6d4' }}>{RECURRENCE_LABELS[t.recurrence] || '🔁'}</span>}
-                  {t.gcalEventId && <span title="Sinchronizuota su Google Calendar" style={{ fontSize: 11, color: '#4285f4' }}>📅</span>}
+                  {t.gcalEventId && <span title="Sinchronizuota su Google Calendar" style={{ fontSize: 11, color: BRAND.cyan }}>📅</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
-                  {project && <span style={{ color: '#6366f1', fontSize: 12 }}>📁 {project.name}</span>}
-                  {contact && <span style={{ color: '#94a3b8', fontSize: 12 }}>👤 {contact.name}</span>}
-                  {t.deadline && <span style={{ color: overdue ? '#ef4444' : '#64748b', fontSize: 12 }}>{overdue ? '⚠ ' : '🕐 '}{formatDateLT(t.deadline)}</span>}
+                  {project && <span style={{ color: BRAND.purple, fontSize: 12 }}>📁 {project.name}</span>}
+                  {contact && <span style={{ color: BRAND.textSecondary, fontSize: 12 }}>👤 {contact.name}</span>}
+                  {t.deadline && <span style={{ color: overdue ? '#ef4444' : BRAND.textMuted, fontSize: 12 }}>{overdue ? '⚠ ' : '🕐 '}{formatDateLT(t.deadline)}</span>}
                 </div>
-                {t.notes && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{t.notes}</div>}
+                {t.notes && <div style={{ color: BRAND.textMuted, fontSize: 12, marginTop: 4 }}>{t.notes}</div>}
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 {t.status !== 'baigtas' && (
-                  <button style={{ ...btnSecondary, fontSize: 12, padding: '4px 10px', color: '#22c55e' }}
-                    onClick={() => markDone(t)} aria-label="Pažymėti kaip baigtą">✓</button>
+                  <button style={{ ...btnSecondary, fontSize: 12, padding: '4px 10px', color: '#22c55e', borderRadius: 12 }}
+                    className="btn-press" onClick={() => markDone(t)} aria-label="Pažymėti kaip baigtą">✓</button>
                 )}
                 {t.deadline && !t.gcalEventId && gcalToken && (
-                  <button style={{ ...btnSecondary, fontSize: 11, padding: '4px 8px', color: '#4285f4' }}
-                    onClick={() => addToCalendar(t)} aria-label="Pridėti į Google Calendar">
+                  <button style={{ ...btnSecondary, fontSize: 11, padding: '4px 8px', color: BRAND.cyan, borderRadius: 12 }}
+                    className="btn-press" onClick={() => addToCalendar(t)} aria-label="Pridėti į Google Calendar">
                     {gcalMsg[t.id] || '📅'}
                   </button>
                 )}
-                <button style={btnSecondary} onClick={() => { setEditing(t); setShowForm(true) }}>Redaguoti</button>
-                <button style={btnDanger} onClick={() => {
+                <button style={btnSecondary} className="btn-press" onClick={() => { setEditing(t); setShowForm(true) }}>Redaguoti</button>
+                <button style={btnDanger} className="btn-press" onClick={() => {
                   setTasks(ts => ts.filter(x => x.id !== t.id))
                   toast.success('Darbas ištrintas')
                 }}>Ištrinti</button>

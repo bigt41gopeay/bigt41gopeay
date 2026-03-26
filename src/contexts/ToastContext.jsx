@@ -29,7 +29,6 @@ export function ToastProvider({ children }) {
     info: (msg, dur) => addToast(msg, 'info', dur),
   }, [addToast])
 
-  // Make toast callable: toast.success(), toast.error(), etc.
   const value = { toast, removeToast }
 
   return (
@@ -47,10 +46,10 @@ export function useToast() {
 }
 
 const TOAST_COLORS = {
-  success: { bg: '#22c55e22', border: '#22c55e44', color: '#22c55e', icon: '✅' },
-  error: { bg: '#ef444422', border: '#ef444444', color: '#ef4444', icon: '❌' },
-  warning: { bg: '#f59e0b22', border: '#f59e0b44', color: '#f59e0b', icon: '⚠️' },
-  info: { bg: '#3b82f622', border: '#3b82f644', color: '#3b82f6', icon: 'ℹ️' },
+  success: { bg: '#22c55e15', border: '#22c55e33', color: '#22c55e', icon: '✅' },
+  error: { bg: '#ef444415', border: '#ef444433', color: '#ef4444', icon: '❌' },
+  warning: { bg: '#f59e0b15', border: '#f59e0b33', color: '#f59e0b', icon: '⚠️' },
+  info: { bg: 'rgba(134,59,255,0.08)', border: 'rgba(134,59,255,0.2)', color: '#b388ff', icon: 'ℹ️' },
 }
 
 function ToastContainer({ toasts, onRemove }) {
@@ -60,28 +59,32 @@ function ToastContainer({ toasts, onRemove }) {
       role="alert"
       aria-live="polite"
       style={{
-        position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
-        display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 380,
+        position: 'fixed', bottom: 90, right: 16, zIndex: 9999,
+        display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 360,
+        width: 'calc(100% - 32px)',
       }}
     >
       {toasts.map(t => {
         const c = TOAST_COLORS[t.type] || TOAST_COLORS.info
         return (
           <div key={t.id} style={{
-            background: '#1e1e2e', border: `1px solid ${c.border}`,
-            borderLeft: `4px solid ${c.color}`, borderRadius: 8,
-            padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10,
+            background: '#1a1625', border: `1px solid ${c.border}`,
+            borderLeft: `4px solid ${c.color}`, borderRadius: 14,
+            padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10,
             animation: 'slideIn 0.25s ease-out',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
           }}>
-            <span>{c.icon}</span>
-            <span style={{ color: '#e2e8f0', fontSize: 13, flex: 1 }}>{t.message}</span>
+            <span style={{ fontSize: 16 }}>{c.icon}</span>
+            <span style={{ color: '#f0ecf6', fontSize: 14, flex: 1, lineHeight: 1.4 }}>{t.message}</span>
             <button
               onClick={() => onRemove(t.id)}
               aria-label="Uždaryti pranešimą"
               style={{
-                background: 'none', border: 'none', color: '#64748b',
-                cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0,
+                background: 'none', border: 'none', color: '#6e6287',
+                cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4,
+                borderRadius: 6, transition: 'color 0.15s',
               }}
             >
               ×

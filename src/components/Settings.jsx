@@ -3,7 +3,7 @@ import { genId, formatDateLT } from '../utils/helpers'
 import { loadGISScript, gcalListEvents } from '../utils/gcal'
 import { exportAllData, importAllData } from '../utils/export'
 import { useToast } from '../contexts/ToastContext'
-import { GCAL_SCOPE } from '../utils/constants'
+import { GCAL_SCOPE, BRAND } from '../utils/constants'
 import {
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, cardStyle,
 } from './ui'
@@ -110,27 +110,27 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
 
   return (
     <div>
-      <h2 style={{ color: '#e2e8f0', marginBottom: 20 }}>Nustatymai</h2>
+      <h2 style={{ color: BRAND.textPrimary, marginBottom: 20 }}>Nustatymai</h2>
 
       {/* Data Backup / Restore */}
       <section style={{ ...cardStyle, marginBottom: 20 }}>
-        <h3 style={{ color: '#e2e8f0', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h3 style={{ color: BRAND.textPrimary, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 20 }}>💾</span> Duomenų atsarginė kopija
         </h3>
-        <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
+        <p style={{ color: BRAND.textSecondary, fontSize: 13, marginBottom: 12 }}>
           Eksportuokite visus duomenis (kontaktus, projektus, darbus, sąskaitas, prisijungimus) į JSON failą.
           Galite importuoti atgal bet kuriuo metu.
         </p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button style={btnPrimary} onClick={handleExport}>📥 Eksportuoti viską</button>
-          <button style={btnSecondary} onClick={() => fileRef.current?.click()}>📤 Importuoti iš failo</button>
+          <button className="btn-press" style={btnPrimary} onClick={handleExport}>📥 Eksportuoti viską</button>
+          <button className="btn-press" style={btnSecondary} onClick={() => fileRef.current?.click()}>📤 Importuoti iš failo</button>
           <input ref={fileRef} type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
         </div>
       </section>
 
       {/* Google Calendar */}
       <section style={{ ...cardStyle, marginBottom: 20 }}>
-        <h3 style={{ color: '#e2e8f0', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h3 style={{ color: BRAND.textPrimary, margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 20 }}>📅</span> Google Calendar integracija
         </h3>
 
@@ -140,34 +140,34 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
               <label style={labelStyle}>Google OAuth2 Client ID</label>
               <input style={inputStyle} placeholder="000000000000-xxxx.apps.googleusercontent.com"
                 value={clientId} onChange={e => setClientId(e.target.value)} />
-              <div style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>
+              <div style={{ color: BRAND.textMuted, fontSize: 12, marginTop: 6 }}>
                 Kaip gauti — žr. instrukciją žemiau arba failą INSTRUKCIJA.md
               </div>
             </div>
-            <button style={btnPrimary} onClick={connect}>🔗 Prisijungti prie Google Calendar</button>
+            <button className="btn-press" style={btnPrimary} onClick={connect}>🔗 Prisijungti prie Google Calendar</button>
           </>
         ) : (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
               <span style={{ color: '#22c55e', fontSize: 14 }}>✅ Google Calendar prisijungta</span>
-              <span style={{ color: '#64748b', fontSize: 12 }}>· Client ID: {settings.gcalClientId?.slice(0, 20)}...</span>
+              <span style={{ color: BRAND.textMuted, fontSize: 12 }}>· Client ID: {settings.gcalClientId?.slice(0, 20)}...</span>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-              <button style={btnPrimary} onClick={syncEvents}>🔄 Sinchronizuoti įvykius</button>
-              <button style={btnSecondary} onClick={disconnect}>Atsijungti</button>
+              <button className="btn-press" style={btnPrimary} onClick={syncEvents}>🔄 Sinchronizuoti įvykius</button>
+              <button className="btn-press" style={btnSecondary} onClick={disconnect}>Atsijungti</button>
             </div>
             {gcalEvents.length > 0 && (
               <div>
-                <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 8 }}>Artimiausi Google Calendar įvykiai (importuoti kaip darbus):</div>
+                <div style={{ color: BRAND.textSecondary, fontSize: 13, marginBottom: 8 }}>Artimiausi Google Calendar įvykiai (importuoti kaip darbus):</div>
                 {gcalEvents.map(ev => (
                   <div key={ev.id} style={{ ...cardStyle, padding: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                     <div>
-                      <div style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600 }}>{ev.summary}</div>
-                      <div style={{ color: '#4285f4', fontSize: 11 }}>
+                      <div style={{ color: BRAND.textPrimary, fontSize: 13, fontWeight: 600 }}>{ev.summary}</div>
+                      <div style={{ color: BRAND.cyan, fontSize: 11 }}>
                         {ev.start?.dateTime ? formatDateLT(ev.start.dateTime) : ev.start?.date}
                       </div>
                     </div>
-                    <button style={{ ...btnSecondary, fontSize: 12, padding: '4px 10px' }} onClick={() => importEvent(ev)}>
+                    <button className="btn-press" style={{ ...btnSecondary, fontSize: 12, padding: '4px 10px' }} onClick={() => importEvent(ev)}>
                       ← Importuoti
                     </button>
                   </div>
@@ -186,10 +186,10 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
 
       {/* Multi-device Sync */}
       <section style={{ ...cardStyle, marginBottom: 20 }}>
-        <h3 style={{ color: '#e2e8f0', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h3 style={{ color: BRAND.textPrimary, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 20 }}>🔄</span> Sinchronizacija tarp įrenginių
         </h3>
-        <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
+        <p style={{ color: BRAND.textSecondary, fontSize: 13, marginBottom: 12 }}>
           Sinchronizuokite duomenis tarp kompiuterio ir telefono. Reikia paleisti sync serverį jūsų VPS.
         </p>
         <div style={formGroup}><label style={labelStyle}>Sync serverio URL</label>
@@ -199,14 +199,14 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
           <input style={inputStyle} type="password" value={settings.syncKey || ''} placeholder="jūsų-slaptas-raktas"
             onChange={e => setSettings(s => ({ ...s, syncKey: e.target.value }))} /></div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <label style={{ display: 'flex', gap: 6, alignItems: 'center', color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>
+          <label style={{ display: 'flex', gap: 6, alignItems: 'center', color: BRAND.textSecondary, fontSize: 13, cursor: 'pointer' }}>
             <input type="checkbox" checked={settings.autoSync || false}
               onChange={e => setSettings(s => ({ ...s, autoSync: e.target.checked }))} />
             Automatinė sinchronizacija kas 5 min.
           </label>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-          <button style={btnPrimary} disabled={sync?.syncing}
+          <button className="btn-press" style={btnPrimary} disabled={sync?.syncing}
             onClick={async () => {
               const ok = await sync?.pushData()
               if (ok) toast.success('Duomenys nusiųsti į serverį')
@@ -214,7 +214,7 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
             }}>
             {sync?.syncing ? '⏳' : '⬆️'} Siųsti į serverį
           </button>
-          <button style={btnSecondary} disabled={sync?.syncing}
+          <button className="btn-press" style={btnSecondary} disabled={sync?.syncing}
             onClick={async () => {
               const ok = await sync?.pullData()
               if (ok) { toast.success('Duomenys atnaujinti iš serverio. Perkraukite puslapį.'); setTimeout(() => window.location.reload(), 1500) }
@@ -224,29 +224,29 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
           </button>
         </div>
         {sync?.lastSync && (
-          <div style={{ color: '#64748b', fontSize: 12 }}>
+          <div style={{ color: BRAND.textMuted, fontSize: 12 }}>
             Paskutinė sinchronizacija: {formatDateLT(sync.lastSync)}
           </div>
         )}
         {sync?.syncError && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{sync.syncError}</div>}
 
         <details style={{ marginTop: 12 }}>
-          <summary style={{ color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>📋 Kaip paleisti sync serverį?</summary>
-          <div style={{ color: '#64748b', fontSize: 12, lineHeight: 1.8, marginTop: 8, fontFamily: 'monospace' }}>
+          <summary style={{ color: BRAND.textSecondary, fontSize: 13, cursor: 'pointer' }}>📋 Kaip paleisti sync serverį?</summary>
+          <div style={{ color: BRAND.textMuted, fontSize: 12, lineHeight: 1.8, marginTop: 8, fontFamily: 'monospace' }}>
             <div>1. Prisijunkite prie serverio per SSH</div>
-            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+            <div style={{ background: BRAND.dark, padding: '6px 10px', borderRadius: 12, margin: '4px 0' }}>
               ssh root@161.97.159.241
             </div>
             <div>2. Eikite į projektą</div>
-            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+            <div style={{ background: BRAND.dark, padding: '6px 10px', borderRadius: 12, margin: '4px 0' }}>
               cd /var/www/mano-crm/server
             </div>
             <div>3. Nustatykite sync raktą ir paleiskite</div>
-            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+            <div style={{ background: BRAND.dark, padding: '6px 10px', borderRadius: 12, margin: '4px 0' }}>
               SYNC_KEY=jusu-slaptas-raktas node sync-server.js
             </div>
             <div>4. Arba su PM2 (auto-restart):</div>
-            <div style={{ background: '#0f0f1a', padding: '6px 10px', borderRadius: 6, margin: '4px 0' }}>
+            <div style={{ background: BRAND.dark, padding: '6px 10px', borderRadius: 12, margin: '4px 0' }}>
               npm install -g pm2<br/>
               SYNC_KEY=jusu-slaptas-raktas pm2 start sync-server.js --name manocrm-sync
             </div>
@@ -256,10 +256,10 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
 
       {/* Keyboard shortcuts info */}
       <section style={cardStyle}>
-        <h3 style={{ color: '#e2e8f0', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h3 style={{ color: BRAND.textPrimary, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 20 }}>⌨️</span> Klaviatūros spartieji klavišai
         </h3>
-        <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 2 }}>
+        <div style={{ color: BRAND.textSecondary, fontSize: 13, lineHeight: 2 }}>
           <div><kbd style={kbdStyle}>Alt + 1-8</kbd> Perjungti skiltis</div>
           <div><kbd style={kbdStyle}>Alt + N</kbd> Naujas įrašas</div>
           <div><kbd style={kbdStyle}>Alt + S</kbd> Paieškos laukas</div>
@@ -269,8 +269,8 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
 
       {/* Setup instructions */}
       <section style={{ ...cardStyle, marginTop: 20 }}>
-        <h3 style={{ color: '#e2e8f0', margin: '0 0 12px' }}>📋 Google Calendar nustatymo instrukcija</h3>
-        <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.8 }}>
+        <h3 style={{ color: BRAND.textPrimary, margin: '0 0 12px' }}>📋 Google Calendar nustatymo instrukcija</h3>
+        <div style={{ color: BRAND.textSecondary, fontSize: 13, lineHeight: 1.8 }}>
           {[
             ['1', 'Eikite į console.cloud.google.com'],
             ['2', 'Sukurkite naują projektą (arba pasirinkite esamą)'],
@@ -283,7 +283,7 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
             ['9', 'Pirmą kartą Google paprašys patvirtinti prieigą — leiskite'],
           ].map(([n, text]) => (
             <div key={n} style={{ marginBottom: 6 }}>
-              <b style={{ color: '#6366f1' }}>{n}.</b> {text}
+              <b style={{ color: BRAND.purple }}>{n}.</b> {text}
             </div>
           ))}
         </div>
@@ -293,7 +293,7 @@ export const Settings = memo(function Settings({ settings, setSettings, gcalToke
 })
 
 const kbdStyle = {
-  background: '#2e2e3e', border: '1px solid #3e3e4e', borderRadius: 4,
-  padding: '2px 6px', fontFamily: 'monospace', fontSize: 12, color: '#e2e8f0',
+  background: BRAND.darkBorder, border: `1px solid ${BRAND.darkBorderLight}`, borderRadius: 4,
+  padding: '2px 6px', fontFamily: 'monospace', fontSize: 12, color: BRAND.textPrimary,
   marginRight: 8,
 }

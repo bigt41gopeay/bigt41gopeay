@@ -2,6 +2,7 @@ import { useState, useCallback, memo } from 'react'
 import { genId, isValidEmail, isValidPhone } from '../utils/helpers'
 import { exportContactsCSV } from '../utils/export'
 import { useToast } from '../contexts/ToastContext'
+import { BRAND } from '../utils/constants'
 import {
   Modal, Badge, SectionHeader, SearchInput, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
@@ -49,8 +50,8 @@ function ContactForm({ initial, onSave, onClose }) {
       <div style={formGroup}><label style={labelStyle}>Pastabos</label>
         <textarea style={{ ...inputStyle, height: 70, resize: 'vertical' }} value={form.notes} onChange={e => set('notes', e.target.value)} /></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
-        <button type="submit" style={btnPrimary}>Išsaugoti</button>
+        <button type="button" style={btnSecondary} className="btn-press" onClick={onClose}>Atšaukti</button>
+        <button type="submit" style={btnPrimary} className="btn-press">Išsaugoti</button>
       </div>
     </form>
   )
@@ -88,11 +89,12 @@ export const Contacts = memo(function Contacts({ contacts, setContacts }) {
     <div>
       <SectionHeader title="Kontaktai">
         <button style={{ ...btnSecondary, fontSize: 13, padding: '7px 14px' }}
+          className="btn-press"
           onClick={() => { exportContactsCSV(contacts); toast.success('CSV eksportuotas') }}
           title="Eksportuoti visus kontaktus į CSV">
           📥 Eksportuoti CSV
         </button>
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
+        <button data-action="add" style={btnPrimary} className="btn-press" onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
       </SectionHeader>
 
       <SearchInput value={search} onChange={setSearch} />
@@ -100,20 +102,20 @@ export const Contacts = memo(function Contacts({ contacts, setContacts }) {
       {filtered.length === 0 && <EmptyState icon="👥" message="Nėra kontaktų" />}
 
       {filtered.map(c => (
-        <article key={c.id} style={cardStyle} aria-label={`Kontaktas: ${c.name}`}>
+        <article key={c.id} style={{ ...cardStyle, borderRadius: 14 }} className="card-interactive" aria-label={`Kontaktas: ${c.name}`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <div>
-              <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 16 }}>{c.name}</div>
-              {c.company && <div style={{ color: '#94a3b8', fontSize: 13 }}>{c.company}</div>}
+              <div style={{ fontWeight: 700, color: BRAND.textPrimary, fontSize: 16 }}>{c.name}</div>
+              {c.company && <div style={{ color: BRAND.textSecondary, fontSize: 13 }}>{c.company}</div>}
               <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {c.email && <a href={`mailto:${c.email}`} style={{ color: '#6366f1', fontSize: 13 }}>{c.email}</a>}
+                {c.email && <a href={`mailto:${c.email}`} style={{ color: BRAND.purple, fontSize: 13 }}>{c.email}</a>}
                 {c.phone && <a href={`tel:${c.phone}`} style={{ color: '#22c55e', fontSize: 13 }}>{c.phone}</a>}
               </div>
-              {c.notes && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{c.notes}</div>}
+              {c.notes && <div style={{ color: BRAND.textMuted, fontSize: 12, marginTop: 4 }}>{c.notes}</div>}
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <button style={btnSecondary} onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
-              <button style={btnDanger} onClick={() => setConfirmDelete(c.id)}>Ištrinti</button>
+              <button style={btnSecondary} className="btn-press" onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
+              <button style={btnDanger} className="btn-press" onClick={() => setConfirmDelete(c.id)}>Ištrinti</button>
             </div>
           </div>
         </article>
@@ -121,10 +123,10 @@ export const Contacts = memo(function Contacts({ contacts, setContacts }) {
 
       {confirmDelete && (
         <Modal title="Patvirtinti" onClose={() => setConfirmDelete(null)}>
-          <p style={{ color: '#e2e8f0', marginBottom: 16 }}>Ar tikrai norite ištrinti šį kontaktą?</p>
+          <p style={{ color: BRAND.textPrimary, marginBottom: 16 }}>Ar tikrai norite ištrinti šį kontaktą?</p>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button style={btnSecondary} onClick={() => setConfirmDelete(null)}>Atšaukti</button>
-            <button style={{ ...btnPrimary, background: '#ef4444' }} onClick={() => handleDelete(confirmDelete)}>Ištrinti</button>
+            <button style={btnSecondary} className="btn-press" onClick={() => setConfirmDelete(null)}>Atšaukti</button>
+            <button style={{ ...btnPrimary, background: '#ef4444' }} className="btn-press" onClick={() => handleDelete(confirmDelete)}>Ištrinti</button>
           </div>
         </Modal>
       )}

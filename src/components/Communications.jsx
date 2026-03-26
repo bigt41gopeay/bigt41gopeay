@@ -1,6 +1,7 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, formatDateLT } from '../utils/helpers'
 import { useToast } from '../contexts/ToastContext'
+import { BRAND } from '../utils/constants'
 import {
   Modal, Badge, SectionHeader, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
@@ -68,7 +69,7 @@ export const Communications = memo(function Communications({ communications, set
   return (
     <div>
       <SectionHeader title="Komunikacijos istorija">
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
+        <button data-action="add" className="btn-press" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
       </SectionHeader>
 
       <FilterBar options={types} value={typeFilter} onChange={setTypeFilter} />
@@ -79,23 +80,23 @@ export const Communications = memo(function Communications({ communications, set
         const contact = getContact(c.contactId)
         const project = getProject(c.projectId)
         return (
-          <article key={c.id} style={cardStyle}>
+          <article key={c.id} className="card-interactive" style={{ ...cardStyle, borderRadius: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Badge status={c.type} />
-                  {contact && <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{contact.name}</span>}
-                  {c.subject && <span style={{ color: '#94a3b8', fontSize: 13 }}>— {c.subject}</span>}
+                  {contact && <span style={{ color: BRAND.textPrimary, fontWeight: 600 }}>{contact.name}</span>}
+                  {c.subject && <span style={{ color: BRAND.textSecondary, fontSize: 13 }}>— {c.subject}</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
-                  {project && <span style={{ color: '#6366f1', fontSize: 12 }}>📁 {project.name}</span>}
-                  <span style={{ color: '#64748b', fontSize: 12 }}>{formatDateLT(c.date)}</span>
+                  {project && <span style={{ color: BRAND.purple, fontSize: 12 }}>📁 {project.name}</span>}
+                  <span style={{ color: BRAND.textMuted, fontSize: 12 }}>{formatDateLT(c.date)}</span>
                 </div>
-                {c.notes && <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 6, whiteSpace: 'pre-wrap' }}>{c.notes}</div>}
+                {c.notes && <div style={{ color: BRAND.textSecondary, fontSize: 13, marginTop: 6, whiteSpace: 'pre-wrap' }}>{c.notes}</div>}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <button style={btnSecondary} onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
-                <button style={btnDanger} onClick={() => {
+                <button className="btn-press" style={btnSecondary} onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
+                <button className="btn-press" style={btnDanger} onClick={() => {
                   setCommunications(cs => cs.filter(x => x.id !== c.id))
                   toast.success('Komunikacija ištrinta')
                 }}>Ištrinti</button>

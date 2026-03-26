@@ -1,3 +1,21 @@
+// ─── Brand Colors (from logo) ────────────────────────────────────────────────
+export const BRAND = {
+  purple: '#863bff',
+  purpleDeep: '#7e14ff',
+  purpleLight: '#ede6ff',
+  purpleMuted: '#b388ff',
+  cyan: '#47bfff',
+  cyanLight: '#e0f4ff',
+  dark: '#08060d',
+  darkCard: '#13101c',
+  darkSurface: '#1a1625',
+  darkBorder: '#2a2438',
+  darkBorderLight: '#362e48',
+  textPrimary: '#f0ecf6',
+  textSecondary: '#a99fc4',
+  textMuted: '#6e6287',
+}
+
 export const STORAGE_KEYS = {
   contacts: 'crm_contacts',
   projects: 'crm_projects',
@@ -12,18 +30,18 @@ export const STORAGE_KEYS = {
 
 export const STATUS_COLORS = {
   aktyvus: '#22c55e',
-  neaktyvus: '#6b7280',
-  vykdomas: '#3b82f6',
+  neaktyvus: '#6e6287',
+  vykdomas: '#47bfff',
   baigtas: '#22c55e',
   'atidėtas': '#f59e0b',
   'atšauktas': '#ef4444',
   laukia: '#f59e0b',
-  susitikimas: '#8b5cf6',
-  skambutis: '#3b82f6',
+  susitikimas: '#863bff',
+  skambutis: '#47bfff',
   'el. laiškas': '#06b6d4',
-  darbas: '#3b82f6',
-  'juodraštis': '#6b7280',
-  'išsiųsta': '#3b82f6',
+  darbas: '#47bfff',
+  'juodraštis': '#6e6287',
+  'išsiųsta': '#47bfff',
   'apmokėta': '#22c55e',
   'vėluoja': '#ef4444',
 }

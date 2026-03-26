@@ -1,15 +1,16 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, formatDateLT } from '../utils/helpers'
 import { useToast } from '../contexts/ToastContext'
+import { BRAND } from '../utils/constants'
 import {
   Modal, SectionHeader, SearchInput, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
 } from './ui'
 
 const CATEGORIES = [
-  { value: 'general', label: '📝 Bendra', color: '#94a3b8' },
-  { value: 'procedure', label: '📋 Procedūra', color: '#3b82f6' },
-  { value: 'server', label: '🖥️ Serverio konfigūracija', color: '#8b5cf6' },
+  { value: 'general', label: '📝 Bendra', color: BRAND.textSecondary },
+  { value: 'procedure', label: '📋 Procedūra', color: BRAND.cyan },
+  { value: 'server', label: '🖥️ Serverio konfigūracija', color: BRAND.purple },
   { value: 'wordpress', label: '📝 WordPress', color: '#22c55e' },
   { value: 'client', label: '👤 Kliento info', color: '#f59e0b' },
   { value: 'idea', label: '💡 Idėja', color: '#ec4899' },
@@ -48,14 +49,14 @@ function NoteForm({ initial, projects, onSave, onClose }) {
         />
       </div>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-        <label style={{ display: 'flex', gap: 6, alignItems: 'center', color: '#94a3b8', fontSize: 13, cursor: 'pointer' }}>
+        <label style={{ display: 'flex', gap: 6, alignItems: 'center', color: BRAND.textSecondary, fontSize: 13, cursor: 'pointer' }}>
           <input type="checkbox" checked={form.pinned} onChange={e => set('pinned', e.target.checked)} />
           📌 Prisegti viršuje
         </label>
       </div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
-        <button type="submit" style={btnPrimary}>Išsaugoti</button>
+        <button type="button" className="btn-press" style={btnSecondary} onClick={onClose}>Atšaukti</button>
+        <button type="submit" className="btn-press" style={btnPrimary}>Išsaugoti</button>
       </div>
     </form>
   )
@@ -67,23 +68,23 @@ function renderContent(text) {
   const lines = text.split('\n')
   return lines.map((line, i) => {
     // Headers
-    if (line.startsWith('### ')) return <h4 key={i} style={{ color: '#e2e8f0', margin: '12px 0 4px', fontSize: 14 }}>{line.slice(4)}</h4>
-    if (line.startsWith('## ')) return <h3 key={i} style={{ color: '#e2e8f0', margin: '12px 0 4px', fontSize: 15 }}>{line.slice(3)}</h3>
-    if (line.startsWith('# ')) return <h2 key={i} style={{ color: '#e2e8f0', margin: '12px 0 4px', fontSize: 16 }}>{line.slice(2)}</h2>
+    if (line.startsWith('### ')) return <h4 key={i} style={{ color: BRAND.textPrimary, margin: '12px 0 4px', fontSize: 14 }}>{line.slice(4)}</h4>
+    if (line.startsWith('## ')) return <h3 key={i} style={{ color: BRAND.textPrimary, margin: '12px 0 4px', fontSize: 15 }}>{line.slice(3)}</h3>
+    if (line.startsWith('# ')) return <h2 key={i} style={{ color: BRAND.textPrimary, margin: '12px 0 4px', fontSize: 16 }}>{line.slice(2)}</h2>
     // Checklist
     if (line.startsWith('- [x] ')) return <div key={i} style={{ color: '#22c55e', fontSize: 13, padding: '1px 0' }}>✅ <s>{line.slice(6)}</s></div>
-    if (line.startsWith('- [ ] ')) return <div key={i} style={{ color: '#94a3b8', fontSize: 13, padding: '1px 0' }}>☐ {line.slice(6)}</div>
+    if (line.startsWith('- [ ] ')) return <div key={i} style={{ color: BRAND.textSecondary, fontSize: 13, padding: '1px 0' }}>☐ {line.slice(6)}</div>
     // Bullets
-    if (line.startsWith('- ')) return <div key={i} style={{ color: '#94a3b8', fontSize: 13, padding: '1px 0', paddingLeft: 12 }}>• {line.slice(2)}</div>
+    if (line.startsWith('- ')) return <div key={i} style={{ color: BRAND.textSecondary, fontSize: 13, padding: '1px 0', paddingLeft: 12 }}>• {line.slice(2)}</div>
     // Code block (simplified)
     if (line.startsWith('```')) return null
     // Inline code
     const rendered = line.replace(/`([^`]+)`/g, '<code>$1</code>')
-    if (rendered !== line) return <div key={i} style={{ color: '#94a3b8', fontSize: 13 }} dangerouslySetInnerHTML={{ __html: rendered.replace(/<code>/g, '<code style="background:#0f0f1a;padding:1px 5px;border-radius:3px;font-family:monospace;color:#6366f1;font-size:12px">') }} />
+    if (rendered !== line) return <div key={i} style={{ color: BRAND.textSecondary, fontSize: 13 }} dangerouslySetInnerHTML={{ __html: rendered.replace(/<code>/g, `<code style="background:${BRAND.dark};padding:1px 5px;border-radius:3px;font-family:monospace;color:${BRAND.purple};font-size:12px">`) }} />
     // Empty line
     if (!line.trim()) return <div key={i} style={{ height: 8 }} />
     // Normal text
-    return <div key={i} style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.6 }}>{line}</div>
+    return <div key={i} style={{ color: BRAND.textSecondary, fontSize: 13, lineHeight: 1.6 }}>{line}</div>
   })
 }
 
@@ -125,17 +126,17 @@ export const Notes = memo(function Notes({ notes, setNotes, projects }) {
   return (
     <div>
       <SectionHeader title="Užrašai ir Wiki">
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Naujas užrašas</button>
+        <button data-action="add" className="btn-press" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Naujas užrašas</button>
       </SectionHeader>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {catFilters.map(f => {
           const cat = CATEGORIES.find(c => c.value === f)
           return (
-            <button key={f} onClick={() => setCatFilter(f)} style={{
+            <button key={f} className="btn-press" onClick={() => setCatFilter(f)} style={{
               ...btnSecondary, padding: '5px 10px', fontSize: 12,
-              background: catFilter === f ? (cat?.color || '#6366f1') : '#2e2e3e',
-              color: catFilter === f ? '#fff' : '#94a3b8',
+              background: catFilter === f ? (cat?.color || BRAND.purple) : BRAND.darkBorder,
+              color: catFilter === f ? '#fff' : BRAND.textSecondary,
             }}>
               {catLabels[f]}
             </button>
@@ -153,7 +154,7 @@ export const Notes = memo(function Notes({ notes, setNotes, projects }) {
         const isExpanded = expanded[note.id]
 
         return (
-          <article key={note.id} style={{ ...cardStyle, borderLeft: `3px solid ${cat.color}` }}>
+          <article key={note.id} className="card-interactive" style={{ ...cardStyle, borderLeft: `3px solid ${cat.color}`, borderRadius: 14 }}>
             <div
               style={{ cursor: 'pointer' }}
               onClick={() => setExpanded(e => ({ ...e, [note.id]: !e[note.id] }))}
@@ -164,32 +165,32 @@ export const Notes = memo(function Notes({ notes, setNotes, projects }) {
                     {note.pinned && <span title="Prisegta">📌</span>}
                     <span style={{
                       background: cat.color + '22', color: cat.color,
-                      border: `1px solid ${cat.color}44`, borderRadius: 6,
+                      border: `1px solid ${cat.color}44`, borderRadius: 12,
                       padding: '1px 6px', fontSize: 10, fontWeight: 600,
                     }}>{cat.label}</span>
-                    <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 15 }}>{note.title}</span>
+                    <span style={{ fontWeight: 700, color: BRAND.textPrimary, fontSize: 15 }}>{note.title}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
-                    {project && <span style={{ color: '#6366f1', fontSize: 11 }}>📁 {project.name}</span>}
-                    <span style={{ color: '#64748b', fontSize: 11 }}>{formatDateLT(note.updatedAt || note.createdAt)}</span>
+                    {project && <span style={{ color: BRAND.purple, fontSize: 11 }}>📁 {project.name}</span>}
+                    <span style={{ color: BRAND.textMuted, fontSize: 11 }}>{formatDateLT(note.updatedAt || note.createdAt)}</span>
                   </div>
                 </div>
-                <span style={{ color: '#64748b', fontSize: 16, transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+                <span style={{ color: BRAND.textMuted, fontSize: 16, transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
               </div>
             </div>
 
             {isExpanded && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #2e2e3e' }}>
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.darkBorder}` }}>
                 <div style={{ marginBottom: 12 }}>
                   {renderContent(note.content)}
                 </div>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button style={{ ...btnSecondary, fontSize: 12, padding: '5px 12px' }}
+                  <button className="btn-press" style={{ ...btnSecondary, fontSize: 12, padding: '5px 12px' }}
                     onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(note.content); toast.success('Nukopijuota') }}>
                     📋 Kopijuoti
                   </button>
-                  <button style={btnSecondary} onClick={(e) => { e.stopPropagation(); setEditing(note); setShowForm(true) }}>Redaguoti</button>
-                  <button style={btnDanger} onClick={(e) => {
+                  <button className="btn-press" style={btnSecondary} onClick={(e) => { e.stopPropagation(); setEditing(note); setShowForm(true) }}>Redaguoti</button>
+                  <button className="btn-press" style={btnDanger} onClick={(e) => {
                     e.stopPropagation()
                     setNotes(ns => ns.filter(x => x.id !== note.id))
                     toast.success('Užrašas ištrintas')

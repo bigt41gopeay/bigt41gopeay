@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, memo } from 'react'
 import { genId, formatCurrency } from '../utils/helpers'
 import { generateInvoicePDF } from '../utils/pdf'
 import { useToast } from '../contexts/ToastContext'
-import { STATUS_COLORS, VAT_RATE } from '../utils/constants'
+import { STATUS_COLORS, VAT_RATE, BRAND } from '../utils/constants'
 import {
   Modal, Badge, SectionHeader, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
@@ -70,8 +70,8 @@ function InvoiceForm({ initial, contacts, onSave, onClose }) {
           </div>
         ))}
         <div style={{ textAlign: 'right', marginTop: 10, fontSize: 13 }}>
-          <div style={{ color: '#94a3b8' }}>Suma be PVM: <b style={{ color: '#e2e8f0' }}>{formatCurrency(subtotal)}</b></div>
-          <div style={{ color: '#94a3b8' }}>PVM 21%: <b style={{ color: '#e2e8f0' }}>{formatCurrency(vat)}</b></div>
+          <div style={{ color: BRAND.textSecondary }}>Suma be PVM: <b style={{ color: BRAND.textPrimary }}>{formatCurrency(subtotal)}</b></div>
+          <div style={{ color: BRAND.textSecondary }}>PVM 21%: <b style={{ color: BRAND.textPrimary }}>{formatCurrency(vat)}</b></div>
           <div style={{ color: '#22c55e', fontSize: 16, fontWeight: 700, marginTop: 4 }}>Iš viso: {formatCurrency(total)}</div>
         </div>
       </div>
@@ -125,12 +125,12 @@ export const Invoices = memo(function Invoices({ invoices, setInvoices, contacts
       </SectionHeader>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ background: '#22c55e22', border: '1px solid #22c55e44', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
-          <span style={{ color: '#64748b' }}>Apmokėta: </span><b style={{ color: '#22c55e' }}>{formatCurrency(totalPaid)}</b>
+        <div className="card-interactive" style={{ background: '#22c55e18', border: '1px solid #22c55e33', borderRadius: 14, padding: '8px 14px', fontSize: 13 }}>
+          <span style={{ color: BRAND.textMuted }}>Apmokėta: </span><b style={{ color: '#22c55e' }}>{formatCurrency(totalPaid)}</b>
         </div>
         {totalUnpaid > 0 && (
-          <div style={{ background: '#f59e0b22', border: '1px solid #f59e0b44', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
-            <span style={{ color: '#64748b' }}>Laukia apmokėjimo: </span><b style={{ color: '#f59e0b' }}>{formatCurrency(totalUnpaid)}</b>
+          <div className="card-interactive" style={{ background: '#f59e0b18', border: '1px solid #f59e0b33', borderRadius: 14, padding: '8px 14px', fontSize: 13 }}>
+            <span style={{ color: BRAND.textMuted }}>Laukia apmokėjimo: </span><b style={{ color: '#f59e0b' }}>{formatCurrency(totalUnpaid)}</b>
           </div>
         )}
       </div>
@@ -142,23 +142,23 @@ export const Invoices = memo(function Invoices({ invoices, setInvoices, contacts
       {filtered.map(inv => {
         const contact = getContact(inv.contactId)
         return (
-          <article key={inv.id} style={{ ...cardStyle, borderLeft: `3px solid ${STATUS_COLORS[inv.status] || '#6b7280'}` }}>
+          <article key={inv.id} className="card-interactive" style={{ ...cardStyle, borderLeft: `3px solid ${STATUS_COLORS[inv.status] || BRAND.textMuted}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div>
-                <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 16 }}>📄 {inv.number}</div>
-                {contact && <div style={{ color: '#94a3b8', fontSize: 13 }}>{contact.name}{contact.company ? ` · ${contact.company}` : ''}</div>}
+                <div style={{ fontWeight: 700, color: BRAND.textPrimary, fontSize: 16 }}>📄 {inv.number}</div>
+                {contact && <div style={{ color: BRAND.textSecondary, fontSize: 13 }}>{contact.name}{contact.company ? ` · ${contact.company}` : ''}</div>}
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Badge status={inv.status} />
-                  <span style={{ color: '#64748b', fontSize: 12 }}>{inv.date}</span>
+                  <span style={{ color: BRAND.textMuted, fontSize: 12 }}>{inv.date}</span>
                   <span style={{ color: '#22c55e', fontWeight: 700, fontSize: 14 }}>{formatCurrency(inv.total)}</span>
                 </div>
-                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 2 }}>
                   Be PVM: {formatCurrency(inv.subtotal)} · PVM: {formatCurrency(inv.vat)}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 {inv.status !== 'apmokėta' && (
-                  <button style={{ ...btnSecondary, fontSize: 12, padding: '6px 12px', color: '#22c55e' }}
+                  <button className="btn-press" style={{ ...btnSecondary, fontSize: 12, padding: '6px 12px', color: '#22c55e' }}
                     onClick={() => {
                       setInvoices(is => is.map(x => x.id === inv.id ? { ...x, status: 'apmokėta' } : x))
                       toast.success('Sąskaita pažymėta kaip apmokėta')
@@ -166,10 +166,10 @@ export const Invoices = memo(function Invoices({ invoices, setInvoices, contacts
                     ✓ Apmokėta
                   </button>
                 )}
-                <button style={{ ...btnSecondary, fontSize: 12, padding: '6px 12px' }}
+                <button className="btn-press" style={{ ...btnSecondary, fontSize: 12, padding: '6px 12px' }}
                   onClick={() => { generateInvoicePDF(inv, contact); toast.success('PDF sugeneruotas') }}>📥 PDF</button>
-                <button style={btnSecondary} onClick={() => { setEditing(inv); setShowForm(true) }}>Redaguoti</button>
-                <button style={btnDanger} onClick={() => {
+                <button className="btn-press" style={btnSecondary} onClick={() => { setEditing(inv); setShowForm(true) }}>Redaguoti</button>
+                <button className="btn-press" style={btnDanger} onClick={() => {
                   setInvoices(is => is.filter(x => x.id !== inv.id))
                   toast.success('Sąskaita ištrinta')
                 }}>Ištrinti</button>

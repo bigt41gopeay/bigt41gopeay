@@ -1,14 +1,15 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, isValidUrl } from '../utils/helpers'
 import { useToast } from '../contexts/ToastContext'
+import { BRAND } from '../utils/constants'
 import {
   Modal, SectionHeader, SearchInput, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
 } from './ui'
 
 const CATEGORIES = [
-  { value: 'website', label: '🌐 Svetainė', color: '#3b82f6' },
-  { value: 'server', label: '🖥️ Serveris / SSH', color: '#8b5cf6' },
+  { value: 'website', label: '🌐 Svetainė', color: BRAND.cyan },
+  { value: 'server', label: '🖥️ Serveris / SSH', color: BRAND.purple },
   { value: 'plesk', label: '⚙️ Plesk / cPanel', color: '#f59e0b' },
   { value: 'wordpress', label: '📝 WordPress', color: '#22c55e' },
   { value: 'database', label: '🗄️ Duomenų bazė', color: '#06b6d4' },
@@ -16,7 +17,7 @@ const CATEGORIES = [
   { value: 'ftp', label: '📂 FTP / SFTP', color: '#f97316' },
   { value: 'api', label: '🔌 API / Servisas', color: '#a855f7' },
   { value: 'domain', label: '🏷️ Domenas / DNS', color: '#14b8a6' },
-  { value: 'other', label: '🔑 Kita', color: '#6b7280' },
+  { value: 'other', label: '🔑 Kita', color: BRAND.textMuted },
 ]
 
 const getCategoryInfo = (val) => CATEGORIES.find(c => c.value === val) || CATEGORIES[CATEGORIES.length - 1]
@@ -86,8 +87,8 @@ function CredForm({ initial, projects, onSave, onClose }) {
         <textarea style={{ ...inputStyle, height: 60, resize: 'vertical' }} value={form.notes} onChange={e => set('notes', e.target.value)}
           placeholder="SSH komanda, papildoma info..." /></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
-        <button type="submit" style={btnPrimary}>Išsaugoti</button>
+        <button type="button" style={btnSecondary} className="btn-press" onClick={onClose}>Atšaukti</button>
+        <button type="submit" style={btnPrimary} className="btn-press">Išsaugoti</button>
       </div>
     </form>
   )
@@ -133,11 +134,11 @@ export const Credentials = memo(function Credentials({ credentials, setCredentia
   return (
     <div>
       <SectionHeader title="Prisijungimai ir serveriai">
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
+        <button data-action="add" style={btnPrimary} className="btn-press" onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
       </SectionHeader>
 
       <div role="alert" style={{
-        background: '#f59e0b11', border: '1px solid #f59e0b33', borderRadius: 8,
+        background: '#f59e0b11', border: '1px solid #f59e0b33', borderRadius: 12,
         padding: '8px 14px', marginBottom: 12, fontSize: 12, color: '#f59e0b',
       }}>
         ⚠ Slaptažodžiai saugomi naršyklės localStorage. Rekomenduojame reguliariai daryti atsargines kopijas (Nustatymai → Eksportuoti).
@@ -146,11 +147,11 @@ export const Credentials = memo(function Credentials({ credentials, setCredentia
       {/* Category filter as icon buttons on mobile */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {categoryFilters.map(f => (
-          <button key={f} onClick={() => setCatFilter(f)} style={{
+          <button key={f} onClick={() => setCatFilter(f)} className="btn-press" style={{
             ...btnSecondary, padding: '5px 10px', fontSize: 12,
-            background: catFilter === f ? (getCategoryInfo(f).color || '#6366f1') : '#2e2e3e',
-            color: catFilter === f ? '#fff' : '#94a3b8',
-            borderRadius: 8, minWidth: 0,
+            background: catFilter === f ? (getCategoryInfo(f).color || BRAND.purple) : BRAND.darkBorder,
+            color: catFilter === f ? '#fff' : BRAND.textSecondary,
+            borderRadius: 12, minWidth: 0,
           }}>
             {categoryLabels[f]}
           </button>
@@ -165,17 +166,17 @@ export const Credentials = memo(function Credentials({ credentials, setCredentia
         const project = getProject(c.projectId)
         const cat = getCategoryInfo(c.category)
         return (
-          <article key={c.id} style={{ ...cardStyle, borderLeft: `3px solid ${cat.color}` }}>
+          <article key={c.id} className="card-interactive" style={{ ...cardStyle, borderLeft: `3px solid ${cat.color}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{
                     background: cat.color + '22', color: cat.color, border: `1px solid ${cat.color}44`,
-                    borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+                    borderRadius: 12, padding: '2px 8px', fontSize: 11, fontWeight: 600,
                   }}>{cat.label}</span>
-                  <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{c.label}</span>
+                  <span style={{ fontWeight: 700, color: BRAND.textPrimary }}>{c.label}</span>
                 </div>
-                {project && <div style={{ color: '#6366f1', fontSize: 12, marginTop: 2 }}>📁 {project.name}</div>}
+                {project && <div style={{ color: BRAND.purple, fontSize: 12, marginTop: 2 }}>📁 {project.name}</div>}
                 {c.url && (
                   <div style={{ marginTop: 4 }}>
                     <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', fontSize: 13, wordBreak: 'break-all' }}>{c.url}</a>
@@ -183,10 +184,10 @@ export const Credentials = memo(function Credentials({ credentials, setCredentia
                 )}
                 {c.ip && (
                   <div style={{ marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'monospace' }}>
+                    <span style={{ color: BRAND.textSecondary, fontSize: 13, fontFamily: 'monospace' }}>
                       {c.ip}{c.port ? `:${c.port}` : ''}
                     </span>
-                    <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }}
+                    <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }} className="btn-press"
                       onClick={() => copyToClipboard(
                         c.category === 'server' ? `ssh ${c.username || 'root'}@${c.ip}${c.port && c.port !== '22' ? ` -p ${c.port}` : ''}` : c.ip,
                         'IP'
@@ -198,32 +199,32 @@ export const Credentials = memo(function Credentials({ credentials, setCredentia
                 <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   {c.username && (
                     <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span style={{ color: '#94a3b8', fontSize: 13 }}>👤 {c.username}</span>
-                      <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }}
+                      <span style={{ color: BRAND.textSecondary, fontSize: 13 }}>👤 {c.username}</span>
+                      <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }} className="btn-press"
                         onClick={() => copyToClipboard(c.username, 'Vartotojas')}>Kopijuoti</button>
                     </span>
                   )}
                   {c.password && (
                     <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'monospace' }}>
+                      <span style={{ color: BRAND.textSecondary, fontSize: 13, fontFamily: 'monospace' }}>
                         {revealed[c.id] ? c.password : '••••••••'}
                       </span>
-                      <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }}
+                      <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }} className="btn-press"
                         onClick={() => setRevealed(r => ({ ...r, [c.id]: !r[c.id] }))}>
                         {revealed[c.id] ? 'Slėpti' : 'Rodyti'}
                       </button>
-                      <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }}
+                      <button style={{ ...btnSecondary, padding: '1px 6px', fontSize: 10 }} className="btn-press"
                         onClick={() => copyToClipboard(c.password, 'Slaptažodis')}>
                         Kopijuoti
                       </button>
                     </span>
                   )}
                 </div>
-                {c.notes && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4, whiteSpace: 'pre-wrap' }}>{c.notes}</div>}
+                {c.notes && <div style={{ color: BRAND.textMuted, fontSize: 12, marginTop: 4, whiteSpace: 'pre-wrap' }}>{c.notes}</div>}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <button style={btnSecondary} onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
-                <button style={btnDanger} onClick={() => {
+                <button style={btnSecondary} className="btn-press" onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
+                <button style={btnDanger} className="btn-press" onClick={() => {
                   setCredentials(cs => cs.filter(x => x.id !== c.id))
                   toast.success('Prisijungimas ištrintas')
                 }}>Ištrinti</button>

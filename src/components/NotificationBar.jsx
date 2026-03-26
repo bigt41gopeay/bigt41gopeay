@@ -44,14 +44,16 @@ export const NotificationBar = memo(function NotificationBar({ tasks }) {
     <div
       role="alert"
       style={{
-        background: isRed ? '#ef444422' : '#f59e0b22',
-        borderBottom: `1px solid ${isRed ? '#ef444444' : '#f59e0b44'}`,
-        padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13,
+        background: isRed ? '#ef444412' : '#f59e0b12',
+        borderBottom: `1px solid ${isRed ? '#ef444433' : '#f59e0b33'}`,
+        padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14,
         color: isRed ? '#ef4444' : '#f59e0b',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       }}
     >
-      <span>{isRed ? '🚨' : '⏰'}</span>
-      <span style={{ flex: 1 }}>
+      <span style={{ fontSize: 16 }}>{isRed ? '🚨' : '⏰'}</span>
+      <span style={{ flex: 1, lineHeight: 1.4 }}>
         {overdue.length > 0 && <><b>{overdue.length}</b> vėluojantys darbai</>}
         {overdue.length > 0 && urgent.length - overdue.length > 0 && ' · '}
         {urgent.length - overdue.length > 0 && <><b>{urgent.length - overdue.length}</b> darbai baigiasi per 3 dienas</>}
@@ -59,7 +61,10 @@ export const NotificationBar = memo(function NotificationBar({ tasks }) {
       <button
         onClick={() => setDismissed(true)}
         aria-label="Atmesti pranešimą"
-        style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}
+        style={{
+          background: 'none', border: 'none', color: 'inherit', cursor: 'pointer',
+          fontSize: 20, lineHeight: 1, padding: 4, borderRadius: 6, opacity: 0.7,
+        }}
       >
         ×
       </button>

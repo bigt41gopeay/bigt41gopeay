@@ -5,11 +5,12 @@ import {
   Modal, Badge, SectionHeader, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
 } from './ui'
+import { BRAND } from '../utils/constants'
 
 const STAGES = [
-  { id: 'naujas', label: 'Naujas', color: '#94a3b8', icon: '🆕' },
-  { id: 'kontaktas', label: 'Kontaktas užmegztas', color: '#3b82f6', icon: '📞' },
-  { id: 'pasiulymas', label: 'Pasiūlymas pateiktas', color: '#8b5cf6', icon: '📋' },
+  { id: 'naujas', label: 'Naujas', color: BRAND.textSecondary, icon: '🆕' },
+  { id: 'kontaktas', label: 'Kontaktas užmegztas', color: BRAND.cyan, icon: '📞' },
+  { id: 'pasiulymas', label: 'Pasiūlymas pateiktas', color: BRAND.purple, icon: '📋' },
   { id: 'derybos', label: 'Derybos', color: '#f59e0b', icon: '🤝' },
   { id: 'laimeta', label: 'Laimėta', color: '#22c55e', icon: '🎉' },
   { id: 'prarasta', label: 'Prarasta', color: '#ef4444', icon: '❌' },
@@ -61,7 +62,7 @@ function LeadForm({ initial, contacts, onSave, onClose }) {
           onChange={e => set('notes', e.target.value)} /></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
-        <button type="submit" style={btnPrimary}>Išsaugoti</button>
+        <button type="submit" style={{ ...btnPrimary, background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.purpleDeep})` }}>Išsaugoti</button>
       </div>
     </form>
   )
@@ -103,24 +104,24 @@ export const Leads = memo(function Leads({ leads, setLeads, contacts }) {
   return (
     <div>
       <SectionHeader title="Pardavimų pipeline">
-        <button style={{ ...btnSecondary, fontSize: 13, padding: '7px 14px' }}
+        <button className="btn-press" style={{ ...btnSecondary, fontSize: 13, padding: '7px 14px', borderRadius: 12 }}
           onClick={() => setViewMode(v => v === 'pipeline' ? 'list' : 'pipeline')}>
           {viewMode === 'pipeline' ? '📋 Sąrašas' : '📊 Pipeline'}
         </button>
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Nauja užklausa</button>
+        <button className="btn-press" data-action="add" style={{ ...btnPrimary, background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.purpleDeep})`, borderRadius: 12 }} onClick={() => { setEditing(null); setShowForm(true) }}>+ Nauja užklausa</button>
       </SectionHeader>
 
       {/* Stats */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
-        <div style={{ background: '#3b82f622', border: '1px solid #3b82f644', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
-          <span style={{ color: '#64748b' }}>Pipeline: </span><b style={{ color: '#3b82f6' }}>{formatCurrency(stats.totalPipeline)}</b>
-          <span style={{ color: '#64748b', marginLeft: 6 }}>({stats.active})</span>
+        <div className="card-interactive" style={{ background: `${BRAND.cyan}22`, border: `1px solid ${BRAND.cyan}44`, borderRadius: 12, padding: '8px 14px', fontSize: 13 }}>
+          <span style={{ color: BRAND.textMuted }}>Pipeline: </span><b style={{ color: BRAND.cyan }}>{formatCurrency(stats.totalPipeline)}</b>
+          <span style={{ color: BRAND.textMuted, marginLeft: 6 }}>({stats.active})</span>
         </div>
-        <div style={{ background: '#8b5cf622', border: '1px solid #8b5cf644', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
-          <span style={{ color: '#64748b' }}>Svertinė: </span><b style={{ color: '#8b5cf6' }}>{formatCurrency(stats.weighted)}</b>
+        <div className="card-interactive" style={{ background: `${BRAND.purple}22`, border: `1px solid ${BRAND.purple}44`, borderRadius: 12, padding: '8px 14px', fontSize: 13 }}>
+          <span style={{ color: BRAND.textMuted }}>Svertinė: </span><b style={{ color: BRAND.purple }}>{formatCurrency(stats.weighted)}</b>
         </div>
-        <div style={{ background: '#22c55e22', border: '1px solid #22c55e44', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
-          <span style={{ color: '#64748b' }}>Laimėta: </span><b style={{ color: '#22c55e' }}>{formatCurrency(stats.totalWon)}</b>
+        <div className="card-interactive" style={{ background: '#22c55e22', border: '1px solid #22c55e44', borderRadius: 12, padding: '8px 14px', fontSize: 13 }}>
+          <span style={{ color: BRAND.textMuted }}>Laimėta: </span><b style={{ color: '#22c55e' }}>{formatCurrency(stats.totalWon)}</b>
         </div>
       </div>
 
@@ -130,9 +131,9 @@ export const Leads = memo(function Leads({ leads, setLeads, contacts }) {
           {STAGES.filter(s => s.id !== 'prarasta').map(stage => {
             const stageLeads = leads.filter(l => l.stage === stage.id)
             return (
-              <div key={stage.id} style={{
-                minWidth: 220, flex: '1 0 220px', background: '#1a1a2e',
-                borderRadius: 10, border: `1px solid ${stage.color}33`,
+              <div key={stage.id} className="card-interactive" style={{
+                minWidth: 220, flex: '1 0 220px', background: BRAND.darkCard,
+                borderRadius: 14, border: `1px solid ${stage.color}33`,
               }}>
                 <div style={{
                   padding: '10px 12px', borderBottom: `2px solid ${stage.color}`,
@@ -149,20 +150,21 @@ export const Leads = memo(function Leads({ leads, setLeads, contacts }) {
                     const stageIdx = STAGES.findIndex(s => s.id === lead.stage)
                     const nextStage = STAGES[stageIdx + 1]
                     return (
-                      <div key={lead.id} style={{
-                        background: '#1e1e2e', borderRadius: 8, padding: 10,
-                        border: '1px solid #2e2e3e', cursor: 'pointer',
+                      <div key={lead.id} className="card-interactive" style={{
+                        background: BRAND.darkCard, borderRadius: 12, padding: 10,
+                        border: `1px solid ${BRAND.darkBorder}`, cursor: 'pointer',
                       }} onClick={() => { setEditing(lead); setShowForm(true) }}>
-                        <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: 13, marginBottom: 4 }}>{lead.title}</div>
-                        {contact && <div style={{ color: '#94a3b8', fontSize: 11 }}>{contact.name}</div>}
+                        <div style={{ fontWeight: 600, color: BRAND.textPrimary, fontSize: 13, marginBottom: 4 }}>{lead.title}</div>
+                        {contact && <div style={{ color: BRAND.textSecondary, fontSize: 11 }}>{contact.name}</div>}
                         {lead.value && <div style={{ color: '#22c55e', fontSize: 12, fontWeight: 700, marginTop: 4 }}>{formatCurrency(parseFloat(lead.value))}</div>}
-                        {lead.probability && <div style={{ color: '#64748b', fontSize: 10, marginTop: 2 }}>Tikimybė: {lead.probability}%</div>}
+                        {lead.probability && <div style={{ color: BRAND.textMuted, fontSize: 10, marginTop: 2 }}>Tikimybė: {lead.probability}%</div>}
                         {nextStage && (
                           <button
+                            className="btn-press"
                             onClick={(e) => { e.stopPropagation(); moveStage(lead.id, nextStage.id) }}
                             style={{
                               ...btnSecondary, fontSize: 10, padding: '3px 8px', marginTop: 6,
-                              color: nextStage.color, width: '100%',
+                              color: nextStage.color, width: '100%', borderRadius: 12,
                             }}
                           >
                             → {nextStage.label}
@@ -184,36 +186,36 @@ export const Leads = memo(function Leads({ leads, setLeads, contacts }) {
             const contact = getContact(lead.contactId)
             const stage = STAGES.find(s => s.id === lead.stage)
             return (
-              <article key={lead.id} style={{ ...cardStyle, borderLeft: `3px solid ${stage?.color || '#6b7280'}` }}>
+              <article key={lead.id} className="card-interactive" style={{ ...cardStyle, borderLeft: `3px solid ${stage?.color || BRAND.textMuted}`, borderRadius: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{lead.title}</span>
+                      <span style={{ fontWeight: 700, color: BRAND.textPrimary }}>{lead.title}</span>
                       <span style={{
-                        background: (stage?.color || '#6b7280') + '22', color: stage?.color,
-                        border: `1px solid ${stage?.color}44`, borderRadius: 6,
+                        background: (stage?.color || BRAND.textMuted) + '22', color: stage?.color,
+                        border: `1px solid ${stage?.color}44`, borderRadius: 12,
                         padding: '2px 8px', fontSize: 11, fontWeight: 600,
                       }}>{stage?.icon} {stage?.label}</span>
                     </div>
                     <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
-                      {contact && <span style={{ color: '#94a3b8', fontSize: 12 }}>👤 {contact.name}</span>}
+                      {contact && <span style={{ color: BRAND.textSecondary, fontSize: 12 }}>👤 {contact.name}</span>}
                       {lead.value && <span style={{ color: '#22c55e', fontSize: 12, fontWeight: 700 }}>{formatCurrency(parseFloat(lead.value))}</span>}
-                      {lead.source && <span style={{ color: '#64748b', fontSize: 11 }}>📍 {lead.source}</span>}
-                      {lead.expectedClose && <span style={{ color: '#64748b', fontSize: 11 }}>📅 {lead.expectedClose}</span>}
+                      {lead.source && <span style={{ color: BRAND.textMuted, fontSize: 11 }}>📍 {lead.source}</span>}
+                      {lead.expectedClose && <span style={{ color: BRAND.textMuted, fontSize: 11 }}>📅 {lead.expectedClose}</span>}
                     </div>
-                    {lead.notes && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{lead.notes}</div>}
+                    {lead.notes && <div style={{ color: BRAND.textMuted, fontSize: 12, marginTop: 4 }}>{lead.notes}</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     {lead.stage !== 'laimeta' && lead.stage !== 'prarasta' && (
                       <>
-                        <button style={{ ...btnSecondary, fontSize: 11, padding: '4px 8px', color: '#22c55e' }}
+                        <button className="btn-press" style={{ ...btnSecondary, fontSize: 11, padding: '7px 14px', color: '#22c55e', borderRadius: 12 }}
                           onClick={() => moveStage(lead.id, 'laimeta')}>🎉 Laimėta</button>
-                        <button style={{ ...btnSecondary, fontSize: 11, padding: '4px 8px', color: '#ef4444' }}
+                        <button className="btn-press" style={{ ...btnSecondary, fontSize: 11, padding: '7px 14px', color: '#ef4444', borderRadius: 12 }}
                           onClick={() => moveStage(lead.id, 'prarasta')}>❌ Prarasta</button>
                       </>
                     )}
-                    <button style={btnSecondary} onClick={() => { setEditing(lead); setShowForm(true) }}>Redaguoti</button>
-                    <button style={btnDanger} onClick={() => {
+                    <button className="btn-press" style={{ ...btnSecondary, borderRadius: 12 }} onClick={() => { setEditing(lead); setShowForm(true) }}>Redaguoti</button>
+                    <button className="btn-press" style={{ ...btnDanger, borderRadius: 12 }} onClick={() => {
                       setLeads(ls => ls.filter(x => x.id !== lead.id))
                       toast.success('Užklausa ištrinta')
                     }}>Ištrinti</button>

@@ -1,7 +1,7 @@
 import { useState, useCallback, memo } from 'react'
 import { genId, formatCurrency } from '../utils/helpers'
 import { useToast } from '../contexts/ToastContext'
-import { STATUS_COLORS, PROJECT_TEMPLATES } from '../utils/constants'
+import { STATUS_COLORS, PROJECT_TEMPLATES, BRAND } from '../utils/constants'
 import {
   Modal, Badge, SectionHeader, FilterBar, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
@@ -53,7 +53,7 @@ function ProjectForm({ initial, contacts, onSave, onClose }) {
         <textarea style={{ ...inputStyle, height: 70, resize: 'vertical' }} value={form.description} onChange={e => set('description', e.target.value)} /></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
-        <button type="submit" style={btnPrimary}>Išsaugoti</button>
+        <button type="submit" style={btnPrimary} className="btn-press">Išsaugoti</button>
       </div>
     </form>
   )
@@ -108,7 +108,7 @@ export const Projects = memo(function Projects({ projects, setProjects, contacts
   return (
     <div>
       <SectionHeader title="Projektai">
-        <button data-action="add" style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
+        <button data-action="add" style={btnPrimary} className="btn-press" onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
       </SectionHeader>
 
       <FilterBar options={statuses} value={filter} onChange={setFilter} />
@@ -119,21 +119,21 @@ export const Projects = memo(function Projects({ projects, setProjects, contacts
         const contact = getContact(p.contactId)
         const overdue = p.deadline && p.status !== 'baigtas' && new Date(p.deadline) < new Date()
         return (
-          <article key={p.id} style={{ ...cardStyle, borderLeft: `3px solid ${STATUS_COLORS[p.status] || '#6b7280'}` }}>
+          <article key={p.id} className="card-interactive" style={{ ...cardStyle, borderLeft: `3px solid ${STATUS_COLORS[p.status] || BRAND.textMuted}`, borderRadius: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div>
-                <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 16 }}>{p.name}</div>
-                {contact && <div style={{ color: '#94a3b8', fontSize: 13 }}>{contact.name}{contact.company ? ` · ${contact.company}` : ''}</div>}
+                <div style={{ fontWeight: 700, color: BRAND.textPrimary, fontSize: 16 }}>{p.name}</div>
+                {contact && <div style={{ color: BRAND.textSecondary, fontSize: 13 }}>{contact.name}{contact.company ? ` · ${contact.company}` : ''}</div>}
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   <Badge status={p.status} />
-                  {p.deadline && <span style={{ color: overdue ? '#ef4444' : '#64748b', fontSize: 12 }}>{overdue ? '⚠ ' : ''}Terminas: {p.deadline}</span>}
+                  {p.deadline && <span style={{ color: overdue ? '#ef4444' : BRAND.textMuted, fontSize: 12 }}>{overdue ? '⚠ ' : ''}Terminas: {p.deadline}</span>}
                   {p.budget && <span style={{ color: '#22c55e', fontSize: 12 }}>{formatCurrency(parseFloat(p.budget))}</span>}
                 </div>
-                {p.description && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{p.description}</div>}
+                {p.description && <div style={{ color: BRAND.textMuted, fontSize: 12, marginTop: 4 }}>{p.description}</div>}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <button style={btnSecondary} onClick={() => { setEditing(p); setShowForm(true) }}>Redaguoti</button>
-                <button style={btnDanger} onClick={() => {
+                <button style={btnSecondary} className="btn-press" onClick={() => { setEditing(p); setShowForm(true) }}>Redaguoti</button>
+                <button style={btnDanger} className="btn-press" onClick={() => {
                   setProjects(ps => ps.filter(x => x.id !== p.id))
                   toast.success('Projektas ištrintas')
                 }}>Ištrinti</button>
