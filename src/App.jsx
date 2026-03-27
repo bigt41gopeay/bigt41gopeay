@@ -17,7 +17,27 @@ import { Invoices } from './components/Invoices'
 import { Notes } from './components/Notes'
 import { Settings } from './components/Settings'
 
-// Bottom nav tabs (most used on mobile)
+// Sidebar nav sections
+const NAV_SECTIONS = [
+  {
+    label: 'Pagrindinis',
+    items: ['dashboard', 'leads'],
+  },
+  {
+    label: 'Valdymas',
+    items: ['contacts', 'projects', 'tasks', 'invoices'],
+  },
+  {
+    label: 'Įrankiai',
+    items: ['credentials', 'notes', 'communications'],
+  },
+  {
+    label: 'Sistema',
+    items: ['settings'],
+  },
+]
+
+// Bottom nav (mobile) - most important 5 tabs
 const BOTTOM_TABS = ['dashboard', 'leads', 'tasks', 'credentials', 'notes']
 
 function AppContent() {
@@ -31,7 +51,8 @@ function AppContent() {
   const [settings, setSettings] = useLocalStorage(STORAGE_KEYS.settings, {})
   const [leads, setLeads] = useLocalStorage(STORAGE_KEYS.leads, [])
   const [notes, setNotes] = useLocalStorage(STORAGE_KEYS.notes, [])
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [gcalToken, setGcalToken] = useState(() => sessionStorage.getItem('gcal_token') || '')
 
   const sync = useSync(settings)
@@ -39,161 +60,151 @@ function AppContent() {
 
   const handleTabChange = useCallback((id) => {
     setTab(id)
-    setMenuOpen(false)
+    setMobileMenuOpen(false)
   }, [])
 
-  const bottomTabs = TABS.filter(t => BOTTOM_TABS.includes(t.id))
+  const tabInfo = TABS.find(t => t.id === tab) || TABS[0]
+  const tabMap = Object.fromEntries(TABS.map(t => [t.id, t]))
+  const bottomTabs = BOTTOM_TABS.map(id => tabMap[id])
+
+  // Count badges for sidebar
+  const pendingTasks = tasks.filter(t => t.status !== 'baigtas').length
+  const activeLeads = leads.filter(l => !['laimeta', 'prarasta'].includes(l.stage)).length
+  const unpaidInvoices = (invoices || []).filter(i => i.status === 'išsiųsta' || i.status === 'vėluoja').length
+
+  const getBadge = (id) => {
+    if (id === 'tasks' && pendingTasks > 0) return pendingTasks
+    if (id === 'leads' && activeLeads > 0) return activeLeads
+    if (id === 'invoices' && unpaidInvoices > 0) return unpaidInvoices
+    return null
+  }
 
   return (
-    <div style={{ minHeight: '100vh', minHeight: '100dvh', background: BRAND.dark, color: BRAND.textPrimary }}>
-      {/* Header */}
-      <header style={{
-        background: 'rgba(19, 16, 28, 0.88)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: `1px solid ${BRAND.darkBorder}`,
-        padding: '0 16px', position: 'sticky', top: 0, zIndex: 100,
-      }}>
-        <div style={{
-          maxWidth: 1200, margin: '0 auto',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: 56,
-        }}>
-          {/* Logo */}
-          <div
-            style={{
-              fontWeight: 800, fontSize: 20,
-              background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.cyan})`,
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: -0.5, whiteSpace: 'nowrap', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}
-            onClick={() => handleTabChange('dashboard')}
-            role="banner"
-          >
-            <span style={{
-              width: 28, height: 28, borderRadius: 8,
-              background: `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.purpleDeep})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, WebkitTextFillColor: '#fff',
-              boxShadow: '0 2px 8px rgba(134,59,255,0.3)',
-            }}>
-              ⚡
-            </span>
-            ManoKRM
-          </div>
+    <div className="admin-layout">
+      {/* Sidebar overlay (mobile) */}
+      <div
+        className={`sidebar-overlay ${mobileMenuOpen ? 'visible' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
 
-          {/* Desktop nav */}
-          <nav className="desktop-nav" aria-label="Pagrindinė navigacija" style={{ display: 'flex', gap: 2, overflowX: 'auto' }}>
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                onClick={() => handleTabChange(t.id)}
-                aria-current={tab === t.id ? 'page' : undefined}
-                title={`${t.label} (Alt+${t.shortcut})`}
-                className="btn-press"
-                style={{
-                  background: tab === t.id
-                    ? `linear-gradient(135deg, ${BRAND.purple}, ${BRAND.purpleDeep})`
-                    : 'none',
-                  color: tab === t.id ? '#fff' : BRAND.textSecondary,
-                  border: 'none', borderRadius: 10, padding: '7px 12px',
-                  cursor: 'pointer', fontSize: 13, fontWeight: tab === t.id ? 700 : 500,
-                  whiteSpace: 'nowrap', transition: 'all 0.15s ease',
-                  boxShadow: tab === t.id ? '0 2px 8px rgba(134,59,255,0.3)' : 'none',
-                }}
-              >
-                {t.icon} {t.label}
-              </button>
-            ))}
-          </nav>
-
-          {/* Mobile hamburger */}
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label="Meniu"
-            aria-expanded={menuOpen}
-            style={{
-              display: 'none', background: menuOpen ? BRAND.darkCard : 'none',
-              border: `1px solid ${menuOpen ? BRAND.darkBorder : 'transparent'}`,
-              color: menuOpen ? BRAND.purple : BRAND.textSecondary,
-              fontSize: 20, cursor: 'pointer', borderRadius: 10,
-              width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+        {/* Logo */}
+        <div className="sidebar-logo" onClick={() => handleTabChange('dashboard')}>
+          <div className="sidebar-logo-icon">⚡</div>
+          <span className="sidebar-logo-text">ManoKRM</span>
         </div>
 
-        {/* Mobile dropdown menu */}
-        {menuOpen && (
-          <nav
-            className="mobile-nav"
-            aria-label="Mobilusis meniu"
+        {/* Navigation */}
+        <nav className="sidebar-nav" aria-label="Pagrindinė navigacija">
+          {NAV_SECTIONS.map(section => (
+            <div key={section.label}>
+              <div className="sidebar-section-label">{section.label}</div>
+              {section.items.map(id => {
+                const t = tabMap[id]
+                if (!t) return null
+                const badge = getBadge(id)
+                return (
+                  <button
+                    key={id}
+                    className={`nav-item ${tab === id ? 'active' : ''}`}
+                    onClick={() => handleTabChange(id)}
+                    aria-current={tab === id ? 'page' : undefined}
+                    title={`${t.label} (Alt+${t.shortcut})`}
+                  >
+                    <span className="nav-item-icon">{t.icon}</span>
+                    <span className="nav-item-label">{t.label}</span>
+                    {badge && (
+                      <span style={{
+                        marginLeft: 'auto',
+                        background: `${BRAND.purple}22`,
+                        color: BRAND.purple,
+                        borderRadius: 8,
+                        padding: '2px 8px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        minWidth: 24,
+                        textAlign: 'center',
+                      }}>
+                        {badge}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </nav>
+
+        {/* Sidebar collapse toggle */}
+        <div className="sidebar-toggle">
+          <button
+            onClick={() => setSidebarCollapsed(c => !c)}
+            title={sidebarCollapsed ? 'Išplėsti' : 'Suskleisti'}
+          >
+            {sidebarCollapsed ? '▶' : '◀'}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="main-content">
+        {/* Mobile header */}
+        <header className="mobile-header">
+          <button
+            onClick={() => setMobileMenuOpen(o => !o)}
+            aria-label="Meniu"
             style={{
-              borderTop: `1px solid ${BRAND.darkBorder}`,
-              padding: '8px 0 12px',
-              animation: 'slideUp 0.2s ease-out',
+              background: 'none', border: 'none',
+              color: BRAND.textSecondary, fontSize: 22, cursor: 'pointer',
+              width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 10,
             }}
           >
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6,
-              padding: '0 4px',
-            }}>
-              {TABS.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => handleTabChange(t.id)}
-                  aria-current={tab === t.id ? 'page' : undefined}
-                  className="btn-press"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    background: tab === t.id
-                      ? `linear-gradient(135deg, rgba(134,59,255,0.15), rgba(126,20,255,0.08))`
-                      : BRAND.darkCard,
-                    color: tab === t.id ? BRAND.purple : BRAND.textSecondary,
-                    border: `1px solid ${tab === t.id ? BRAND.purple + '33' : BRAND.darkBorder}`,
-                    borderRadius: 12, padding: '12px 14px', cursor: 'pointer', fontSize: 14,
-                    fontWeight: tab === t.id ? 700 : 500,
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <span style={{ fontSize: 18 }}>{t.icon}</span>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </nav>
-        )}
-      </header>
+            ☰
+          </button>
+          <div style={{
+            fontWeight: 700, fontSize: 16,
+            display: 'flex', alignItems: 'center', gap: 8,
+            color: BRAND.textPrimary,
+          }}>
+            <span>{tabInfo.icon}</span>
+            {tabInfo.label}
+          </div>
+          <div style={{ width: 40 }} /> {/* Spacer for centering */}
+        </header>
 
-      {/* Notification Bar */}
-      <NotificationBar tasks={tasks} />
+        {/* Notification Bar */}
+        <NotificationBar tasks={tasks} />
 
-      {/* Main content */}
-      <main style={{
-        maxWidth: 1200, margin: '0 auto', padding: '20px 16px',
-        minHeight: 'calc(100vh - 56px)', minHeight: 'calc(100dvh - 56px)',
-      }}>
-        {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} invoices={invoices} credentials={credentials} leads={leads} gcalToken={gcalToken} />}
-        {tab === 'leads' && <Leads leads={leads} setLeads={setLeads} contacts={contacts} />}
-        {tab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
-        {tab === 'projects' && <Projects projects={projects} setProjects={setProjects} contacts={contacts} tasks={tasks} setTasks={setTasks} />}
-        {tab === 'tasks' && <Tasks tasks={tasks} setTasks={setTasks} projects={projects} contacts={contacts} gcalToken={gcalToken} />}
-        {tab === 'invoices' && <Invoices invoices={invoices} setInvoices={setInvoices} contacts={contacts} />}
-        {tab === 'credentials' && <Credentials credentials={credentials} setCredentials={setCredentials} projects={projects} />}
-        {tab === 'notes' && <Notes notes={notes} setNotes={setNotes} projects={projects} />}
-        {tab === 'communications' && <Communications communications={communications} setCommunications={setCommunications} projects={projects} contacts={contacts} />}
-        {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} gcalToken={gcalToken} setGcalToken={setGcalToken} tasks={tasks} setTasks={setTasks} sync={sync} />}
-      </main>
+        {/* Desktop page header */}
+        <div className="page-header">
+          <h1>
+            <span style={{ fontSize: 22 }}>{tabInfo.icon}</span>
+            {tabInfo.label}
+          </h1>
+        </div>
 
-      {/* Bottom nav for mobile */}
+        {/* Page content */}
+        <div className="page-body">
+          {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} invoices={invoices} credentials={credentials} leads={leads} gcalToken={gcalToken} onNavigate={handleTabChange} />}
+          {tab === 'leads' && <Leads leads={leads} setLeads={setLeads} contacts={contacts} />}
+          {tab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
+          {tab === 'projects' && <Projects projects={projects} setProjects={setProjects} contacts={contacts} tasks={tasks} setTasks={setTasks} />}
+          {tab === 'tasks' && <Tasks tasks={tasks} setTasks={setTasks} projects={projects} contacts={contacts} gcalToken={gcalToken} />}
+          {tab === 'invoices' && <Invoices invoices={invoices} setInvoices={setInvoices} contacts={contacts} />}
+          {tab === 'credentials' && <Credentials credentials={credentials} setCredentials={setCredentials} projects={projects} />}
+          {tab === 'notes' && <Notes notes={notes} setNotes={setNotes} projects={projects} />}
+          {tab === 'communications' && <Communications communications={communications} setCommunications={setCommunications} projects={projects} contacts={contacts} />}
+          {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} gcalToken={gcalToken} setGcalToken={setGcalToken} tasks={tasks} setTasks={setTasks} sync={sync} />}
+        </div>
+      </div>
+
+      {/* Bottom nav (mobile) */}
       <nav className="bottom-nav" aria-label="Greitoji navigacija">
         {bottomTabs.map(t => {
           const isActive = tab === t.id
+          const badge = getBadge(t.id)
           return (
             <button
               key={t.id}
@@ -201,7 +212,7 @@ function AppContent() {
               aria-current={isActive ? 'page' : undefined}
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 3, padding: '6px 4px', border: 'none', cursor: 'pointer',
+                gap: 2, padding: '4px 2px', border: 'none', cursor: 'pointer',
                 background: 'none',
                 color: isActive ? BRAND.purple : BRAND.textMuted,
                 fontSize: 10, fontWeight: isActive ? 700 : 500,
@@ -210,14 +221,23 @@ function AppContent() {
               }}
             >
               <span style={{
-                fontSize: 20,
-                transform: isActive ? 'scale(1.15)' : 'scale(1)',
+                fontSize: 20, position: 'relative',
+                transform: isActive ? 'scale(1.1)' : 'scale(1)',
                 transition: 'transform 0.2s ease',
               }}>
                 {t.icon}
+                {badge && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -8,
+                    background: BRAND.purple, color: '#fff',
+                    borderRadius: 10, padding: '0 5px', fontSize: 9,
+                    fontWeight: 700, minWidth: 16, textAlign: 'center', lineHeight: '16px',
+                  }}>
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                )}
               </span>
               <span style={{ letterSpacing: 0.2 }}>{t.label}</span>
-              {/* Active indicator dot */}
               {isActive && (
                 <span style={{
                   position: 'absolute', bottom: 0, left: '50%',
@@ -230,16 +250,14 @@ function AppContent() {
             </button>
           )
         })}
-        {/* More button */}
         <button
-          onClick={() => setMenuOpen(o => !o)}
+          onClick={() => setMobileMenuOpen(o => !o)}
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: 3, padding: '6px 4px', border: 'none', cursor: 'pointer',
+            gap: 2, padding: '4px 2px', border: 'none', cursor: 'pointer',
             background: 'none',
-            color: menuOpen ? BRAND.purple : BRAND.textMuted,
-            fontSize: 10, fontWeight: menuOpen ? 700 : 500,
-            transition: 'color 0.15s ease',
+            color: mobileMenuOpen ? BRAND.purple : BRAND.textMuted,
+            fontSize: 10, fontWeight: mobileMenuOpen ? 700 : 500,
           }}
         >
           <span style={{ fontSize: 20 }}>☰</span>
