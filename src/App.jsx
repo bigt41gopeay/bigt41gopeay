@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import './App.css'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -8,6 +8,8 @@ import Books from './pages/Books'
 import Games from './pages/Games'
 import Store from './pages/Store'
 import Membership from './pages/Membership'
+import Courses from './pages/Courses'
+import { saveToken, clearToken, hasToken, api } from './api'
 
 export default function App() {
   const [page, setPage] = useState('home')
@@ -30,14 +32,23 @@ export default function App() {
     setCart(prev => prev.filter((_, i) => i !== index))
   }, [])
 
-  const handleLogin = useCallback((userData) => {
+  // Try to restore session on load
+  useEffect(() => {
+    if (hasToken()) {
+      api.getMe().then(u => setUser(u)).catch(() => clearToken())
+    }
+  }, [])
+
+  const handleLogin = useCallback((userData, token) => {
     setUser(userData)
+    if (token) saveToken(token)
     setShowLogin(false)
     showNotif(`👋 Sveiki, ${userData.name}!`)
   }, [])
 
   const handleLogout = useCallback(() => {
     setUser(null)
+    clearToken()
     showNotif('👋 Iki pasimatymo!')
   }, [])
 
@@ -56,6 +67,8 @@ export default function App() {
         return <Games />
       case 'store':
         return <Store cart={cart} onAddToCart={addToCart} onRemoveFromCart={removeFromCart} />
+      case 'courses':
+        return <Courses user={user} onLogin={() => setShowLogin(true)} />
       case 'membership':
         return <Membership user={user} onNavigate={navigate} />
       default:

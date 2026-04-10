@@ -4,6 +4,7 @@ const NAV_ITEMS = [
   { id: 'home', label: 'Pradžia', icon: '🏠' },
   { id: 'books', label: 'Knygos', icon: '📚' },
   { id: 'games', label: 'Žaidimai', icon: '🎮' },
+  { id: 'courses', label: 'Mokymai', icon: '🎓' },
   { id: 'store', label: 'Parduotuvė', icon: '🛒' },
   { id: 'membership', label: 'Narystė', icon: '⭐' },
 ]

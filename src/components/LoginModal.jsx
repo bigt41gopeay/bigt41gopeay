@@ -1,17 +1,42 @@
 import { useState } from 'react'
+import { api } from '../api'
 
 export default function LoginModal({ onClose, onLogin }) {
   const [isRegister, setIsRegister] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (isRegister && name && email && password) {
-      onLogin({ name, email, membership: 'free' })
-    } else if (!isRegister && email && password) {
-      onLogin({ name: email.split('@')[0], email, membership: 'free' })
+    setError('')
+    setLoading(true)
+
+    try {
+      let result
+      if (isRegister) {
+        result = await api.register(name, email, password)
+      } else {
+        result = await api.login(email, password)
+      }
+      onLogin(result.user, result.token)
+    } catch (err) {
+      // Fallback to offline mode if API not available
+      if (err.message === 'Failed to fetch' || err.message.includes('NetworkError')) {
+        const offlineUser = {
+          name: isRegister ? name : email.split('@')[0],
+          email,
+          membership: 'free',
+          role: 'user',
+        }
+        onLogin(offlineUser, null)
+      } else {
+        setError(err.message)
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -71,8 +96,14 @@ export default function LoginModal({ onClose, onLogin }) {
             />
           </div>
 
-          <button type="submit" style={styles.submitBtn}>
-            {isRegister ? '🚀 Registruotis' : '🔑 Prisijungti'}
+          {error && (
+            <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,107,138,0.1)', color: '#FF6B8A', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>
+              {error}
+            </div>
+          )}
+
+          <button type="submit" style={styles.submitBtn} disabled={loading}>
+            {loading ? '⏳ Palaukite...' : isRegister ? '🚀 Registruotis' : '🔑 Prisijungti'}
           </button>
         </form>
 

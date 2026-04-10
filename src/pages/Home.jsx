@@ -149,6 +149,36 @@ export default function Home({ onNavigate }) {
         </div>
       </section>
 
+      {/* Courses Preview */}
+      <section className="section">
+        <div className="container">
+          <div className="section-title">
+            <h2>🎓 Mokymo kursai</h2>
+            <p>Interaktyvūs kursai vaikams – emocijos, pasitikėjimas, ADHD pagalba ir daugiau</p>
+          </div>
+          <div className="grid-4">
+            {POPULAR_COURSES.map((c, i) => (
+              <div key={i} style={styles.coursePreview}>
+                <div style={{ ...styles.courseEmoji, background: c.bg }}>
+                  <span style={{ fontSize: '2rem' }}>{c.emoji}</span>
+                </div>
+                <h4 style={{ fontSize: '0.95rem' }}>{c.title}</h4>
+                <p style={{ fontSize: '0.8rem', color: '#636E72' }}>{c.desc}</p>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#636E72', fontWeight: 600 }}>{c.lessons} pamokos</span>
+                  {c.free && <span className="badge badge-free" style={{ fontSize: '0.7rem' }}>Nemokamas</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={styles.viewAll}>
+            <button className="btn btn-primary" onClick={() => onNavigate('courses')}>
+              Visi kursai →
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section style={styles.cta}>
         <div className="container" style={{ textAlign: 'center' }}>
@@ -157,7 +187,7 @@ export default function Home({ onNavigate }) {
             Paruošti, dėmesio, mokomės!
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.85)', maxWidth: '500px', margin: '16px auto 32px', fontSize: '1.1rem' }}>
-            Prisijunkite prie tūkstančių šeimų, kurios renkasi MažųjųPasaulis
+            Prisijunkite prie šeimų, kurios renkasi MažųjųPasaulis
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-lg" style={{ background: 'white', color: '#6C63FF', fontWeight: 800 }} onClick={() => onNavigate('membership')}>
@@ -235,6 +265,13 @@ const POPULAR_BOOKS = [
   { emoji: '🌟', title: 'Aš galiu viską!', author: 'MažųjųPasaulis', price: '€10.99', badge: 'Mūsų knyga!', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' },
   { emoji: '🧠', title: 'Mano smegenys – superherojus!', author: 'MažųjųPasaulis', price: '€13.99', badge: 'ADHD draugiškas', bg: 'linear-gradient(135deg, #4CC9F0, #6C63FF)' },
   { emoji: '😊', title: 'Mano jausmai – mano super galia', author: 'MažųjųPasaulis', price: '€11.99', badge: 'Greitai!', bg: 'linear-gradient(135deg, #FF6B8A, #FF6B35)' },
+]
+
+const POPULAR_COURSES = [
+  { emoji: '😊', title: 'Emocijų ABC', desc: 'Atpažink ir valdyk jausmus', lessons: 10, free: true, bg: 'linear-gradient(135deg, #FF6B8A, #FFD166)' },
+  { emoji: '💪', title: 'Pasitikėjimo mokykla', desc: 'Tapk drąsesniu', lessons: 8, free: false, bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' },
+  { emoji: '🧠', title: 'ADHD superherojus', desc: 'Susikaupimo triukai', lessons: 10, free: false, bg: 'linear-gradient(135deg, #4CC9F0, #06D6A0)' },
+  { emoji: '🎨', title: 'Kūrybiškas piešimas', desc: 'Piešimo pamokos', lessons: 8, free: true, bg: 'linear-gradient(135deg, #FF6B35, #FFD166)' },
 ]
 
 const POPULAR_GAMES = [
@@ -497,6 +534,24 @@ const styles = {
     fontSize: '0.85rem',
     fontWeight: 700,
     color: '#636E72',
+  },
+  coursePreview: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    padding: '20px',
+    borderRadius: '16px',
+    background: 'white',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+    transition: 'all 0.3s ease',
+  },
+  courseEmoji: {
+    width: '56px',
+    height: '56px',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cta: {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
