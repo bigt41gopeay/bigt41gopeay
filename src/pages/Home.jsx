@@ -23,23 +23,23 @@ export default function Home({ onNavigate }) {
           </div>
           <div style={styles.heroStats}>
             <div style={styles.stat}>
-              <span style={styles.statNum}>500+</span>
+              <span style={styles.statNum}>10+</span>
               <span style={styles.statLabel}>Knygų</span>
             </div>
             <div style={styles.statDivider} />
             <div style={styles.stat}>
-              <span style={styles.statNum}>50+</span>
-              <span style={styles.statLabel}>Žaidimų</span>
+              <span style={styles.statNum}>4</span>
+              <span style={styles.statLabel}>Žaidimai</span>
             </div>
             <div style={styles.statDivider} />
             <div style={styles.stat}>
-              <span style={styles.statNum}>10k+</span>
-              <span style={styles.statLabel}>Vaikų</span>
+              <span style={styles.statNum}>15+</span>
+              <span style={styles.statLabel}>Produktų</span>
             </div>
             <div style={styles.statDivider} />
             <div style={styles.stat}>
-              <span style={styles.statNum}>⭐ 4.9</span>
-              <span style={styles.statLabel}>Vertinimas</span>
+              <span style={styles.statNum}>🧠 ADHD</span>
+              <span style={styles.statLabel}>Draugiška</span>
             </div>
           </div>
         </div>
@@ -200,41 +200,41 @@ export default function Home({ onNavigate }) {
 const FEATURES = [
   {
     icon: '📚', title: 'Pasitikėjimo knygos',
-    desc: 'Specialiai atrinktos knygos, kurios padeda vaikams atrasti savo stiprybes ir tikėti savimi.',
+    desc: 'Autorinės spausdintos knygutės, kurios padeda vaikams atrasti savo stiprybes ir tikėti savimi. Lietuviškos!',
     bg: 'linear-gradient(135deg, #FF6B8A20, #FF6B3520)',
   },
   {
-    icon: '🎮', title: 'Lavinamieji žaidimai',
-    desc: 'Interaktyvūs žaidimai, kurie lavina loginį mąstymą, atmintį, kūrybiškumą ir kitas svarbias savybes.',
+    icon: '🧠', title: 'ADHD draugiška',
+    desc: 'Specialios priemonės vaikams su ADHD: sensoriniai žaislai, vizualūs laikmačiai, ramybės kortelės ir dienotvarkės.',
+    bg: 'linear-gradient(135deg, #4CC9F020, #06D6A020)',
+  },
+  {
+    icon: '🎮', title: 'Nemokami žaidimai',
+    desc: 'Interaktyvūs žaidimai internete: atmintis, matematika, žodžiai, spalvos. Mokymasis per žaidimą!',
     bg: 'linear-gradient(135deg, #6C63FF20, #4CC9F020)',
   },
   {
-    icon: '🏆', title: 'Pasiekimų sistema',
-    desc: 'Vaikai renka žvaigždutes ir apdovanojimus, kurie motyvuoja mokytis ir tobulėti kiekvieną dieną.',
+    icon: '📋', title: 'Spausdinami PDF',
+    desc: 'Darbo kortelės, spalvinimo puslapiai, dienotvarkės – pirkite kartą, spausdinkite kiek norite. Maža kaina!',
     bg: 'linear-gradient(135deg, #FFD16620, #06D6A020)',
   },
   {
-    icon: '👨‍👩‍👧‍👦', title: 'Šeimos erdvė',
-    desc: 'Tėvai gali sekti vaikų progresą, matyti jų pasiekimus ir kartu džiaugtis mokymosi kelione.',
-    bg: 'linear-gradient(135deg, #06D6A020, #4CC9F020)',
-  },
-  {
-    icon: '🎨', title: 'Kūrybinės užduotys',
-    desc: 'Piešimo, rašymo ir meninės veiklos, kurios leidžia vaikams laisvai reikšti save.',
+    icon: '😊', title: 'Emocijų ugdymas',
+    desc: 'Kortelės, knygos ir pratimai, padedantys vaikams atpažinti ir valdyti savo emocijas nuo mažens.',
     bg: 'linear-gradient(135deg, #9B5DE520, #FF6B8A20)',
   },
   {
-    icon: '🔒', title: 'Saugus turinys',
-    desc: '100% saugus ir amžiui pritaikytas turinys. Jokių reklamų, tik kokybiškas mokomasis turinys.',
-    bg: 'linear-gradient(135deg, #4CC9F020, #6C63FF20)',
+    icon: '🇱🇹', title: 'Lietuviška kokybė',
+    desc: '100% lietuviškas turinys, kurtas Lietuvos vaikams. Unikalūs produktai, kurių nerasite kitur.',
+    bg: 'linear-gradient(135deg, #06D6A020, #FFD16620)',
   },
 ]
 
 const POPULAR_BOOKS = [
-  { emoji: '🦁', title: 'Drąsusis liūtukas', author: 'A. Petrauskienė', price: '€12.99', badge: 'Bestseleris', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)' },
-  { emoji: '🌟', title: 'Aš galiu viską!', author: 'R. Kazlauskaitė', price: '€10.99', badge: 'Naujiena', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' },
-  { emoji: '🦋', title: 'Mažoji drugelė', author: 'L. Jonaitis', price: '€9.99', badge: 'Top 10', bg: 'linear-gradient(135deg, #FF6B8A, #FF6B35)' },
-  { emoji: '🌈', title: 'Spalvų pasaulis', author: 'D. Ramanauskienė', price: '€11.99', badge: 'Rekomenduojama', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)' },
+  { emoji: '🦁', title: 'Drąsusis liūtukas', author: 'MažųjųPasaulis', price: '€12.99', badge: 'Mūsų knyga!', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)' },
+  { emoji: '🌟', title: 'Aš galiu viską!', author: 'MažųjųPasaulis', price: '€10.99', badge: 'Mūsų knyga!', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' },
+  { emoji: '🧠', title: 'Mano smegenys – superherojus!', author: 'MažųjųPasaulis', price: '€13.99', badge: 'ADHD draugiškas', bg: 'linear-gradient(135deg, #4CC9F0, #6C63FF)' },
+  { emoji: '😊', title: 'Mano jausmai – mano super galia', author: 'MažųjųPasaulis', price: '€11.99', badge: 'Greitai!', bg: 'linear-gradient(135deg, #FF6B8A, #FF6B35)' },
 ]
 
 const POPULAR_GAMES = [

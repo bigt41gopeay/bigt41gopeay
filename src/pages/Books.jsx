@@ -4,9 +4,9 @@ const CATEGORIES = [
   { id: 'all', label: 'Visos', icon: '📚' },
   { id: 'confidence', label: 'Pasitikėjimas', icon: '💪' },
   { id: 'emotions', label: 'Emocijos', icon: '❤️' },
-  { id: 'adventure', label: 'Nuotykiai', icon: '🗺️' },
-  { id: 'learning', label: 'Mokymasis', icon: '🎓' },
+  { id: 'adhd', label: 'ADHD draugiškas', icon: '🧠' },
   { id: 'creativity', label: 'Kūrybiškumas', icon: '🎨' },
+  { id: 'social', label: 'Socialiniai įgūdžiai', icon: '🤝' },
 ]
 
 const AGES = [
@@ -17,18 +17,19 @@ const AGES = [
 ]
 
 const BOOKS = [
-  { id: 1, emoji: '🦁', title: 'Drąsusis liūtukas', author: 'A. Petrauskienė', price: 12.99, rating: 5, category: 'confidence', age: '3-5', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: 'Bestseleris', desc: 'Istorija apie mažą liūtuką, kuris mokosi būti drąsus ir tikėti savimi.' },
-  { id: 2, emoji: '🌟', title: 'Aš galiu viską!', author: 'R. Kazlauskaitė', price: 10.99, rating: 5, category: 'confidence', age: '3-5', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', badge: 'Naujiena', desc: 'Knyga, kuri moko vaikus, kad jie gali pasiekti bet ką, ko tik nori.' },
-  { id: 3, emoji: '🦋', title: 'Mažoji drugelė', author: 'L. Jonaitis', price: 9.99, rating: 4, category: 'emotions', age: '3-5', bg: 'linear-gradient(135deg, #FF6B8A, #FF6B35)', badge: 'Top 10', desc: 'Jautri istorija apie draugystę ir empatiją.' },
-  { id: 4, emoji: '🌈', title: 'Spalvų pasaulis', author: 'D. Ramanauskienė', price: 11.99, rating: 5, category: 'creativity', age: '3-5', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'Rekomenduojama', desc: 'Kūrybinga knyga, skatinanti vaiko vaizduotę ir meninį pojūtį.' },
-  { id: 5, emoji: '🚀', title: 'Kosmoso kelionė', author: 'M. Stankevičius', price: 14.99, rating: 5, category: 'adventure', age: '6-8', bg: 'linear-gradient(135deg, #2D3436, #6C63FF)', badge: 'Populiarus', desc: 'Nuotykinga kelionė po kosmosą, kuri moko apie planetas ir žvaigždes.' },
-  { id: 6, emoji: '🧙', title: 'Mažasis burtininkas', author: 'V. Šimkūnaitė', price: 13.99, rating: 4, category: 'adventure', age: '6-8', bg: 'linear-gradient(135deg, #9B5DE5, #FF6B8A)', badge: '', desc: 'Magiškas pasakojimas apie berniuką, kuris atranda savo ypatingas galias.' },
-  { id: 7, emoji: '🌱', title: 'Augti drąsiai', author: 'K. Paulauskienė', price: 10.99, rating: 5, category: 'confidence', age: '6-8', bg: 'linear-gradient(135deg, #06D6A0, #FFD166)', badge: 'Tėvų pasirinkimas', desc: 'Praktinė knyga su užduotimis, padedanti vaikams ugdyti pasitikėjimą.' },
-  { id: 8, emoji: '❤️', title: 'Mano jausmai – mano draugai', author: 'I. Mockutė', price: 11.99, rating: 5, category: 'emotions', age: '6-8', bg: 'linear-gradient(135deg, #FF6B8A, #FFD166)', badge: 'Naujiena', desc: 'Knyga, mokanti vaikus pažinti ir valdyti savo emocijas.' },
-  { id: 9, emoji: '🔬', title: 'Mokslo paslaptys', author: 'P. Grigas', price: 15.99, rating: 4, category: 'learning', age: '9-12', bg: 'linear-gradient(135deg, #4CC9F0, #6C63FF)', badge: '', desc: 'Įdomūs eksperimentai ir faktai, kurie atvers mokslo pasaulį.' },
-  { id: 10, emoji: '📖', title: 'Rašymo pamokos', author: 'A. Mikulskis', price: 12.99, rating: 4, category: 'learning', age: '9-12', bg: 'linear-gradient(135deg, #FF6B35, #FFD166)', badge: '', desc: 'Kūrybingo rašymo vadovas jauniesiems autoriams.' },
-  { id: 11, emoji: '💪', title: 'Stipresnis nei manai', author: 'E. Balčiūnienė', price: 13.99, rating: 5, category: 'confidence', age: '9-12', bg: 'linear-gradient(135deg, #FF6B8A, #9B5DE5)', badge: 'Naujiena', desc: 'Įkvepianti knyga vyresniems vaikams apie savo galimybes.' },
-  { id: 12, emoji: '🎨', title: 'Spalvink savo pasaulį', author: 'G. Mikutienė', price: 8.99, rating: 5, category: 'creativity', age: '3-5', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Pigu!', desc: 'Spalvinimo ir kūrybinių užduočių knyga mažiausiems.' },
+  // === JŪSŲ 2 SPAUSDINTOS KNYGUTĖS ===
+  { id: 1, emoji: '🦁', title: 'Drąsusis liūtukas', author: 'MažųjųPasaulis', price: 12.99, rating: 5, category: 'confidence', age: '3-5', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: 'Mūsų knyga!', desc: 'Autorinis leidinys! Istorija apie mažą liūtuką, kuris mokosi būti drąsus, įveikia baimes ir atranda savo vidinę jėgą. Su interaktyviomis užduotimis.' },
+  { id: 2, emoji: '🌟', title: 'Aš galiu viską!', author: 'MažųjųPasaulis', price: 10.99, rating: 5, category: 'confidence', age: '3-5', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', badge: 'Mūsų knyga!', desc: 'Autorinis leidinys! Knyga, kuri moko vaikus, kad jie gali pasiekti bet ką – su afirmacijomis, užduotimis ir drąsinančiomis istorijomis.' },
+
+  // === GREITAI KURIAMOS KNYGOS (fazė 2) ===
+  { id: 3, emoji: '😊', title: 'Mano jausmai – mano super galia', author: 'MažųjųPasaulis', price: 11.99, rating: 5, category: 'emotions', age: '3-5', bg: 'linear-gradient(135deg, #FF6B8A, #FF6B35)', badge: 'Greitai!', desc: 'Emocijų pažinimo knyga su spalvingomis iliustracijomis. Padeda vaikams suprasti ir įvardinti savo jausmus.' },
+  { id: 4, emoji: '🧠', title: 'Mano smegenys – superherojus!', author: 'MažųjųPasaulis', price: 13.99, rating: 5, category: 'adhd', age: '6-8', bg: 'linear-gradient(135deg, #4CC9F0, #6C63FF)', badge: 'ADHD draugiškas', desc: 'Knyga, kuri paaiškina vaikams su ADHD, kad jų smegenys yra ypatingos. Su ramybės pratimais ir susikaupimo technikomis.' },
+  { id: 5, emoji: '🐢', title: 'Vėžliuko ramybės paslaptis', author: 'MažųjųPasaulis', price: 10.99, rating: 5, category: 'adhd', age: '3-5', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'ADHD draugiškas', desc: 'Apie vėžliuką, kuris mokosi sustoti, kvėpuoti ir susikaupti. Paprasta technika vaikams su dėmesio sunkumais.' },
+  { id: 6, emoji: '🤝', title: 'Geriausi draugai', author: 'MažųjųPasaulis', price: 10.99, rating: 4, category: 'social', age: '3-5', bg: 'linear-gradient(135deg, #9B5DE5, #FF6B8A)', badge: 'Greitai!', desc: 'Socialinių įgūdžių knyga: kaip susirasti draugų, dalintis ir spręsti nesutarimus.' },
+  { id: 7, emoji: '🎨', title: 'Spalvink savo jausmus', author: 'MažųjųPasaulis', price: 8.99, rating: 5, category: 'creativity', age: '3-5', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Kūrybinė', desc: 'Spalvinimo ir piešimo knyga, kurioje kiekvienas puslapis susijęs su emocija. Terapinė veikla vaikams.' },
+  { id: 8, emoji: '🌱', title: 'Augti drąsiai – praktinė knyga', author: 'MažųjųPasaulis', price: 12.99, rating: 5, category: 'confidence', age: '6-8', bg: 'linear-gradient(135deg, #06D6A0, #FFD166)', badge: 'Su užduotimis', desc: 'Praktinė knyga su 30 užduočių, kurios padeda vaikams ugdyti pasitikėjimą savimi, drąsą ir atsparumą.' },
+  { id: 9, emoji: '💪', title: 'Aš esu stiprus!', author: 'MažųjųPasaulis', price: 13.99, rating: 5, category: 'confidence', age: '9-12', bg: 'linear-gradient(135deg, #FF6B8A, #9B5DE5)', badge: 'Vyresniems', desc: 'Vyresniems vaikams skirta knyga apie savigarbą, atsparumą patyčioms ir pasitikėjimą savimi.' },
+  { id: 10, emoji: '🧘', title: 'Ramybės minutės', author: 'MažųjųPasaulis', price: 11.99, rating: 5, category: 'adhd', age: '6-8', bg: 'linear-gradient(135deg, #9B5DE5, #4CC9F0)', badge: 'Mindfulness', desc: 'Trumpi mindfulness pratimai ir kvėpavimo technikos vaikams. Ypač naudinga ADHD ir nerimaujantiems vaikams.' },
 ]
 
 export default function Books({ onAddToCart }) {

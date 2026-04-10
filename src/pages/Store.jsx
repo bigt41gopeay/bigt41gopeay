@@ -1,21 +1,31 @@
 import { useState } from 'react'
 
 const STORE_ITEMS = [
-  { id: 101, emoji: '📦', title: 'Pradinukas rinkinys', desc: '5 knygos + 3 žaidimai pradedantiems. Puikus startas!', price: 39.99, originalPrice: 59.99, category: 'bundle', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', badge: '-33%', type: 'Rinkinys' },
-  { id: 102, emoji: '🎁', title: 'Drąsos rinkinys', desc: '8 knygos apie pasitikėjimą savimi + veiklos kortelės.', price: 54.99, originalPrice: 79.99, category: 'bundle', bg: 'linear-gradient(135deg, #FF6B8A, #FF6B35)', badge: 'Bestseleris', type: 'Rinkinys' },
-  { id: 103, emoji: '🌟', title: 'Viskas viename MEGA', desc: 'Visos knygos + visi žaidimai + narystė 1 metams!', price: 89.99, originalPrice: 149.99, category: 'bundle', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: '-40%', type: 'Mega rinkinys' },
-  { id: 104, emoji: '🃏', title: 'Atminties kortelės', desc: '48 spalvingos kortelės su gyvūnais ir daiktais.', price: 14.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'Naujiena', type: 'Fizinis produktas' },
-  { id: 105, emoji: '🧩', title: 'Dėlionių rinkinys', desc: '6 edukacinės dėlionės skirtingų sunkumų.', price: 24.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #4CC9F0, #6C63FF)', badge: '', type: 'Fizinis produktas' },
-  { id: 106, emoji: '🎲', title: 'Stalo žaidimas "Mokslininkai"', desc: 'Šeimyninis stalo žaidimas, skatinantis smalsumą.', price: 29.99, originalPrice: 34.99, category: 'physical', bg: 'linear-gradient(135deg, #9B5DE5, #FF6B8A)', badge: 'Populiarus', type: 'Stalo žaidimas' },
-  { id: 107, emoji: '📱', title: 'Programėlė Premium (1 m.)', desc: 'Pilna prieiga prie visų žaidimų ir knygų mobiliajame.', price: 29.99, originalPrice: 47.88, category: 'digital', bg: 'linear-gradient(135deg, #2D3436, #6C63FF)', badge: 'Geriausias pasiūlymas', type: 'Skaitmeninis' },
-  { id: 108, emoji: '🎨', title: 'Piešimo rinkinys', desc: 'Spalvinimo knyga + 24 flomasteriai + piešimo pamokos.', price: 19.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #FFD166, #06D6A0)', badge: '', type: 'Kūrybinis rinkinys' },
+  // === RINKINIAI ===
+  { id: 101, emoji: '📦', title: 'Starto rinkinys "Drąsus vaikas"', desc: '2 spausdintos knygos (Drąsusis liūtukas + Aš galiu viską!) + Emocijų kortelių rinkinys. Puikus startas!', price: 29.99, originalPrice: 37.97, category: 'bundle', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', badge: '-21%', type: 'Rinkinys' },
+  { id: 102, emoji: '🎁', title: 'ADHD draugiškas rinkinys', desc: '2 knygos + ramybės kortelės + vizualus laikmatis (PDF) + sensorinis fidget žaislas.', price: 34.99, originalPrice: 49.99, category: 'bundle', bg: 'linear-gradient(135deg, #4CC9F0, #06D6A0)', badge: 'ADHD', type: 'Rinkinys' },
+  { id: 103, emoji: '🌟', title: 'Viskas viename MEGA', desc: '2 knygos + emocijų kortelės + spalvinimo rinkinys (PDF) + dienotvarkės lenta + apdovanojimų lipdukai.', price: 44.99, originalPrice: 69.99, category: 'bundle', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: '-36%', type: 'Mega rinkinys' },
+
+  // === FIZINIAI PRODUKTAI ===
+  { id: 104, emoji: '😊', title: 'Emocijų kortelių rinkinys', desc: '36 spalvingos kortelės su emocijomis lietuvių kalba. Padeda vaikams atpažinti ir įvardinti jausmus. Tinka ADHD.', price: 14.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #FF6B8A, #FFD166)', badge: 'Bestseleris', type: 'Edukacinės kortelės' },
+  { id: 105, emoji: '⭐', title: 'Pasiekimų lipdukai (200 vnt.)', desc: 'Motyvuojantys lipdukai: žvaigždutės, medaliai, šypsenėlės. Už gerus darbus, mokymąsi, tvarką.', price: 7.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: 'Mažiausia kaina', type: 'Lipdukai' },
+  { id: 106, emoji: '🧸', title: 'Sensorinis fidget žaislas', desc: 'Tylus, spalvingas sensorinis žaislas, padedantis vaikams susikaupti. Idealus mokyklai ir namams. Tinka ADHD.', price: 9.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'ADHD draugiškas', type: 'Sensorinis žaislas' },
+  { id: 107, emoji: '⏱️', title: 'Vizualus laikmatis vaikams', desc: 'Spalvotas smėlio tipo laikmatis (15 min.). Padeda suprasti laiko tėkmę, planuoti užduotis. Būtinas ADHD.', price: 12.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #9B5DE5, #FF6B8A)', badge: 'ADHD būtinas', type: 'Mokymosi priemonė' },
+  { id: 108, emoji: '🧲', title: 'Dienotvarkės magnetinė lenta', desc: 'Magnetinė lenta su 40 magnetukų: rytas, mokykla, namų darbai, žaidimas, miegas. Vizuali struktūra dienai.', price: 19.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #6C63FF, #4CC9F0)', badge: 'Naujiena', type: 'Organizavimo priemonė' },
+
+  // === SKAITMENINIAI PRODUKTAI (PDF) ===
+  { id: 109, emoji: '📋', title: 'Darbo kortelės: raidės ir skaičiai (PDF)', desc: '60 spausdinamų darbo lapų: raidžių rašymas, skaičiavimas, spalvinimas. Atsisiųskite ir spausdinkite!', price: 6.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #FF6B35, #FFD166)', badge: 'PDF', type: 'Spausdinamas PDF' },
+  { id: 110, emoji: '🎨', title: 'Spalvinimo puslapiai: emocijos (PDF)', desc: '30 unikalių spalvinimo puslapių, kiekvienas susietas su emocija. Terapinė veikla vaikams.', price: 4.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #FF6B8A, #9B5DE5)', badge: 'PDF', type: 'Spausdinamas PDF' },
+  { id: 111, emoji: '📅', title: 'Vaiko dienotvarkė / rutinos planas (PDF)', desc: 'Spausdinama vizuali dienotvarkė su paveikslėliais. Rytas-vakaras struktūra. Ypač naudinga ADHD vaikams.', price: 3.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #06D6A0, #FFD166)', badge: 'ADHD', type: 'Spausdinamas PDF' },
+  { id: 112, emoji: '🏆', title: 'Elgesio žvaigždučių lentelė (PDF)', desc: 'Spausdinama motyvacijos lentelė su lipdukai. Teigiamo elgesio skatinimas per žvaigždučių rinkimą.', price: 3.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: 'PDF', type: 'Spausdinamas PDF' },
+  { id: 113, emoji: '🧘', title: 'Ramybės pratimai vaikams (PDF)', desc: '20 iliustruotų ramybės ir kvėpavimo pratimų kortelių. Spausdink, kirpk ir naudok kasdien.', price: 5.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #9B5DE5, #4CC9F0)', badge: 'Mindfulness', type: 'Spausdinamas PDF' },
 ]
 
 const STORE_CATEGORIES = [
   { id: 'all', label: 'Visi produktai', icon: '🏪' },
   { id: 'bundle', label: 'Rinkiniai', icon: '📦' },
-  { id: 'physical', label: 'Fiziniai', icon: '🧩' },
-  { id: 'digital', label: 'Skaitmeniniai', icon: '📱' },
+  { id: 'physical', label: 'Fiziniai produktai', icon: '🧸' },
+  { id: 'digital', label: 'PDF atsisiuntimui', icon: '📋' },
 ]
 
 export default function Store({ cart, onAddToCart, onRemoveFromCart }) {
@@ -132,11 +142,35 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart }) {
           <div style={styles.promoContent}>
             <span style={{ fontSize: '2.5rem' }}>🎉</span>
             <div>
-              <h3 style={{ color: 'white' }}>Specialus pasiūlymas!</h3>
+              <h3 style={{ color: 'white' }}>Atidarymo akcija!</h3>
               <p style={{ color: 'rgba(255,255,255,0.85)' }}>
-                Naudokite kodą <strong>MOKYMASIS2026</strong> ir gaukite 15% nuolaidą bet kuriam rinkiniui!
+                Naudokite kodą <strong>STARTAS2026</strong> ir gaukite <strong>20% nuolaidą</strong> bet kuriam rinkiniui! Galioja pirmiesiems 100 pirkėjų.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* PDF Info */}
+        <div style={styles.pdfInfo}>
+          <div style={styles.pdfInfoContent}>
+            <h3>📋 Kaip veikia PDF produktai?</h3>
+            <div style={styles.pdfSteps}>
+              <div style={styles.pdfStep}>
+                <span style={styles.pdfStepNum}>1</span>
+                <p>Nusipirkite ir atsisiųskite PDF failą</p>
+              </div>
+              <div style={styles.pdfStep}>
+                <span style={styles.pdfStepNum}>2</span>
+                <p>Atspausdinkite namų spausdintuvu</p>
+              </div>
+              <div style={styles.pdfStep}>
+                <span style={styles.pdfStepNum}>3</span>
+                <p>Naudokite su vaiku ir mokykitės kartu!</p>
+              </div>
+            </div>
+            <p style={{ color: '#636E72', fontSize: '0.85rem', marginTop: '12px' }}>
+              Pirkite vieną kartą – spausdinkite kiek norite! Idealus sprendimas taupantiems tėvams.
+            </p>
           </div>
         </div>
       </div>
@@ -342,5 +376,41 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '20px',
+  },
+  pdfInfo: {
+    marginTop: '32px',
+    padding: '32px',
+    borderRadius: '20px',
+    background: 'rgba(108, 99, 255, 0.04)',
+    border: '2px solid rgba(108, 99, 255, 0.1)',
+  },
+  pdfInfoContent: {
+    textAlign: 'center',
+  },
+  pdfSteps: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '40px',
+    marginTop: '20px',
+    flexWrap: 'wrap',
+  },
+  pdfStep: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    maxWidth: '180px',
+  },
+  pdfStepNum: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 900,
+    fontSize: '1.1rem',
   },
 }
