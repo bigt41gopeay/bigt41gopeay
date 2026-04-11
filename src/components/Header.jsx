@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const NAV_ITEMS = [
   { id: 'home', label: 'Pradžia', icon: '🏠' },
@@ -11,6 +11,18 @@ const NAV_ITEMS = [
 
 export default function Header({ currentPage, onNavigate, cartCount, user, onLogin, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <header style={styles.header}>
@@ -44,15 +56,56 @@ export default function Header({ currentPage, onNavigate, cartCount, user, onLog
 
         <div style={styles.actions}>
           {user ? (
-            <div style={styles.userMenu}>
-              {user.role === 'admin' && (
-                <button onClick={() => onNavigate('admin')} style={styles.adminLink} title="Admin skydelis">
-                  ⚙️
-                </button>
+            <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                style={styles.userMenuBtn}
+              >
+                <span style={styles.userAvatar}>{user.name.charAt(0)}</span>
+                <span style={styles.userName}>{user.name}</span>
+                <span style={{ fontSize: '0.7rem', color: '#636E72' }}>▼</span>
+              </button>
+
+              {userMenuOpen && (
+                <div style={styles.userDropdown}>
+                  <button
+                    onClick={() => { onNavigate('profile'); setUserMenuOpen(false) }}
+                    style={styles.dropdownItem}
+                  >
+                    👤 Mano profilis
+                  </button>
+                  <button
+                    onClick={() => { onNavigate('orders'); setUserMenuOpen(false) }}
+                    style={styles.dropdownItem}
+                  >
+                    📦 Mano užsakymai
+                  </button>
+                  <button
+                    onClick={() => { onNavigate('membership'); setUserMenuOpen(false) }}
+                    style={styles.dropdownItem}
+                  >
+                    ⭐ Narystė
+                  </button>
+                  {user.role === 'admin' && (
+                    <>
+                      <div style={styles.dropdownDivider} />
+                      <button
+                        onClick={() => { onNavigate('admin'); setUserMenuOpen(false) }}
+                        style={{ ...styles.dropdownItem, color: '#FF6B35', fontWeight: 800 }}
+                      >
+                        ⚙️ Admin skydelis
+                      </button>
+                    </>
+                  )}
+                  <div style={styles.dropdownDivider} />
+                  <button
+                    onClick={() => { onLogout(); setUserMenuOpen(false) }}
+                    style={{ ...styles.dropdownItem, color: '#FF6B8A' }}
+                  >
+                    🚪 Atsijungti
+                  </button>
+                </div>
               )}
-              <span style={styles.userAvatar}>{user.name.charAt(0)}</span>
-              <span style={styles.userName}>{user.name}</span>
-              <button onClick={onLogout} style={styles.logoutBtn}>Atsijungti</button>
             </div>
           ) : (
             <button onClick={onLogin} style={styles.loginBtn}>
@@ -85,12 +138,26 @@ export default function Header({ currentPage, onNavigate, cartCount, user, onLog
             </button>
           ))}
           {user ? (
-            <button onClick={() => { onLogout(); setMobileMenuOpen(false) }} style={styles.mobileNavItem}>
-              👋 Atsijungti
-            </button>
+            <>
+              <div style={styles.mobileDivider} />
+              <button onClick={() => { onNavigate('profile'); setMobileMenuOpen(false) }} style={styles.mobileNavItem}>
+                <span>👤</span> Mano profilis
+              </button>
+              <button onClick={() => { onNavigate('orders'); setMobileMenuOpen(false) }} style={styles.mobileNavItem}>
+                <span>📦</span> Mano užsakymai
+              </button>
+              {user.role === 'admin' && (
+                <button onClick={() => { onNavigate('admin'); setMobileMenuOpen(false) }} style={{ ...styles.mobileNavItem, color: '#FF6B35' }}>
+                  <span>⚙️</span> Admin skydelis
+                </button>
+              )}
+              <button onClick={() => { onLogout(); setMobileMenuOpen(false) }} style={{ ...styles.mobileNavItem, color: '#FF6B8A' }}>
+                <span>🚪</span> Atsijungti
+              </button>
+            </>
           ) : (
             <button onClick={() => { onLogin(); setMobileMenuOpen(false) }} style={styles.mobileNavItem}>
-              🔑 Prisijungti
+              <span>🔑</span> Prisijungti
             </button>
           )}
         </div>
@@ -237,6 +304,59 @@ const styles = {
     color: '#636E72',
     cursor: 'pointer',
     fontFamily: 'var(--font)',
+  },
+  userMenuBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '6px 14px',
+    borderRadius: '12px',
+    background: '#F9FAFB',
+    border: '2px solid #E8ECF1',
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+    transition: 'all 0.2s',
+  },
+  userDropdown: {
+    position: 'absolute',
+    top: 'calc(100% + 8px)',
+    right: 0,
+    minWidth: '220px',
+    background: 'white',
+    borderRadius: '14px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+    border: '1px solid #E8ECF1',
+    padding: '8px',
+    zIndex: 200,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  dropdownItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 14px',
+    background: 'none',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '0.9rem',
+    fontWeight: 700,
+    color: '#2D3436',
+    cursor: 'pointer',
+    textAlign: 'left',
+    fontFamily: 'var(--font)',
+    width: '100%',
+    transition: 'background 0.15s',
+  },
+  dropdownDivider: {
+    height: '1px',
+    background: '#E8ECF1',
+    margin: '6px 0',
+  },
+  mobileDivider: {
+    height: '1px',
+    background: '#E8ECF1',
+    margin: '8px 0',
   },
   adminLink: {
     width: '34px',

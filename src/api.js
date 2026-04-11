@@ -22,6 +22,7 @@ export const api = {
   login: (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   register: (name, email, password) => request('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
   getMe: () => request('/auth/me'),
+  changePassword: (current_password, new_password) => request('/auth/password', { method: 'PUT', body: JSON.stringify({ current_password, new_password }) }),
 
   // Products
   getProducts: (params = '') => request(`/products${params ? '?' + params : ''}`),
@@ -42,14 +43,25 @@ export const api = {
   updateMembership: (membership) => request('/user/membership', { method: 'PUT', body: JSON.stringify({ membership }) }),
   getProgress: () => request('/user/progress'),
 
-  // Admin
+  // Admin - stats & users
   getStats: () => request('/admin/stats'),
   getAdminOrders: () => request('/admin/orders'),
   getAdminUsers: () => request('/admin/users'),
   updateOrderStatus: (id, status) => request(`/admin/orders/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
+
+  // Admin - products
   createProduct: (data) => request('/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id, data) => request(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id) => request(`/products/${id}`, { method: 'DELETE' }),
+
+  // Admin - courses & lessons
+  createCourse: (data) => request('/admin/courses', { method: 'POST', body: JSON.stringify(data) }),
+  updateCourse: (id, data) => request(`/admin/courses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCourse: (id) => request(`/admin/courses/${id}`, { method: 'DELETE' }),
+  getAdminLessons: (courseId) => request(`/admin/courses/${courseId}/lessons`),
+  createLesson: (courseId, data) => request(`/admin/courses/${courseId}/lessons`, { method: 'POST', body: JSON.stringify(data) }),
+  updateLesson: (id, data) => request(`/admin/lessons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteLesson: (id) => request(`/admin/lessons/${id}`, { method: 'DELETE' }),
 }
 
 export function saveToken(token) { localStorage.setItem('mazuju_token', token) }

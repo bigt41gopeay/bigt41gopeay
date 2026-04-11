@@ -407,24 +407,41 @@ function ProductForm({ product, onClose, onSaved }) {
 }
 
 // ============================================
-// COURSES TAB
+// COURSES TAB - full editor
 // ============================================
 function CoursesTab() {
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
+  const [editingCourse, setEditingCourse] = useState(null)
+  const [managingLessons, setManagingLessons] = useState(null)
 
-  useEffect(() => {
-    api.getCourses()
-      .then(setCourses)
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+  const load = () => {
+    setLoading(true)
+    api.getCourses().then(setCourses).catch(() => {}).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleDelete = async (id) => {
+    if (!confirm('Tikrai norite pašalinti šį kursą?')) return
+    try {
+      await api.deleteCourse(id)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
 
   if (loading) return <div style={styles.loading}>⏳ Kraunama...</div>
 
   return (
     <div>
-      <h3 style={{ marginBottom: '16px' }}>🎓 Kursai ({courses.length})</h3>
+      <div style={styles.sectionHeader}>
+        <h3>🎓 Kursai ({courses.length})</h3>
+        <button onClick={() => setEditingCourse({})} style={styles.addBtn}>➕ Naujas kursas</button>
+      </div>
+
+      {editingCourse && <CourseForm course={editingCourse.id ? editingCourse : null} onClose={() => setEditingCourse(null)} onSaved={() => { setEditingCourse(null); load() }} />}
+      {managingLessons && <LessonsManager course={managingLessons} onClose={() => { setManagingLessons(null); load() }} />}
+
       <div style={styles.courseList}>
         {courses.map(c => (
           <div key={c.id} style={styles.courseRow}>
@@ -438,13 +455,264 @@ function CoursesTab() {
             <span style={{ ...styles.badge, background: c.is_free ? '#06D6A0' : '#FF6B35' }}>
               {c.is_free ? 'Nemokamas' : 'Mokamas'}
             </span>
+            <div style={styles.productActions}>
+              <button onClick={() => setManagingLessons(c)} style={styles.editBtn} title="Valdyti pamokas">📝</button>
+              <button onClick={() => setEditingCourse(c)} style={styles.editBtn} title="Redaguoti">✏️</button>
+              <button onClick={() => handleDelete(c.id)} style={styles.deleteBtn} title="Ištrinti">🗑️</button>
+            </div>
           </div>
         ))}
       </div>
-      <p style={{ marginTop: '20px', padding: '16px', background: 'rgba(108, 99, 255, 0.05)', borderRadius: '12px', fontSize: '0.9rem' }}>
-        💡 <strong>Kursų turinio redagavimas</strong> kol kas vykdomas tiesiogiai per duomenų bazę ar API. Galutinis pamokų redaktorius bus pridėtas greitai.
-      </p>
     </div>
+  )
+}
+
+function CourseForm({ course, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    title: course?.title || '',
+    description: course?.description || '',
+    emoji: course?.emoji || '📖',
+    category: course?.category || 'emotions',
+    age_group: course?.age_group || '3-7',
+    difficulty: course?.difficulty || 'beginner',
+    is_free: course?.is_free || 0,
+    bg: course?.bg || 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const data = { ...form, is_free: form.is_free ? 1 : 0 }
+      if (course?.id) {
+        await api.updateCourse(course.id, { ...data, is_active: 1 })
+      } else {
+        await api.createCourse(data)
+      }
+      onSaved()
+    } catch (err) {
+      alert('Klaida: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modalForm} onClick={e => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h3>{course ? '✏️ Redaguoti kursą' : '➕ Naujas kursas'}</h3>
+          <button onClick={onClose} style={styles.closeX}>✕</button>
+        </div>
+        <form onSubmit={handleSave} style={styles.form}>
+          <label style={styles.formLabel}>
+            Pavadinimas *
+            <input type="text" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} style={styles.formInput} />
+          </label>
+          <label style={styles.formLabel}>
+            Aprašymas
+            <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ ...styles.formInput, minHeight: '100px' }} />
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <label style={styles.formLabel}>
+              Emoji
+              <input type="text" value={form.emoji} onChange={e => setForm({ ...form, emoji: e.target.value })} style={styles.formInput} />
+            </label>
+            <label style={styles.formLabel}>
+              Amžius
+              <input type="text" value={form.age_group} onChange={e => setForm({ ...form, age_group: e.target.value })} style={styles.formInput} placeholder="3-7" />
+            </label>
+            <label style={styles.formLabel}>
+              Sunkumas
+              <select value={form.difficulty} onChange={e => setForm({ ...form, difficulty: e.target.value })} style={styles.formInput}>
+                <option value="beginner">Pradedantiems</option>
+                <option value="intermediate">Vidutinis</option>
+                <option value="advanced">Pažengusiems</option>
+              </select>
+            </label>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <label style={styles.formLabel}>
+              Kategorija
+              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={styles.formInput}>
+                <option value="emotions">😊 Emocijos</option>
+                <option value="confidence">💪 Pasitikėjimas</option>
+                <option value="adhd">🧠 ADHD</option>
+                <option value="creativity">🎨 Kūrybiškumas</option>
+                <option value="learning">📖 Mokymasis</option>
+                <option value="social">🤝 Socialiniai</option>
+              </select>
+            </label>
+            <label style={{ ...styles.formLabel, justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '24px' }}>
+                <input type="checkbox" checked={!!form.is_free} onChange={e => setForm({ ...form, is_free: e.target.checked })} style={{ width: '18px', height: '18px' }} />
+                <span>Nemokamas kursas</span>
+              </div>
+            </label>
+          </div>
+          <label style={styles.formLabel}>
+            CSS fono gradientas
+            <input type="text" value={form.bg} onChange={e => setForm({ ...form, bg: e.target.value })} style={styles.formInput} />
+          </label>
+          <div style={styles.formActions}>
+            <button type="button" onClick={onClose} style={styles.cancelBtn}>Atšaukti</button>
+            <button type="submit" disabled={saving} style={styles.saveBtn}>
+              {saving ? '⏳ Išsaugoma...' : '💾 Išsaugoti'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function LessonsManager({ course, onClose }) {
+  const [lessons, setLessons] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(null)
+
+  const load = () => {
+    setLoading(true)
+    api.getAdminLessons(course.id)
+      .then(setLessons)
+      .catch(() => setLessons([]))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleDelete = async (id) => {
+    if (!confirm('Tikrai ištrinti šią pamoką?')) return
+    try {
+      await api.deleteLesson(id)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={{ ...styles.modalForm, maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h3>📝 {course.title} – pamokos ({lessons.length})</h3>
+          <button onClick={onClose} style={styles.closeX}>✕</button>
+        </div>
+
+        {editing ? (
+          <LessonForm
+            lesson={editing.id ? editing : null}
+            courseId={course.id}
+            onCancel={() => setEditing(null)}
+            onSaved={() => { setEditing(null); load() }}
+          />
+        ) : (
+          <>
+            <button onClick={() => setEditing({})} style={{ ...styles.addBtn, marginBottom: '16px' }}>
+              ➕ Nauja pamoka
+            </button>
+
+            {loading ? (
+              <div style={styles.loading}>⏳ Kraunama...</div>
+            ) : lessons.length === 0 ? (
+              <p style={{ padding: '40px', textAlign: 'center', color: '#636E72' }}>
+                Kol kas nėra pamokų. Pridėkite pirmąją!
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {lessons.map((l, idx) => (
+                  <div key={l.id} style={styles.lessonRow}>
+                    <span style={styles.lessonNum}>{idx + 1}</span>
+                    <div style={{ flex: 1 }}>
+                      <strong>{l.title}</strong>
+                      <div style={{ fontSize: '0.8rem', color: '#636E72', marginTop: '2px' }}>
+                        ⏱️ {l.duration_min} min · {l.is_free ? '🆓 Nemokama' : '🔒 Mokama'}
+                        {l.video_url && ' · 🎬 Video'}
+                      </div>
+                    </div>
+                    <div style={styles.productActions}>
+                      <button onClick={() => setEditing(l)} style={styles.editBtn}>✏️</button>
+                      <button onClick={() => handleDelete(l.id)} style={styles.deleteBtn}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function LessonForm({ lesson, courseId, onCancel, onSaved }) {
+  const [form, setForm] = useState({
+    title: lesson?.title || '',
+    content: lesson?.content || '',
+    video_url: lesson?.video_url || '',
+    duration_min: lesson?.duration_min || 5,
+    is_free: lesson?.is_free || 0,
+    sort_order: lesson?.sort_order || 0,
+  })
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const data = { ...form, is_free: form.is_free ? 1 : 0, duration_min: parseInt(form.duration_min) }
+      if (lesson?.id) {
+        await api.updateLesson(lesson.id, data)
+      } else {
+        await api.createLesson(courseId, data)
+      }
+      onSaved()
+    } catch (err) {
+      alert('Klaida: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSave} style={styles.form}>
+      <label style={styles.formLabel}>
+        Pamokos pavadinimas *
+        <input type="text" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} style={styles.formInput} />
+      </label>
+      <label style={styles.formLabel}>
+        Turinys (Markdown palaikomas)
+        <textarea
+          value={form.content}
+          onChange={e => setForm({ ...form, content: e.target.value })}
+          style={{ ...styles.formInput, minHeight: '200px', fontFamily: 'ui-monospace, monospace', fontSize: '0.85rem' }}
+          placeholder="## Pamokos turinys&#10;&#10;Pamokos tekstas, klausimai, užduotys..."
+        />
+      </label>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
+        <label style={styles.formLabel}>
+          Video URL (YouTube embed)
+          <input type="url" value={form.video_url} onChange={e => setForm({ ...form, video_url: e.target.value })} style={styles.formInput} placeholder="https://youtube.com/..." />
+        </label>
+        <label style={styles.formLabel}>
+          Trukmė (min)
+          <input type="number" min="1" value={form.duration_min} onChange={e => setForm({ ...form, duration_min: e.target.value })} style={styles.formInput} />
+        </label>
+        <label style={styles.formLabel}>
+          Eilės nr.
+          <input type="number" min="0" value={form.sort_order} onChange={e => setForm({ ...form, sort_order: e.target.value })} style={styles.formInput} />
+        </label>
+      </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <input type="checkbox" checked={!!form.is_free} onChange={e => setForm({ ...form, is_free: e.target.checked })} style={{ width: '18px', height: '18px' }} />
+        <span>Nemokama pamoka (prieinama visiems)</span>
+      </label>
+      <div style={styles.formActions}>
+        <button type="button" onClick={onCancel} style={styles.cancelBtn}>Atšaukti</button>
+        <button type="submit" disabled={saving} style={styles.saveBtn}>
+          {saving ? '⏳ Išsaugoma...' : '💾 Išsaugoti pamoką'}
+        </button>
+      </div>
+    </form>
   )
 }
 
@@ -713,6 +981,28 @@ const styles = {
     padding: '14px 18px',
     background: '#F9FAFB',
     borderRadius: '12px',
+  },
+  lessonRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 16px',
+    background: '#F9FAFB',
+    borderRadius: '10px',
+    border: '1px solid #E8ECF1',
+  },
+  lessonNum: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 900,
+    fontSize: '0.85rem',
+    flexShrink: 0,
   },
   badge: {
     padding: '4px 12px',

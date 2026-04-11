@@ -10,6 +10,8 @@ import Store from './pages/Store'
 import Membership from './pages/Membership'
 import Courses from './pages/Courses'
 import Admin from './pages/Admin'
+import Profile from './pages/Profile'
+import MyOrders from './pages/MyOrders'
 import { saveToken, clearToken, hasToken, api } from './api'
 
 export default function App() {
@@ -72,6 +74,10 @@ export default function App() {
         return <Courses user={user} onLogin={() => setShowLogin(true)} />
       case 'membership':
         return <Membership user={user} onNavigate={navigate} />
+      case 'profile':
+        return <Profile user={user} onUserUpdate={setUser} onNavigate={navigate} />
+      case 'orders':
+        return <MyOrders user={user} />
       case 'admin':
         return <Admin user={user} />
       default:
