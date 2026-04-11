@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '../api'
 
 const COURSE_CATEGORIES = [
   { id: 'all', label: 'Visi kursai', icon: '📚' },
@@ -10,57 +11,115 @@ const COURSE_CATEGORIES = [
   { id: 'social', label: 'Socialiniai', icon: '🤝' },
 ]
 
-const COURSES = [
-  { id: 1, title: 'Emocijų ABC', description: 'Išmok atpažinti ir valdyti savo jausmus! 10 pamokų su iliustracijomis, pratimais ir žaidimais.', emoji: '😊', category: 'emotions', age_group: '3-7', difficulty: 'Pradedantiems', is_free: true, bg: 'linear-gradient(135deg, #FF6B8A, #FFD166)', lesson_count: 10, free_lesson_count: 10 },
-  { id: 2, title: 'Pasitikėjimo mokykla', description: 'Kursas, padedantis vaikams tapti drąsesniems. Afirmacijos, pratybos ir istorijos apie drąsą.', emoji: '💪', category: 'confidence', age_group: '5-10', difficulty: 'Pradedantiems', is_free: false, bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', lesson_count: 8, free_lesson_count: 2 },
-  { id: 3, title: 'ADHD superherojus', description: 'Specialus kursas vaikams su ADHD. Mokymasis susikaupti, planuoti laiką ir naudoti energiją teisingai.', emoji: '🧠', category: 'adhd', age_group: '6-12', difficulty: 'Vidutinis', is_free: false, bg: 'linear-gradient(135deg, #4CC9F0, #06D6A0)', lesson_count: 10, free_lesson_count: 2 },
-  { id: 4, title: 'Kūrybiškas piešimas', description: 'Piešimo pamokos vaikams! Nuo paprastų formų iki nuostabių paveikslų.', emoji: '🎨', category: 'creativity', age_group: '4-10', difficulty: 'Pradedantiems', is_free: true, bg: 'linear-gradient(135deg, #FF6B35, #FFD166)', lesson_count: 8, free_lesson_count: 8 },
-  { id: 5, title: 'Matematika per žaidimą', description: 'Skaičiavimas, formos, logika – viskas per linksmus žaidimus ir iššūkius!', emoji: '🔢', category: 'learning', age_group: '5-8', difficulty: 'Pradedantiems', is_free: true, bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', lesson_count: 10, free_lesson_count: 10 },
-  { id: 6, title: 'Draugystės pamokos', description: 'Socialiniai įgūdžiai: kaip susirasti draugų, spręsti konfliktus ir būti geru draugu.', emoji: '🤝', category: 'social', age_group: '5-10', difficulty: 'Pradedantiems', is_free: false, bg: 'linear-gradient(135deg, #9B5DE5, #FF6B8A)', lesson_count: 7, free_lesson_count: 2 },
-  { id: 7, title: 'Ramybės ir kvėpavimo pratimai', description: 'Mindfulness vaikams: kaip nurimti, kvėpuoti ir susikaupti. 15 trumpų pamokų.', emoji: '🧘', category: 'adhd', age_group: '4-12', difficulty: 'Pradedantiems', is_free: false, bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', lesson_count: 15, free_lesson_count: 2 },
-  { id: 8, title: 'Lietuvių kalbos nuotykiai', description: 'Raidės, žodžiai ir sakiniai per žaidimus! Tinka priešmokyklinukams.', emoji: '📝', category: 'learning', age_group: '5-7', difficulty: 'Pradedantiems', is_free: true, bg: 'linear-gradient(135deg, #FF6B8A, #9B5DE5)', lesson_count: 10, free_lesson_count: 10 },
-]
+// Extract YouTube video ID from various URL formats
+function getYouTubeId(url) {
+  if (!url) return null
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ]
+  for (const p of patterns) {
+    const m = url.match(p)
+    if (m) return m[1]
+  }
+  return null
+}
 
-const SAMPLE_LESSONS = {
-  1: [
-    { id: 1, title: '1 pamoka: Kas yra jausmai?', is_free: true, duration_min: 5, completed: false },
-    { id: 2, title: '2 pamoka: Džiaugsmas ir liūdesys', is_free: true, duration_min: 7, completed: false },
-    { id: 3, title: '3 pamoka: Pyktis – ne priešas', is_free: true, duration_min: 6, completed: false },
-    { id: 4, title: '4 pamoka: Baimė ir drąsa', is_free: true, duration_min: 8, completed: false },
-    { id: 5, title: '5 pamoka: Pavydas ir dėkingumas', is_free: true, duration_min: 5, completed: false },
-  ],
-  2: [
-    { id: 10, title: '1 pamoka: Kas aš esu?', is_free: true, duration_min: 5, completed: false },
-    { id: 11, title: '2 pamoka: Mano stiprybės', is_free: true, duration_min: 7, completed: false },
-    { id: 12, title: '3 pamoka: Klaidos – tai gerai!', is_free: false, duration_min: 6, completed: false },
-    { id: 13, title: '4 pamoka: Aš drąsus!', is_free: false, duration_min: 8, completed: false },
-  ],
-  3: [
-    { id: 20, title: '1 pamoka: Mano ypatingos smegenys', is_free: true, duration_min: 6, completed: false },
-    { id: 21, title: '2 pamoka: Energijos valdymas', is_free: true, duration_min: 8, completed: false },
-    { id: 22, title: '3 pamoka: Susikaupimo triukai', is_free: false, duration_min: 7, completed: false },
-    { id: 23, title: '4 pamoka: Laiko planavimas', is_free: false, duration_min: 10, completed: false },
-  ],
+// Simple markdown-to-HTML renderer (supports headings, bold, italic, lists, code)
+function renderMarkdown(text) {
+  if (!text) return ''
+  let html = text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    // Headings
+    .replace(/^### (.+)$/gm, '<h3 style="margin: 20px 0 10px; font-size: 1.2rem;">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="margin: 24px 0 12px; font-size: 1.4rem;">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 style="margin: 28px 0 14px; font-size: 1.6rem;">$1</h1>')
+    // Bold / italic
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Inline code
+    .replace(/`(.+?)`/g, '<code style="padding: 2px 6px; border-radius: 4px; background: #F5F5F5; font-family: monospace;">$1</code>')
+    // Lists
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // Line breaks
+    .replace(/\n\n/g, '</p><p style="margin: 12px 0; line-height: 1.8; color: #636E72;">')
+
+  // Wrap list items in <ul>
+  html = html.replace(/(<li>.*?<\/li>(?:\s*<li>.*?<\/li>)*)/gs, '<ul style="padding-left: 24px; line-height: 2; color: #636E72; margin: 12px 0;">$1</ul>')
+
+  return `<p style="margin: 12px 0; line-height: 1.8; color: #636E72;">${html}</p>`
 }
 
 export default function Courses({ user, onLogin }) {
   const [category, setCategory] = useState('all')
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [selectedLesson, setSelectedLesson] = useState(null)
-  const [completedLessons, setCompletedLessons] = useState(new Set())
+  const [lessonLoading, setLessonLoading] = useState(false)
+
+  useEffect(() => {
+    api.getCourses()
+      .then(setCourses)
+      .catch(() => setCourses([]))
+      .finally(() => setLoading(false))
+  }, [user])
 
   const filtered = category === 'all'
-    ? COURSES
-    : COURSES.filter(c => c.category === category)
+    ? courses
+    : courses.filter(c => c.category === category)
 
-  const handleCompleteLesson = (lessonId) => {
-    setCompletedLessons(prev => new Set([...prev, lessonId]))
+  const openCourse = async (courseId) => {
+    try {
+      const course = await api.getCourse(courseId)
+      setSelectedCourse(course)
+    } catch (err) {
+      alert('Klaida: ' + err.message)
+    }
   }
 
-  // Lesson view
+  const openLesson = async (lessonId, requiresAuth) => {
+    if (requiresAuth && !user) {
+      onLogin?.()
+      return
+    }
+    setLessonLoading(true)
+    try {
+      const lesson = await api.getLesson(lessonId)
+      setSelectedLesson(lesson)
+    } catch (err) {
+      if (err.message.includes('prisijunk')) {
+        onLogin?.()
+      } else if (err.message.includes('nariams') || err.message.includes('narystės')) {
+        alert('Ši pamoka prieinama tik nariams. Pasirinkite narystės planą!')
+      } else {
+        alert('Klaida: ' + err.message)
+      }
+    } finally {
+      setLessonLoading(false)
+    }
+  }
+
+  const handleComplete = async () => {
+    if (!user || !selectedLesson) return
+    try {
+      await api.completeLesson(selectedLesson.id)
+      setSelectedLesson({ ...selectedLesson, completed: 1 })
+      // Refresh course to update progress
+      if (selectedCourse) {
+        const updated = await api.getCourse(selectedCourse.id)
+        setSelectedCourse(updated)
+      }
+    } catch (err) {
+      alert('Klaida: ' + err.message)
+    }
+  }
+
+  // ========== LESSON VIEW ==========
   if (selectedLesson) {
-    const course = COURSES.find(c => c.id === selectedCourse)
-    const isCompleted = completedLessons.has(selectedLesson.id)
+    const videoId = getYouTubeId(selectedLesson.video_url)
+    const isCompleted = !!selectedLesson.completed
 
     return (
       <div className="section">
@@ -68,54 +127,70 @@ export default function Courses({ user, onLogin }) {
           <button onClick={() => setSelectedLesson(null)} style={styles.backBtn}>
             ← Grįžti į kursą
           </button>
+
           <div style={styles.lessonView}>
             <div style={styles.lessonHeader}>
-              <span style={{ fontSize: '2rem' }}>{course?.emoji}</span>
+              <span style={{ fontSize: '2rem' }}>{selectedCourse?.emoji || '📖'}</span>
               <div>
-                <p style={{ color: '#636E72', fontSize: '0.85rem' }}>{course?.title}</p>
+                <p style={{ color: '#636E72', fontSize: '0.85rem' }}>{selectedLesson.course_title}</p>
                 <h2>{selectedLesson.title}</h2>
+                <div style={styles.lessonMeta}>
+                  <span>⏱️ {selectedLesson.duration_min} min.</span>
+                  {selectedLesson.is_free ? <span>🆓 Nemokama</span> : <span>🔒 Premium</span>}
+                  {isCompleted && <span style={{ color: '#06D6A0' }}>✅ Baigta</span>}
+                </div>
               </div>
             </div>
 
             <div style={styles.lessonContent}>
-              <div style={styles.lessonVideo}>
-                <span style={{ fontSize: '4rem' }}>🎬</span>
-                <p style={{ color: '#636E72', marginTop: '12px' }}>Video pamoka (ateityje)</p>
-              </div>
+              {/* Video player */}
+              {videoId ? (
+                <div style={styles.videoWrapper}>
+                  <iframe
+                    src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+                    title={selectedLesson.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={styles.videoIframe}
+                  />
+                </div>
+              ) : selectedLesson.video_url ? (
+                <div style={styles.videoWrapper}>
+                  <video src={selectedLesson.video_url} controls style={styles.videoIframe} />
+                </div>
+              ) : (
+                <div style={styles.videoPlaceholder}>
+                  <span style={{ fontSize: '4rem' }}>📖</span>
+                  <p style={{ color: '#636E72', marginTop: '12px', fontWeight: 700 }}>
+                    Tekstinė pamoka
+                  </p>
+                </div>
+              )}
 
-              <div style={styles.lessonText}>
-                <h3>Pamokos turinys</h3>
-                <p style={{ color: '#636E72', lineHeight: 1.8, marginTop: '12px' }}>
-                  Sveiki atvykę į pamoką! 🌟
-                </p>
-                <h4 style={{ marginTop: '20px' }}>Ko išmoksime?</h4>
-                <p style={{ color: '#636E72', lineHeight: 1.8 }}>
-                  Šioje pamokoje aptarsime svarbias temas ir atliksime linksmas užduotis.
-                </p>
-                <h4 style={{ marginTop: '20px' }}>Užduotis</h4>
-                <ol style={{ color: '#636E72', lineHeight: 2, paddingLeft: '20px' }}>
-                  <li>Perskaityk tekstą ir pagalvok apie klausimus</li>
-                  <li>Atlik praktinę užduotį</li>
-                  <li>Pasidalink su tėvais, ką išmokai</li>
-                </ol>
-                <h4 style={{ marginTop: '20px' }}>Refleksija</h4>
-                <ul style={{ color: '#636E72', lineHeight: 2, paddingLeft: '20px' }}>
-                  <li>Kas tau labiausiai patiko?</li>
-                  <li>Ką naujo sužinojai?</li>
-                  <li>Kaip tai panaudosi kasdienybėje?</li>
-                </ul>
-              </div>
+              {/* Lesson content (markdown) */}
+              <div
+                style={styles.lessonText}
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedLesson.content) }}
+              />
 
-              <button
-                onClick={() => handleCompleteLesson(selectedLesson.id)}
-                style={{
-                  ...styles.completeBtn,
-                  ...(isCompleted ? styles.completedBtn : {}),
-                }}
-                disabled={isCompleted}
-              >
-                {isCompleted ? '✅ Pamoka baigta!' : '✓ Pažymėti kaip baigtą'}
-              </button>
+              {/* Complete button */}
+              {user ? (
+                <button
+                  onClick={handleComplete}
+                  disabled={isCompleted}
+                  style={{
+                    ...styles.completeBtn,
+                    ...(isCompleted ? styles.completedBtn : {}),
+                  }}
+                >
+                  {isCompleted ? '✅ Pamoka baigta!' : '✓ Pažymėti kaip baigtą'}
+                </button>
+              ) : (
+                <button onClick={onLogin} style={styles.completeBtn}>
+                  🔑 Prisijunkite, kad pažymėtumėte progresą
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -123,78 +198,66 @@ export default function Courses({ user, onLogin }) {
     )
   }
 
-  // Course detail view
+  // ========== COURSE DETAIL VIEW ==========
   if (selectedCourse) {
-    const course = COURSES.find(c => c.id === selectedCourse)
-    const lessons = SAMPLE_LESSONS[selectedCourse] || SAMPLE_LESSONS[1]
-    const completedCount = lessons.filter(l => completedLessons.has(l.id)).length
-    const progress = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0
+    const progress = selectedCourse.completed_count || 0
+    const totalLessons = selectedCourse.lessons?.length || 0
+    const progressPercent = totalLessons > 0 ? (progress / totalLessons) * 100 : 0
 
     return (
       <div className="section">
         <div className="container">
           <button onClick={() => setSelectedCourse(null)} style={styles.backBtn}>
-            ← Grįžti į kursus
+            ← Visi kursai
           </button>
 
-          <div style={{ ...styles.courseDetailHeader, background: course.bg }}>
-            <span style={{ fontSize: '4rem' }}>{course.emoji}</span>
-            <h1 style={{ color: 'white', fontSize: '2rem' }}>{course.title}</h1>
-            <p style={{ color: 'rgba(255,255,255,0.85)', maxWidth: '600px' }}>{course.description}</p>
-            <div style={styles.courseMeta2}>
-              <span style={styles.metaTag}>📅 {course.age_group} metai</span>
-              <span style={styles.metaTag}>📊 {course.difficulty}</span>
-              <span style={styles.metaTag}>📖 {course.lesson_count} pamokos</span>
-              {course.is_free && <span style={styles.metaTag}>🆓 Nemokamas</span>}
+          <div style={{ ...styles.courseDetailHeader, background: selectedCourse.bg }}>
+            <span style={{ fontSize: '4rem' }}>{selectedCourse.emoji}</span>
+            <h1 style={{ color: 'white', marginTop: '12px' }}>{selectedCourse.title}</h1>
+            <p style={{ color: 'rgba(255,255,255,0.9)', marginTop: '8px', maxWidth: '600px' }}>
+              {selectedCourse.description}
+            </p>
+            <div style={styles.courseInfo}>
+              <span>👶 {selectedCourse.age_group} m.</span>
+              <span>📝 {totalLessons} pamokos</span>
+              {selectedCourse.is_free ? <span>🆓 Nemokamas</span> : <span>⭐ Premium</span>}
             </div>
           </div>
 
-          {/* Progress */}
-          {completedCount > 0 && (
-            <div style={styles.progressSection}>
-              <div style={styles.progressHeader}>
-                <span>🏆 Tavo progresas:</span>
-                <span style={{ fontWeight: 900, color: '#6C63FF' }}>{progress}%</span>
+          {user && progressPercent > 0 && (
+            <div style={styles.progressBar}>
+              <div style={styles.progressLabel}>
+                <span>Jūsų progresas: {progress}/{totalLessons}</span>
+                <strong>{Math.round(progressPercent)}%</strong>
               </div>
-              <div style={styles.progressBar}>
-                <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+              <div style={styles.progressTrack}>
+                <div style={{ ...styles.progressFill, width: `${progressPercent}%` }} />
               </div>
-              <p style={{ fontSize: '0.85rem', color: '#636E72' }}>{completedCount} iš {lessons.length} pamokų baigta</p>
             </div>
           )}
 
-          {/* Lessons list */}
-          <div style={styles.lessonsContainer}>
-            <h3 style={{ marginBottom: '20px' }}>📖 Pamokos</h3>
-            {lessons.map((lesson, i) => {
-              const isLocked = !lesson.is_free && !user
-              const isCompleted = completedLessons.has(lesson.id)
-
+          <div style={styles.lessonsList}>
+            <h3 style={{ marginBottom: '16px' }}>📚 Pamokos</h3>
+            {selectedCourse.lessons?.map((lesson, idx) => {
+              const locked = !lesson.is_free && !selectedCourse.is_free && (!user || user.membership === 'free')
               return (
-                <div key={lesson.id} style={{
-                  ...styles.lessonCard,
-                  ...(isCompleted ? styles.lessonCompleted : {}),
-                  ...(isLocked ? styles.lessonLocked : {}),
-                }}>
-                  <div style={styles.lessonNum}>{isCompleted ? '✅' : isLocked ? '🔒' : i + 1}</div>
+                <div key={lesson.id} style={styles.lessonItem}>
+                  <span style={styles.lessonNum}>{idx + 1}</span>
                   <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: '1rem' }}>{lesson.title}</h4>
-                    <div style={styles.lessonMeta}>
+                    <strong>{lesson.title}</strong>
+                    <div style={styles.lessonItemMeta}>
                       <span>⏱️ {lesson.duration_min} min.</span>
-                      {lesson.is_free && <span className="badge badge-free">Nemokama</span>}
-                      {!lesson.is_free && <span className="badge badge-popular">Nariams</span>}
+                      {lesson.is_free && <span style={{ color: '#06D6A0' }}>🆓 Nemokama</span>}
+                      {lesson.completed && <span style={{ color: '#06D6A0' }}>✅ Baigta</span>}
                     </div>
                   </div>
-                  {isLocked ? (
-                    <button onClick={onLogin} style={styles.lockBtn}>Prisijungti</button>
-                  ) : (
-                    <button
-                      onClick={() => setSelectedLesson(lesson)}
-                      style={styles.startBtn}
-                    >
-                      {isCompleted ? 'Peržiūrėti' : 'Pradėti →'}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => openLesson(lesson.id, locked)}
+                    disabled={lessonLoading}
+                    style={{ ...styles.playBtn, opacity: locked ? 0.6 : 1 }}
+                  >
+                    {locked ? '🔒 Premium' : lesson.completed ? '🔄 Peržiūrėti' : '▶️ Žiūrėti'}
+                  </button>
                 </div>
               )
             })}
@@ -204,171 +267,332 @@ export default function Courses({ user, onLogin }) {
     )
   }
 
-  // Course list view
+  // ========== COURSES LIST ==========
   return (
     <div className="section">
       <div className="container">
-        <div style={styles.header}>
-          <h1 style={{ fontSize: '2.5rem' }}>🎓 Mokymai vaikams</h1>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '2.5rem' }}>🎓 Mokymai</h1>
           <p style={{ color: '#636E72', marginTop: '8px', fontSize: '1.1rem' }}>
-            Interaktyvūs kursai, padedantys vaikams augti, mokytis ir tobulėti
+            Interaktyvūs kursai vaikams – pasitikėjimo ugdymas, emocijos, mokymasis ir daugiau
           </p>
         </div>
 
-        {/* Categories */}
         <div style={styles.categories}>
           {COURSE_CATEGORIES.map(c => (
             <button
               key={c.id}
               onClick={() => setCategory(c.id)}
-              style={{
-                ...styles.catBtn,
-                ...(category === c.id ? styles.catBtnActive : {}),
-              }}
+              style={{ ...styles.catBtn, ...(category === c.id ? styles.catBtnActive : {}) }}
             >
               {c.icon} {c.label}
             </button>
           ))}
         </div>
 
-        {/* Courses Grid */}
-        <div className="grid-2">
-          {filtered.map(course => (
-            <div key={course.id} className="card" style={styles.courseCard}>
-              <div style={{ ...styles.courseCover, background: course.bg }}>
-                <span style={{ fontSize: '3.5rem' }}>{course.emoji}</span>
-                <div style={styles.courseCoverInfo}>
-                  <span style={styles.courseType}>{course.difficulty}</span>
-                  {course.is_free && <span style={styles.courseFree}>🆓 Nemokamas</span>}
-                </div>
-              </div>
-              <div style={styles.courseInfo}>
-                <h3>{course.title}</h3>
-                <p style={styles.courseDesc}>{course.description}</p>
-                <div style={styles.courseMeta}>
-                  <span style={styles.courseMetaItem}>📅 {course.age_group} m.</span>
-                  <span style={styles.courseMetaItem}>📖 {course.lesson_count} pamokos</span>
-                  {!course.is_free && (
-                    <span style={styles.courseMetaItem}>🆓 {course.free_lesson_count} nemokamos</span>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <span style={{ fontSize: '2rem' }}>⏳</span>
+            <p style={{ color: '#636E72', marginTop: '12px' }}>Kraunami kursai...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <span style={{ fontSize: '3rem' }}>📭</span>
+            <p style={{ color: '#636E72', marginTop: '12px' }}>Kursų šioje kategorijoje nėra</p>
+          </div>
+        ) : (
+          <div className="grid-3">
+            {filtered.map(course => (
+              <div key={course.id} className="card" style={styles.courseCard} onClick={() => openCourse(course.id)}>
+                <div style={{ ...styles.courseCover, background: course.bg }}>
+                  <span style={{ fontSize: '3.5rem' }}>{course.emoji}</span>
+                  {course.is_free ? (
+                    <span style={styles.freeBadge}>🆓 Nemokamas</span>
+                  ) : (
+                    <span style={styles.premiumBadge}>⭐ Premium</span>
                   )}
                 </div>
-                <button
-                  onClick={() => setSelectedCourse(course.id)}
-                  style={{ ...styles.courseBtn, background: course.bg }}
-                >
-                  📖 Pradėti mokytis
-                </button>
+                <div style={styles.courseInfo2}>
+                  <h3>{course.title}</h3>
+                  <p style={styles.courseDesc}>{course.description}</p>
+                  <div style={styles.courseStats}>
+                    <span>📝 {course.lesson_count} pamokos</span>
+                    <span>👶 {course.age_group} m.</span>
+                  </div>
+                  {user && course.completed_count > 0 && (
+                    <div style={styles.miniProgress}>
+                      <div style={{ ...styles.miniProgressFill, width: `${(course.completed_count / course.lesson_count) * 100}%` }} />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Info banner */}
-        <div style={styles.infoBanner}>
-          <div style={styles.infoBannerContent}>
-            <span style={{ fontSize: '2.5rem' }}>🌟</span>
-            <div>
-              <h3>Kaip veikia mokymai?</h3>
-              <p style={{ color: '#636E72', marginTop: '8px' }}>
-                Kiekvienas kursas turi <strong>nemokamas pamokas</strong>, kad galėtumėte išbandyti.
-                Norint pasiekti visas pamokas, reikia <strong>Šeimos</strong> arba <strong>Premium</strong> narystės.
-                Kursai pritaikyti skirtingoms amžiaus grupėms ir interesams.
-              </p>
-            </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
 }
 
 const styles = {
-  header: { marginBottom: '32px' },
-  backBtn: {
-    display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
-    borderRadius: '12px', border: '2px solid #E8ECF1', background: 'white',
-    fontSize: '0.95rem', fontWeight: 700, color: '#636E72', cursor: 'pointer', fontFamily: 'var(--font)', marginBottom: '24px',
+  categories: {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '32px',
+    flexWrap: 'wrap',
   },
-  categories: { display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' },
   catBtn: {
-    padding: '10px 20px', borderRadius: '12px', border: '2px solid #E8ECF1', background: 'white',
-    fontSize: '0.9rem', fontWeight: 700, color: '#636E72', cursor: 'pointer', fontFamily: 'var(--font)', transition: 'all 0.2s ease',
+    padding: '10px 20px',
+    borderRadius: '12px',
+    border: '2px solid #E8ECF1',
+    background: 'white',
+    fontSize: '0.9rem',
+    fontWeight: 700,
+    color: '#636E72',
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
   },
-  catBtnActive: { background: '#6C63FF', color: 'white', borderColor: '#6C63FF' },
-  courseCard: { borderRadius: '20px', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+  catBtnActive: {
+    background: '#6C63FF',
+    color: 'white',
+    borderColor: '#6C63FF',
+  },
+  courseCard: {
+    borderRadius: '20px',
+    overflow: 'hidden',
+    cursor: 'pointer',
+  },
   courseCover: {
-    height: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', position: 'relative', gap: '12px',
+    height: '180px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  courseCoverInfo: { display: 'flex', gap: '12px' },
-  courseType: { color: 'white', fontWeight: 700, fontSize: '0.8rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)' },
-  courseFree: { color: 'white', fontWeight: 700, fontSize: '0.8rem', padding: '6px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.25)' },
-  courseInfo: { padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 },
-  courseDesc: { color: '#636E72', fontSize: '0.95rem', lineHeight: 1.6 },
-  courseMeta: { display: 'flex', gap: '16px', flexWrap: 'wrap' },
-  courseMetaItem: { fontSize: '0.85rem', fontWeight: 700, color: '#636E72' },
-  courseBtn: {
-    padding: '14px 28px', borderRadius: '14px', color: 'white', border: 'none',
-    fontSize: '1rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'var(--font)', marginTop: '8px',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.15)', transition: 'all 0.3s ease',
+  freeBadge: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    padding: '6px 14px',
+    borderRadius: '20px',
+    background: 'rgba(6, 214, 160, 0.95)',
+    color: 'white',
+    fontSize: '0.8rem',
+    fontWeight: 800,
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    padding: '6px 14px',
+    borderRadius: '20px',
+    background: 'rgba(255, 107, 53, 0.95)',
+    color: 'white',
+    fontSize: '0.8rem',
+    fontWeight: 800,
+  },
+  courseInfo2: {
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  courseDesc: {
+    color: '#636E72',
+    fontSize: '0.9rem',
+    lineHeight: 1.6,
+  },
+  courseStats: {
+    display: 'flex',
+    gap: '16px',
+    fontSize: '0.85rem',
+    color: '#636E72',
+    fontWeight: 600,
+  },
+  miniProgress: {
+    height: '6px',
+    background: '#E8ECF1',
+    borderRadius: '3px',
+    overflow: 'hidden',
+    marginTop: '8px',
+  },
+  miniProgressFill: {
+    height: '100%',
+    background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)',
+    transition: 'width 0.3s',
+  },
+  backBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 20px',
+    borderRadius: '12px',
+    border: '2px solid #E8ECF1',
+    background: 'white',
+    fontSize: '0.95rem',
+    fontWeight: 700,
+    color: '#636E72',
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+    marginBottom: '24px',
   },
   courseDetailHeader: {
-    borderRadius: '24px', padding: '48px', textAlign: 'center',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '32px',
+    padding: '48px',
+    borderRadius: '24px',
+    textAlign: 'center',
+    marginBottom: '32px',
   },
-  courseMeta2: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' },
-  metaTag: { padding: '6px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, fontSize: '0.85rem' },
-  progressSection: {
-    padding: '24px', borderRadius: '16px', background: 'rgba(108, 99, 255, 0.04)',
-    border: '2px solid rgba(108, 99, 255, 0.1)', marginBottom: '32px',
+  courseInfo: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '24px',
+    marginTop: '20px',
+    color: 'white',
+    fontWeight: 700,
+    fontSize: '0.9rem',
   },
-  progressHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', fontWeight: 700 },
-  progressBar: { height: '8px', borderRadius: '4px', background: '#E8ECF1', overflow: 'hidden', marginBottom: '8px' },
-  progressFill: { height: '100%', borderRadius: '4px', background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', transition: 'width 0.5s ease' },
-  lessonsContainer: {
-    background: 'white', borderRadius: '20px', padding: '32px',
+  progressBar: {
+    padding: '20px 24px',
+    background: 'white',
+    borderRadius: '16px',
+    marginBottom: '32px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+  },
+  progressLabel: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '10px',
+    fontSize: '0.9rem',
+    color: '#2D3436',
+    fontWeight: 700,
+  },
+  progressTrack: {
+    height: '10px',
+    background: '#E8ECF1',
+    borderRadius: '5px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+    borderRadius: '5px',
+    transition: 'width 0.3s',
+  },
+  lessonsList: {
+    background: 'white',
+    borderRadius: '20px',
+    padding: '32px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
   },
-  lessonCard: {
-    display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px',
-    borderRadius: '14px', border: '2px solid #E8ECF1', marginBottom: '8px', transition: 'all 0.2s ease',
+  lessonItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    padding: '16px',
+    borderRadius: '12px',
+    marginBottom: '8px',
+    background: '#F9FAFB',
+    border: '1px solid #E8ECF1',
   },
-  lessonCompleted: { borderColor: '#06D6A0', background: 'rgba(6, 214, 160, 0.03)' },
-  lessonLocked: { opacity: 0.6 },
   lessonNum: {
-    width: '40px', height: '40px', borderRadius: '50%', background: '#F5F5F5',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1rem', flexShrink: 0,
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 900,
+    flexShrink: 0,
   },
-  lessonMeta: { display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px', fontSize: '0.8rem', color: '#636E72' },
-  startBtn: {
-    padding: '8px 20px', borderRadius: '10px',
-    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', color: 'white', border: 'none',
-    fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', whiteSpace: 'nowrap',
+  lessonItemMeta: {
+    display: 'flex',
+    gap: '12px',
+    marginTop: '4px',
+    fontSize: '0.8rem',
+    color: '#636E72',
+    fontWeight: 600,
   },
-  lockBtn: {
-    padding: '8px 20px', borderRadius: '10px', background: '#F5F5F5', color: '#636E72',
-    border: 'none', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', whiteSpace: 'nowrap',
+  playBtn: {
+    padding: '10px 18px',
+    borderRadius: '10px',
+    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+    color: 'white',
+    border: 'none',
+    fontSize: '0.85rem',
+    fontWeight: 800,
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
   },
-  lessonView: {},
-  lessonHeader: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' },
+  lessonView: {
+    background: 'white',
+    borderRadius: '20px',
+    padding: '32px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+  },
+  lessonHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '16px',
+    marginBottom: '24px',
+    paddingBottom: '20px',
+    borderBottom: '2px solid #F5F5F5',
+  },
+  lessonMeta: {
+    display: 'flex',
+    gap: '16px',
+    marginTop: '8px',
+    fontSize: '0.85rem',
+    color: '#636E72',
+    fontWeight: 700,
+  },
   lessonContent: {
-    background: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
   },
-  lessonVideo: {
-    height: '250px', borderRadius: '16px', background: '#F9FAFB', display: 'flex',
-    flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: '32px',
+  videoWrapper: {
+    position: 'relative',
+    paddingBottom: '56.25%',
+    height: 0,
+    overflow: 'hidden',
+    borderRadius: '16px',
+    background: '#000',
+  },
+  videoIframe: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    border: 'none',
+  },
+  videoPlaceholder: {
+    textAlign: 'center',
+    padding: '48px',
+    borderRadius: '16px',
+    background: 'linear-gradient(135deg, rgba(108, 99, 255, 0.05), rgba(255, 107, 138, 0.05))',
     border: '2px dashed #E8ECF1',
   },
-  lessonText: { lineHeight: 1.8 },
+  lessonText: {
+    padding: '8px 0',
+  },
   completeBtn: {
-    width: '100%', padding: '16px', borderRadius: '14px',
-    background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', color: 'white', border: 'none',
-    fontSize: '1rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'var(--font)', marginTop: '32px',
+    padding: '16px 32px',
+    borderRadius: '14px',
+    background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+    color: 'white',
+    border: 'none',
+    fontSize: '1rem',
+    fontWeight: 800,
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+    alignSelf: 'center',
+    marginTop: '16px',
   },
-  completedBtn: { background: '#E8ECF1', color: '#636E72', cursor: 'default' },
-  infoBanner: {
-    marginTop: '48px', padding: '32px', borderRadius: '20px',
-    background: 'rgba(108, 99, 255, 0.04)', border: '2px solid rgba(108, 99, 255, 0.1)',
+  completedBtn: {
+    background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)',
+    cursor: 'default',
   },
-  infoBannerContent: { display: 'flex', alignItems: 'flex-start', gap: '20px' },
 }

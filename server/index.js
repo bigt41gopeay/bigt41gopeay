@@ -181,16 +181,45 @@ app.delete('/api/products/:id', adminAuth, (req, res) => {
 // ORDERS ROUTES
 // ==========================================
 app.post('/api/orders', auth, (req, res) => {
-  const { items, shipping } = req.body
+  const { items, shipping, coupon_code } = req.body
   if (!items || items.length === 0) return res.status(400).json({ error: 'Krepšelis tuščias' })
 
-  const total = items.reduce((sum, item) => {
+  const subtotal = items.reduce((sum, item) => {
     const product = db.prepare('SELECT price FROM products WHERE id = ?').get(item.product_id)
     return sum + (product ? product.price * (item.quantity || 1) : 0)
   }, 0)
 
-  const result = db.prepare('INSERT INTO orders (user_id, total, shipping_name, shipping_address, shipping_city, shipping_zip, shipping_phone) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
-    req.user.id, total, shipping?.name || '', shipping?.address || '', shipping?.city || '', shipping?.zip || '', shipping?.phone || ''
+  // Apply coupon if provided
+  let discount = 0
+  let appliedCoupon = null
+  if (coupon_code) {
+    const coupon = db.prepare('SELECT * FROM coupons WHERE code = ? COLLATE NOCASE AND is_active = 1').get(coupon_code.trim())
+    if (coupon) {
+      const now = new Date()
+      const validFrom = !coupon.valid_from || new Date(coupon.valid_from) <= now
+      const validUntil = !coupon.valid_until || new Date(coupon.valid_until) >= now
+      const withinLimit = coupon.max_uses === 0 || coupon.used_count < coupon.max_uses
+      const meetsMin = subtotal >= coupon.min_order
+
+      if (validFrom && validUntil && withinLimit && meetsMin) {
+        if (coupon.discount_type === 'percent') {
+          discount = (subtotal * coupon.discount_value) / 100
+        } else {
+          discount = Math.min(coupon.discount_value, subtotal)
+        }
+        appliedCoupon = coupon
+      }
+    }
+  }
+
+  const total = Math.max(0, subtotal - discount)
+
+  const result = db.prepare(`
+    INSERT INTO orders (user_id, total, subtotal, discount, coupon_code, shipping_name, shipping_address, shipping_city, shipping_zip, shipping_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    req.user.id, total, subtotal, discount, appliedCoupon?.code || '',
+    shipping?.name || '', shipping?.address || '', shipping?.city || '', shipping?.zip || '', shipping?.phone || ''
   )
 
   const itemStmt = db.prepare('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)')
@@ -201,12 +230,27 @@ app.post('/api/orders', auth, (req, res) => {
     }
   }
 
+  // Track coupon usage
+  if (appliedCoupon) {
+    db.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?').run(appliedCoupon.id)
+    db.prepare('INSERT INTO coupon_uses (coupon_id, user_id, order_id, discount_amount) VALUES (?, ?, ?, ?)').run(
+      appliedCoupon.id, req.user.id, result.lastInsertRowid, discount
+    )
+  }
+
   // Fire order notification email
   const orderItems = db.prepare('SELECT oi.*, p.title, p.emoji FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?').all(result.lastInsertRowid)
   const user = db.prepare('SELECT name, email FROM users WHERE id = ?').get(req.user.id)
-  onOrderCreated({ order: { id: result.lastInsertRowid, total, shipping }, items: orderItems, user }).catch(err => console.warn('Email failed:', err.message))
+  onOrderCreated({ order: { id: result.lastInsertRowid, total, subtotal, discount, coupon_code: appliedCoupon?.code, shipping }, items: orderItems, user }).catch(err => console.warn('Email failed:', err.message))
 
-  res.json({ id: result.lastInsertRowid, total, message: 'Užsakymas sukurtas!' })
+  res.json({
+    id: result.lastInsertRowid,
+    total,
+    subtotal,
+    discount,
+    coupon_applied: !!appliedCoupon,
+    message: appliedCoupon ? `Užsakymas sukurtas! Pritaikyta nuolaida: €${discount.toFixed(2)}` : 'Užsakymas sukurtas!',
+  })
 })
 
 app.get('/api/orders', auth, (req, res) => {
@@ -450,6 +494,205 @@ app.post('/api/payments/checkout', auth, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
+})
+
+// ==========================================
+// REVIEWS
+// ==========================================
+app.get('/api/products/:id/reviews', (req, res) => {
+  const reviews = db.prepare(`
+    SELECT r.*, u.name as user_name
+    FROM reviews r
+    JOIN users u ON u.id = r.user_id
+    WHERE r.product_id = ? AND r.is_approved = 1
+    ORDER BY r.created_at DESC
+  `).all(req.params.id)
+
+  const stats = db.prepare(`
+    SELECT
+      COUNT(*) as count,
+      COALESCE(AVG(rating), 0) as avg_rating,
+      SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as stars_5,
+      SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as stars_4,
+      SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as stars_3,
+      SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as stars_2,
+      SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as stars_1
+    FROM reviews WHERE product_id = ? AND is_approved = 1
+  `).get(req.params.id)
+
+  res.json({ reviews, stats })
+})
+
+app.post('/api/products/:id/reviews', auth, (req, res) => {
+  const { rating, title, comment } = req.body
+  if (!rating || rating < 1 || rating > 5) return res.status(400).json({ error: 'Įvertinimas turi būti 1-5' })
+
+  // Check if user already reviewed
+  const existing = db.prepare('SELECT id FROM reviews WHERE product_id = ? AND user_id = ?').get(req.params.id, req.user.id)
+  if (existing) {
+    db.prepare('UPDATE reviews SET rating=?, title=?, comment=? WHERE id=?').run(rating, title || '', comment || '', existing.id)
+    res.json({ message: 'Atsiliepimas atnaujintas', id: existing.id })
+  } else {
+    const result = db.prepare('INSERT INTO reviews (product_id, user_id, rating, title, comment) VALUES (?, ?, ?, ?, ?)').run(
+      req.params.id, req.user.id, rating, title || '', comment || ''
+    )
+    res.json({ message: 'Atsiliepimas pridėtas', id: result.lastInsertRowid })
+  }
+})
+
+app.delete('/api/reviews/:id', auth, (req, res) => {
+  const review = db.prepare('SELECT user_id FROM reviews WHERE id = ?').get(req.params.id)
+  if (!review) return res.status(404).json({ error: 'Atsiliepimas nerastas' })
+  if (review.user_id !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Neturite teisių' })
+  }
+  db.prepare('DELETE FROM reviews WHERE id = ?').run(req.params.id)
+  res.json({ message: 'Atsiliepimas pašalintas' })
+})
+
+app.get('/api/admin/reviews', adminAuth, (req, res) => {
+  const reviews = db.prepare(`
+    SELECT r.*, u.name as user_name, u.email as user_email, p.title as product_title, p.emoji as product_emoji
+    FROM reviews r
+    JOIN users u ON u.id = r.user_id
+    JOIN products p ON p.id = r.product_id
+    ORDER BY r.created_at DESC
+  `).all()
+  res.json(reviews)
+})
+
+app.put('/api/admin/reviews/:id', adminAuth, (req, res) => {
+  const { is_approved } = req.body
+  db.prepare('UPDATE reviews SET is_approved = ? WHERE id = ?').run(is_approved ? 1 : 0, req.params.id)
+  res.json({ message: 'Atnaujinta' })
+})
+
+// ==========================================
+// NEWSLETTER
+// ==========================================
+app.post('/api/newsletter/subscribe', (req, res) => {
+  const { email, name, source } = req.body
+  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Neteisingas el. paštas' })
+
+  const existing = db.prepare('SELECT id, is_active FROM newsletter_subscribers WHERE email = ?').get(email)
+  if (existing) {
+    if (existing.is_active) return res.json({ message: 'Jau esate prenumeratorius!' })
+    db.prepare('UPDATE newsletter_subscribers SET is_active = 1, unsubscribed_at = NULL, name = ? WHERE id = ?').run(name || '', existing.id)
+  } else {
+    db.prepare('INSERT INTO newsletter_subscribers (email, name, source) VALUES (?, ?, ?)').run(email, name || '', source || 'website')
+  }
+  res.json({ message: '✅ Sėkmingai užsiprenumeravote! Ačiū!' })
+})
+
+app.post('/api/newsletter/unsubscribe', (req, res) => {
+  const { email } = req.body
+  db.prepare('UPDATE newsletter_subscribers SET is_active = 0, unsubscribed_at = CURRENT_TIMESTAMP WHERE email = ?').run(email)
+  res.json({ message: 'Sėkmingai atsiprenumeravote' })
+})
+
+app.get('/api/admin/newsletter', adminAuth, (req, res) => {
+  const subscribers = db.prepare('SELECT * FROM newsletter_subscribers ORDER BY subscribed_at DESC').all()
+  const stats = db.prepare(`
+    SELECT
+      COUNT(*) as total,
+      SUM(is_active) as active,
+      SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as unsubscribed
+    FROM newsletter_subscribers
+  `).get()
+  res.json({ subscribers, stats })
+})
+
+app.delete('/api/admin/newsletter/:id', adminAuth, (req, res) => {
+  db.prepare('DELETE FROM newsletter_subscribers WHERE id = ?').run(req.params.id)
+  res.json({ message: 'Prenumeratorius pašalintas' })
+})
+
+// ==========================================
+// COUPONS
+// ==========================================
+app.post('/api/coupons/validate', (req, res) => {
+  const { code, order_total } = req.body
+  if (!code) return res.status(400).json({ error: 'Įveskite kodą' })
+
+  const coupon = db.prepare('SELECT * FROM coupons WHERE code = ? COLLATE NOCASE AND is_active = 1').get(code.trim())
+  if (!coupon) return res.status(404).json({ error: 'Kodas nerastas arba neaktyvus' })
+
+  const now = new Date()
+  if (coupon.valid_from && new Date(coupon.valid_from) > now) return res.status(400).json({ error: 'Kodas dar neaktyvus' })
+  if (coupon.valid_until && new Date(coupon.valid_until) < now) return res.status(400).json({ error: 'Kodo galiojimas pasibaigęs' })
+  if (coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses) return res.status(400).json({ error: 'Kodo panaudojimo limitas pasiektas' })
+  if (coupon.min_order > 0 && order_total < coupon.min_order) return res.status(400).json({ error: `Minimali užsakymo suma: €${coupon.min_order.toFixed(2)}` })
+
+  let discount = 0
+  if (coupon.discount_type === 'percent') {
+    discount = (order_total * coupon.discount_value) / 100
+  } else {
+    discount = Math.min(coupon.discount_value, order_total)
+  }
+
+  res.json({
+    valid: true,
+    code: coupon.code,
+    description: coupon.description,
+    discount_type: coupon.discount_type,
+    discount_value: coupon.discount_value,
+    discount_amount: parseFloat(discount.toFixed(2)),
+  })
+})
+
+app.get('/api/admin/coupons', adminAuth, (req, res) => {
+  const coupons = db.prepare('SELECT * FROM coupons ORDER BY created_at DESC').all()
+  res.json(coupons)
+})
+
+app.post('/api/admin/coupons', adminAuth, (req, res) => {
+  const { code, description, discount_type, discount_value, min_order, max_uses, valid_from, valid_until } = req.body
+  if (!code || !discount_value) return res.status(400).json({ error: 'Kodas ir nuolaidos dydis privalomi' })
+
+  try {
+    const result = db.prepare(`
+      INSERT INTO coupons (code, description, discount_type, discount_value, min_order, max_uses, valid_from, valid_until)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      code.toUpperCase().trim(),
+      description || '',
+      discount_type || 'percent',
+      parseFloat(discount_value),
+      parseFloat(min_order) || 0,
+      parseInt(max_uses) || 0,
+      valid_from || null,
+      valid_until || null
+    )
+    res.json({ id: result.lastInsertRowid, message: 'Kuponas sukurtas' })
+  } catch (err) {
+    if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Toks kodas jau egzistuoja' })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.put('/api/admin/coupons/:id', adminAuth, (req, res) => {
+  const { code, description, discount_type, discount_value, min_order, max_uses, valid_from, valid_until, is_active } = req.body
+  db.prepare(`
+    UPDATE coupons SET code=?, description=?, discount_type=?, discount_value=?, min_order=?, max_uses=?, valid_from=?, valid_until=?, is_active=?
+    WHERE id=?
+  `).run(
+    code.toUpperCase().trim(),
+    description || '',
+    discount_type,
+    parseFloat(discount_value),
+    parseFloat(min_order) || 0,
+    parseInt(max_uses) || 0,
+    valid_from || null,
+    valid_until || null,
+    is_active ? 1 : 0,
+    req.params.id
+  )
+  res.json({ message: 'Kuponas atnaujintas' })
+})
+
+app.delete('/api/admin/coupons/:id', adminAuth, (req, res) => {
+  db.prepare('DELETE FROM coupons WHERE id = ?').run(req.params.id)
+  res.json({ message: 'Kuponas pašalintas' })
 })
 
 // ==========================================

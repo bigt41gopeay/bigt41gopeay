@@ -39,7 +39,8 @@ export async function createCheckoutSession({ order, items, user }) {
     quantity: item.quantity || 1,
   }))
 
-  const session = await stripe.checkout.sessions.create({
+  // Apply coupon as Stripe discount if present
+  const sessionParams = {
     mode: 'payment',
     line_items,
     customer_email: user.email,
@@ -47,7 +48,19 @@ export async function createCheckoutSession({ order, items, user }) {
     success_url: `${BASE_URL}/?payment=success&order=${order.id}`,
     cancel_url: `${BASE_URL}/?payment=cancelled&order=${order.id}`,
     metadata: { order_id: String(order.id), user_id: String(user.id) },
-  })
+  }
+
+  if (order.discount && order.discount > 0) {
+    const coupon = await stripe.coupons.create({
+      amount_off: Math.round(order.discount * 100),
+      currency: 'eur',
+      duration: 'once',
+      name: order.coupon_code ? `Kuponas: ${order.coupon_code}` : 'Nuolaida',
+    })
+    sessionParams.discounts = [{ coupon: coupon.id }]
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionParams)
 
   // Log the payment attempt
   db.prepare('INSERT INTO payments (order_id, provider, provider_id, amount, currency, status) VALUES (?, ?, ?, ?, ?, ?)').run(

@@ -7,6 +7,9 @@ const TABS = [
   { id: 'products', label: 'Produktai', icon: '🛒' },
   { id: 'courses', label: 'Kursai', icon: '🎓' },
   { id: 'users', label: 'Vartotojai', icon: '👥' },
+  { id: 'reviews', label: 'Atsiliepimai', icon: '💬' },
+  { id: 'coupons', label: 'Kuponai', icon: '🎯' },
+  { id: 'newsletter', label: 'Naujienlaiškis', icon: '📬' },
 ]
 
 export default function Admin({ user }) {
@@ -58,6 +61,9 @@ export default function Admin({ user }) {
           {tab === 'products' && <ProductsTab />}
           {tab === 'courses' && <CoursesTab />}
           {tab === 'users' && <UsersTab />}
+          {tab === 'reviews' && <ReviewsTab />}
+          {tab === 'coupons' && <CouponsTab />}
+          {tab === 'newsletter' && <NewsletterTab />}
         </div>
       </div>
     </div>
@@ -754,6 +760,322 @@ function UsersTab() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ============================================
+// REVIEWS TAB
+// ============================================
+function ReviewsTab() {
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const load = () => {
+    setLoading(true)
+    api.getAdminReviews().then(setReviews).catch(() => {}).finally(() => setLoading(false))
+  }
+  useEffect(() => { load() }, [])
+
+  const toggleApproval = async (id, current) => {
+    try {
+      await api.approveReview(id, !current)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  const handleDelete = async (id) => {
+    if (!confirm('Ištrinti atsiliepimą?')) return
+    try {
+      await api.deleteReview(id)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  if (loading) return <div style={styles.loading}>⏳ Kraunama...</div>
+
+  return (
+    <div>
+      <h3 style={{ marginBottom: '16px' }}>💬 Atsiliepimai ({reviews.length})</h3>
+      {reviews.length === 0 ? (
+        <p style={{ padding: '40px', textAlign: 'center', color: '#636E72' }}>Dar nėra atsiliepimų</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {reviews.map(r => (
+            <div key={r.id} style={{ ...styles.orderCard, opacity: r.is_approved ? 1 : 0.6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '1.5rem' }}>{r.product_emoji}</span>
+                  <div>
+                    <strong>{r.product_title}</strong>
+                    <div style={{ fontSize: '0.85rem', color: '#636E72' }}>
+                      {r.user_name} ({r.user_email}) · {new Date(r.created_at).toLocaleDateString('lt-LT')}
+                    </div>
+                  </div>
+                </div>
+                <span style={{ color: '#FFD166', fontSize: '1.1rem' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+              </div>
+              {r.title && <strong>{r.title}</strong>}
+              {r.comment && <p style={{ color: '#636E72', marginTop: '8px', lineHeight: 1.5 }}>{r.comment}</p>}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <button
+                  onClick={() => toggleApproval(r.id, r.is_approved)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: r.is_approved ? '#06D6A0' : '#E8ECF1',
+                    color: r.is_approved ? 'white' : '#636E72',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font)',
+                  }}
+                >
+                  {r.is_approved ? '✓ Patvirtinta' : '⏸ Paslėpta'}
+                </button>
+                <button onClick={() => handleDelete(r.id)} style={styles.deleteBtn}>🗑️</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// COUPONS TAB
+// ============================================
+function CouponsTab() {
+  const [coupons, setCoupons] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(null)
+
+  const load = () => {
+    setLoading(true)
+    api.getAdminCoupons().then(setCoupons).catch(() => {}).finally(() => setLoading(false))
+  }
+  useEffect(() => { load() }, [])
+
+  const handleDelete = async (id) => {
+    if (!confirm('Ištrinti kuponą?')) return
+    try {
+      await api.deleteCoupon(id)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  if (loading) return <div style={styles.loading}>⏳ Kraunama...</div>
+
+  return (
+    <div>
+      <div style={styles.sectionHeader}>
+        <h3>🎯 Nuolaidų kuponai ({coupons.length})</h3>
+        <button onClick={() => setEditing({})} style={styles.addBtn}>➕ Naujas kuponas</button>
+      </div>
+
+      {editing && <CouponForm coupon={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />}
+
+      {coupons.length === 0 ? (
+        <p style={{ padding: '40px', textAlign: 'center', color: '#636E72' }}>Kol kas nėra kuponų</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {coupons.map(c => (
+            <div key={c.id} style={{ ...styles.productRow, opacity: c.is_active ? 1 : 0.5 }}>
+              <div style={{ ...styles.productEmoji, background: 'linear-gradient(135deg, #FFD166, #FF6B35)' }}>🎯</div>
+              <div style={{ flex: 1 }}>
+                <strong style={{ fontFamily: 'monospace', fontSize: '1.05rem' }}>{c.code}</strong>
+                <div style={{ color: '#636E72', fontSize: '0.85rem', marginTop: '2px' }}>
+                  {c.description}
+                </div>
+                <div style={{ color: '#B2BEC3', fontSize: '0.75rem', marginTop: '4px' }}>
+                  {c.discount_type === 'percent' ? `${c.discount_value}%` : `€${c.discount_value}`} nuolaida ·
+                  min. €{c.min_order} ·
+                  panaudota {c.used_count}{c.max_uses ? `/${c.max_uses}` : ''}
+                </div>
+              </div>
+              <span style={{ ...styles.badge, background: c.is_active ? '#06D6A0' : '#B2BEC3' }}>
+                {c.is_active ? 'Aktyvus' : 'Neaktyvus'}
+              </span>
+              <div style={styles.productActions}>
+                <button onClick={() => setEditing(c)} style={styles.editBtn}>✏️</button>
+                <button onClick={() => handleDelete(c.id)} style={styles.deleteBtn}>🗑️</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CouponForm({ coupon, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    code: coupon?.code || '',
+    description: coupon?.description || '',
+    discount_type: coupon?.discount_type || 'percent',
+    discount_value: coupon?.discount_value || 10,
+    min_order: coupon?.min_order || 0,
+    max_uses: coupon?.max_uses || 0,
+    valid_from: coupon?.valid_from?.slice(0, 10) || '',
+    valid_until: coupon?.valid_until?.slice(0, 10) || '',
+    is_active: coupon?.is_active ?? 1,
+  })
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      if (coupon?.id) {
+        await api.updateCoupon(coupon.id, form)
+      } else {
+        await api.createCoupon(form)
+      }
+      onSaved()
+    } catch (err) {
+      alert('Klaida: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modalForm} onClick={e => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h3>{coupon ? '✏️ Redaguoti kuponą' : '➕ Naujas kuponas'}</h3>
+          <button onClick={onClose} style={styles.closeX}>✕</button>
+        </div>
+        <form onSubmit={handleSave} style={styles.form}>
+          <label style={styles.formLabel}>
+            Kodas * (pvz. SUMMER20)
+            <input type="text" required value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} style={{ ...styles.formInput, fontFamily: 'monospace', textTransform: 'uppercase' }} />
+          </label>
+          <label style={styles.formLabel}>
+            Aprašymas
+            <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={styles.formInput} placeholder="pvz. Vasaros akcija" />
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <label style={styles.formLabel}>
+              Tipas
+              <select value={form.discount_type} onChange={e => setForm({ ...form, discount_type: e.target.value })} style={styles.formInput}>
+                <option value="percent">% nuolaida</option>
+                <option value="fixed">€ nuolaida</option>
+              </select>
+            </label>
+            <label style={styles.formLabel}>
+              Dydis *
+              <input type="number" step="0.01" min="0" required value={form.discount_value} onChange={e => setForm({ ...form, discount_value: e.target.value })} style={styles.formInput} />
+            </label>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <label style={styles.formLabel}>
+              Min. užsakymo suma (€)
+              <input type="number" step="0.01" min="0" value={form.min_order} onChange={e => setForm({ ...form, min_order: e.target.value })} style={styles.formInput} />
+            </label>
+            <label style={styles.formLabel}>
+              Max. panaudojimų (0 = neriboti)
+              <input type="number" min="0" value={form.max_uses} onChange={e => setForm({ ...form, max_uses: e.target.value })} style={styles.formInput} />
+            </label>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <label style={styles.formLabel}>
+              Galioja nuo
+              <input type="date" value={form.valid_from} onChange={e => setForm({ ...form, valid_from: e.target.value })} style={styles.formInput} />
+            </label>
+            <label style={styles.formLabel}>
+              Galioja iki
+              <input type="date" value={form.valid_until} onChange={e => setForm({ ...form, valid_until: e.target.value })} style={styles.formInput} />
+            </label>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <input type="checkbox" checked={!!form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked ? 1 : 0 })} style={{ width: '18px', height: '18px' }} />
+            <span>Aktyvus kuponas</span>
+          </label>
+          <div style={styles.formActions}>
+            <button type="button" onClick={onClose} style={styles.cancelBtn}>Atšaukti</button>
+            <button type="submit" disabled={saving} style={styles.saveBtn}>
+              {saving ? '⏳ Išsaugoma...' : '💾 Išsaugoti'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// NEWSLETTER TAB
+// ============================================
+function NewsletterTab() {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const load = () => {
+    setLoading(true)
+    api.getNewsletterSubs().then(setData).catch(() => {}).finally(() => setLoading(false))
+  }
+  useEffect(() => { load() }, [])
+
+  const handleDelete = async (id) => {
+    if (!confirm('Pašalinti prenumeratorių?')) return
+    try {
+      await api.deleteSubscriber(id)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  if (loading) return <div style={styles.loading}>⏳ Kraunama...</div>
+  if (!data) return <div style={styles.error}>❌ Klaida kraunant</div>
+
+  const { subscribers, stats } = data
+
+  return (
+    <div>
+      <h3 style={{ marginBottom: '16px' }}>📬 Naujienlaiškio prenumeratoriai</h3>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' }}>
+          <span style={styles.statIcon}>📧</span>
+          <span style={styles.statValue}>{stats.total || 0}</span>
+          <span style={styles.statLabel}>Iš viso</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)' }}>
+          <span style={styles.statIcon}>✅</span>
+          <span style={styles.statValue}>{stats.active || 0}</span>
+          <span style={styles.statLabel}>Aktyvūs</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #FF6B8A, #FFD166)' }}>
+          <span style={styles.statIcon}>🚫</span>
+          <span style={styles.statValue}>{stats.unsubscribed || 0}</span>
+          <span style={styles.statLabel}>Atsisakę</span>
+        </div>
+      </div>
+
+      {subscribers.length === 0 ? (
+        <p style={{ padding: '40px', textAlign: 'center', color: '#636E72' }}>Dar nėra prenumeratorių</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {subscribers.map(s => (
+            <div key={s.id} style={{ ...styles.userRow, opacity: s.is_active ? 1 : 0.5 }}>
+              <div style={styles.userAvatar}>{(s.name || s.email).charAt(0).toUpperCase()}</div>
+              <div style={{ flex: 1 }}>
+                <strong>{s.email}</strong>
+                {s.name && <div style={{ color: '#636E72', fontSize: '0.85rem' }}>{s.name}</div>}
+                <div style={{ fontSize: '0.75rem', color: '#B2BEC3', marginTop: '2px' }}>
+                  📍 {s.source} · {new Date(s.subscribed_at).toLocaleDateString('lt-LT')}
+                </div>
+              </div>
+              <span style={{ ...styles.badge, background: s.is_active ? '#06D6A0' : '#B2BEC3' }}>
+                {s.is_active ? 'Aktyvus' : 'Atsisakęs'}
+              </span>
+              <button onClick={() => handleDelete(s.id)} style={styles.deleteBtn}>🗑️</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

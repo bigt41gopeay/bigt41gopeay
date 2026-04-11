@@ -128,4 +128,20 @@ Sveiki atvykę į ${num}-ąją pamoką! 🌟
   `.trim()
 }
 
+// === COUPONS ===
+const couponCount = db.prepare('SELECT COUNT(*) as c FROM coupons').get().c
+if (couponCount === 0) {
+  const coupons = [
+    { code: 'STARTAS2026', description: 'Atidarymo akcija – 20% nuolaida', discount_type: 'percent', discount_value: 20, min_order: 20, max_uses: 100 },
+    { code: 'WELCOME10', description: 'Sveikinimas – 10% naujiems klientams', discount_type: 'percent', discount_value: 10, min_order: 15, max_uses: 0 },
+    { code: 'ADHD5', description: 'ADHD rinkiniams – €5 nuolaida', discount_type: 'fixed', discount_value: 5, min_order: 25, max_uses: 50 },
+    { code: 'SUPER30', description: 'Super pasiūlymas – 30% visam rinkiniui', discount_type: 'percent', discount_value: 30, min_order: 40, max_uses: 20 },
+  ]
+  const stmt = db.prepare('INSERT INTO coupons (code, description, discount_type, discount_value, min_order, max_uses) VALUES (?, ?, ?, ?, ?, ?)')
+  for (const c of coupons) {
+    stmt.run(c.code, c.description, c.discount_type, c.discount_value, c.min_order, c.max_uses)
+  }
+  console.log(`  ${coupons.length} coupons seeded`)
+}
+
 console.log('Database seeded successfully!')

@@ -1,3 +1,87 @@
+import { useState } from 'react'
+import { api } from '../api'
+
+function NewsletterForm() {
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!email) return
+    setLoading(true)
+    setMessage(null)
+    try {
+      const result = await api.subscribeNewsletter(email, '', 'footer')
+      setMessage({ type: 'success', text: result.message })
+      setEmail('')
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message })
+    } finally {
+      setLoading(false)
+      setTimeout(() => setMessage(null), 5000)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{ marginTop: '16px' }}>
+      <p style={{ fontSize: '0.85rem', color: '#B2BEC3', marginBottom: '8px' }}>
+        📬 Gaukite naujienas ir nuolaidas:
+      </p>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="jusu@pastas.lt"
+          required
+          style={{
+            flex: 1,
+            padding: '10px 14px',
+            borderRadius: '10px',
+            border: 'none',
+            background: 'rgba(255,255,255,0.1)',
+            color: 'white',
+            fontSize: '0.85rem',
+            fontFamily: 'var(--font)',
+            outline: 'none',
+          }}
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
+            color: 'white',
+            border: 'none',
+            fontSize: '0.85rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            fontFamily: 'var(--font)',
+          }}
+        >
+          {loading ? '⏳' : 'Prenumeruoti'}
+        </button>
+      </div>
+      {message && (
+        <div style={{
+          marginTop: '8px',
+          padding: '8px 12px',
+          borderRadius: '8px',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          background: message.type === 'success' ? 'rgba(6, 214, 160, 0.15)' : 'rgba(255, 107, 138, 0.15)',
+          color: message.type === 'success' ? '#06D6A0' : '#FF6B8A',
+        }}>
+          {message.text}
+        </div>
+      )}
+    </form>
+  )
+}
+
 export default function Footer({ onNavigate }) {
   return (
     <footer style={styles.footer}>
@@ -18,6 +102,7 @@ export default function Footer({ onNavigate }) {
               <span style={styles.socialIcon}>🎵</span>
               <span style={styles.socialIcon}>▶️</span>
             </div>
+            <NewsletterForm />
           </div>
 
           <div>

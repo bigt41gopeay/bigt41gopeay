@@ -29,7 +29,7 @@ export const api = {
   getProduct: (id) => request(`/products/${id}`),
 
   // Orders
-  createOrder: (items, shipping) => request('/orders', { method: 'POST', body: JSON.stringify({ items, shipping }) }),
+  createOrder: (items, shipping, coupon_code) => request('/orders', { method: 'POST', body: JSON.stringify({ items, shipping, coupon_code }) }),
   getOrders: () => request('/orders'),
 
   // Courses
@@ -62,6 +62,26 @@ export const api = {
   createLesson: (courseId, data) => request(`/admin/courses/${courseId}/lessons`, { method: 'POST', body: JSON.stringify(data) }),
   updateLesson: (id, data) => request(`/admin/lessons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteLesson: (id) => request(`/admin/lessons/${id}`, { method: 'DELETE' }),
+
+  // Reviews
+  getReviews: (productId) => request(`/products/${productId}/reviews`),
+  addReview: (productId, data) => request(`/products/${productId}/reviews`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteReview: (id) => request(`/reviews/${id}`, { method: 'DELETE' }),
+  getAdminReviews: () => request('/admin/reviews'),
+  approveReview: (id, is_approved) => request(`/admin/reviews/${id}`, { method: 'PUT', body: JSON.stringify({ is_approved }) }),
+
+  // Newsletter
+  subscribeNewsletter: (email, name, source) => request('/newsletter/subscribe', { method: 'POST', body: JSON.stringify({ email, name, source }) }),
+  unsubscribeNewsletter: (email) => request('/newsletter/unsubscribe', { method: 'POST', body: JSON.stringify({ email }) }),
+  getNewsletterSubs: () => request('/admin/newsletter'),
+  deleteSubscriber: (id) => request(`/admin/newsletter/${id}`, { method: 'DELETE' }),
+
+  // Coupons
+  validateCoupon: (code, order_total) => request('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, order_total }) }),
+  getAdminCoupons: () => request('/admin/coupons'),
+  createCoupon: (data) => request('/admin/coupons', { method: 'POST', body: JSON.stringify(data) }),
+  updateCoupon: (id, data) => request(`/admin/coupons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCoupon: (id) => request(`/admin/coupons/${id}`, { method: 'DELETE' }),
 }
 
 export function saveToken(token) { localStorage.setItem('mazuju_token', token) }

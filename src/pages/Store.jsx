@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
+import Reviews from '../components/Reviews'
 
 const STORE_CATEGORIES = [
   { id: 'all', label: 'Visi produktai', icon: '🏪' },
@@ -18,6 +19,11 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
   const [paymentsEnabled, setPaymentsEnabled] = useState(false)
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', zip: '', phone: '' })
   const [showCheckout, setShowCheckout] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [couponCode, setCouponCode] = useState('')
+  const [couponApplied, setCouponApplied] = useState(null)
+  const [couponError, setCouponError] = useState('')
+  const [couponChecking, setCouponChecking] = useState(false)
 
   useEffect(() => {
     api.getProducts()
@@ -29,6 +35,28 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
       .then(d => setPaymentsEnabled(d.enabled))
       .catch(() => {})
   }, [])
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return
+    setCouponChecking(true)
+    setCouponError('')
+    try {
+      const result = await api.validateCoupon(couponCode, cartTotal)
+      setCouponApplied(result)
+      setCouponError('')
+    } catch (err) {
+      setCouponError(err.message)
+      setCouponApplied(null)
+    } finally {
+      setCouponChecking(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setCouponApplied(null)
+    setCouponCode('')
+    setCouponError('')
+  }
 
   const filtered = category === 'all'
     ? products
@@ -48,7 +76,7 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
     setCheckingOut(true)
     try {
       const items = cart.map(c => ({ product_id: c.id, quantity: c.qty || 1 }))
-      const order = await api.createOrder(items, shipping)
+      const order = await api.createOrder(items, shipping, couponApplied?.code)
 
       if (paymentsEnabled) {
         const token = localStorage.getItem('mazuju_token')
@@ -113,10 +141,57 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
                     <button onClick={() => onRemoveFromCart(idx)} style={styles.removeBtn}>✕</button>
                   </div>
                 ))}
+                {/* Coupon input */}
+                <div style={styles.couponSection}>
+                  {couponApplied ? (
+                    <div style={styles.couponApplied}>
+                      <div>
+                        <strong>🎉 {couponApplied.code}</strong>
+                        <div style={{ fontSize: '0.8rem', color: '#06D6A0', marginTop: '2px' }}>
+                          {couponApplied.description} · -€{couponApplied.discount_amount.toFixed(2)}
+                        </div>
+                      </div>
+                      <button onClick={removeCoupon} style={styles.couponRemove}>✕</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          placeholder="🎯 Nuolaidos kodas"
+                          value={couponCode}
+                          onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                          style={styles.couponInput}
+                        />
+                        <button onClick={applyCoupon} disabled={couponChecking || !couponCode} style={styles.couponBtn}>
+                          {couponChecking ? '⏳' : 'Taikyti'}
+                        </button>
+                      </div>
+                      {couponError && (
+                        <div style={{ color: '#FF6B8A', fontSize: '0.8rem', marginTop: '6px', fontWeight: 700 }}>
+                          ❌ {couponError}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {couponApplied && (
+                  <div style={styles.cartRow}>
+                    <span>Tarpinė suma:</span>
+                    <span>€{cartTotal.toFixed(2)}</span>
+                  </div>
+                )}
+                {couponApplied && (
+                  <div style={{ ...styles.cartRow, color: '#06D6A0' }}>
+                    <span>Nuolaida ({couponApplied.code}):</span>
+                    <strong>-€{couponApplied.discount_amount.toFixed(2)}</strong>
+                  </div>
+                )}
                 <div style={styles.cartTotal}>
                   <span>Viso:</span>
                   <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#6C63FF' }}>
-                    €{cartTotal.toFixed(2)}
+                    €{Math.max(0, cartTotal - (couponApplied?.discount_amount || 0)).toFixed(2)}
                   </span>
                 </div>
 
@@ -175,13 +250,16 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
           <div className="grid-3">
             {filtered.map(item => (
               <div key={item.id} className="card" style={styles.productCard}>
-                <div style={{ ...styles.productCover, background: item.bg, backgroundImage: item.image_url ? `url(${item.image_url})` : item.bg, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                <div
+                  style={{ ...styles.productCover, background: item.bg, backgroundImage: item.image_url ? `url(${item.image_url})` : item.bg, backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer' }}
+                  onClick={() => setSelectedProduct(item)}
+                >
                   {!item.image_url && <span style={{ fontSize: '3.5rem' }}>{item.emoji}</span>}
                   {item.badge && <span style={styles.productBadge}>{item.badge}</span>}
                   {!item.image_url && <span style={styles.productType}>{item.type === 'digital' ? '📋 Skaitmeninis' : '🧸 Fizinis'}</span>}
                 </div>
                 <div style={styles.productInfo}>
-                  <h4>{item.title}</h4>
+                  <h4 style={{ cursor: 'pointer' }} onClick={() => setSelectedProduct(item)}>{item.title}</h4>
                   <p style={styles.productDesc}>{item.description || item.desc}</p>
                   <div style={styles.productFooter}>
                     <div style={styles.priceBlock}>
@@ -200,6 +278,56 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Product Details Modal with Reviews */}
+        {selectedProduct && (
+          <div style={styles.modalOverlay} onClick={() => setSelectedProduct(null)}>
+            <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setSelectedProduct(null)} style={styles.modalClose}>✕</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div style={{
+                  height: '300px',
+                  borderRadius: '16px',
+                  background: selectedProduct.image_url ? `url(${selectedProduct.image_url}) center/cover` : selectedProduct.bg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  {!selectedProduct.image_url && <span style={{ fontSize: '6rem' }}>{selectedProduct.emoji}</span>}
+                </div>
+                <div>
+                  <h2>{selectedProduct.title}</h2>
+                  {selectedProduct.badge && (
+                    <span style={{ ...styles.productBadge, position: 'static', display: 'inline-block', marginTop: '8px' }}>
+                      {selectedProduct.badge}
+                    </span>
+                  )}
+                  <p style={{ color: '#636E72', marginTop: '16px', lineHeight: 1.6 }}>
+                    {selectedProduct.description || selectedProduct.desc}
+                  </p>
+                  <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <span style={{ ...styles.currentPrice, fontSize: '2rem' }}>€{selectedProduct.price.toFixed(2)}</span>
+                    {(selectedProduct.original_price || selectedProduct.originalPrice) && (
+                      <span style={{ ...styles.originalPrice, fontSize: '1.1rem' }}>
+                        €{(selectedProduct.original_price || selectedProduct.originalPrice).toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      onAddToCart({ ...selectedProduct, desc: selectedProduct.description || selectedProduct.desc })
+                      setSelectedProduct(null)
+                    }}
+                    style={{ ...styles.addBtn, marginTop: '24px', padding: '16px 32px', fontSize: '1.05rem', width: '100%' }}
+                  >
+                    🛒 Pridėti į krepšelį
+                  </button>
+                </div>
+              </div>
+              <Reviews productId={selectedProduct.id} user={user} onLogin={onLogin} />
+            </div>
           </div>
         )}
 
@@ -324,6 +452,101 @@ const styles = {
     padding: '16px 0',
     fontSize: '1.1rem',
     fontWeight: 700,
+    borderTop: '2px solid #E8ECF1',
+    marginTop: '8px',
+  },
+  cartRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '6px 0',
+    fontSize: '0.9rem',
+    color: '#636E72',
+  },
+  couponSection: {
+    marginTop: '16px',
+    padding: '14px',
+    background: '#F9FAFB',
+    borderRadius: '12px',
+  },
+  couponInput: {
+    flex: 1,
+    padding: '10px 14px',
+    borderRadius: '10px',
+    border: '2px solid #E8ECF1',
+    fontSize: '0.9rem',
+    fontWeight: 700,
+    fontFamily: 'var(--font)',
+    textTransform: 'uppercase',
+    outline: 'none',
+  },
+  couponBtn: {
+    padding: '10px 18px',
+    borderRadius: '10px',
+    background: 'linear-gradient(135deg, #FFD166, #FF6B35)',
+    color: 'white',
+    border: 'none',
+    fontSize: '0.9rem',
+    fontWeight: 800,
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+    whiteSpace: 'nowrap',
+  },
+  couponApplied: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 16px',
+    background: 'rgba(6, 214, 160, 0.1)',
+    border: '2px solid #06D6A0',
+    borderRadius: '10px',
+  },
+  couponRemove: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    background: 'white',
+    border: '2px solid #06D6A0',
+    color: '#06D6A0',
+    fontWeight: 800,
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.6)',
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: '24px',
+  },
+  modalContent: {
+    background: 'white',
+    borderRadius: '24px',
+    padding: '40px',
+    maxWidth: '900px',
+    width: '100%',
+    maxHeight: '90vh',
+    overflow: 'auto',
+    position: 'relative',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: '#F5F5F5',
+    border: 'none',
+    fontSize: '1.1rem',
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+    fontWeight: 800,
+    zIndex: 1,
   },
   checkoutBtn: {
     width: '100%',
