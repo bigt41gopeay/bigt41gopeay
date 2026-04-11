@@ -45,6 +45,11 @@ export default function Header({ currentPage, onNavigate, cartCount, user, onLog
         <div style={styles.actions}>
           {user ? (
             <div style={styles.userMenu}>
+              {user.role === 'admin' && (
+                <button onClick={() => onNavigate('admin')} style={styles.adminLink} title="Admin skydelis">
+                  ⚙️
+                </button>
+              )}
               <span style={styles.userAvatar}>{user.name.charAt(0)}</span>
               <span style={styles.userName}>{user.name}</span>
               <button onClick={onLogout} style={styles.logoutBtn}>Atsijungti</button>
@@ -232,6 +237,19 @@ const styles = {
     color: '#636E72',
     cursor: 'pointer',
     fontFamily: 'var(--font)',
+  },
+  adminLink: {
+    width: '34px',
+    height: '34px',
+    borderRadius: '10px',
+    background: 'linear-gradient(135deg, #FFD166, #FF6B35)',
+    border: 'none',
+    fontSize: '1.1rem',
+    cursor: 'pointer',
+    fontFamily: 'var(--font)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mobileToggle: {
     display: 'none',

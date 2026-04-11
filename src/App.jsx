@@ -9,6 +9,7 @@ import Games from './pages/Games'
 import Store from './pages/Store'
 import Membership from './pages/Membership'
 import Courses from './pages/Courses'
+import Admin from './pages/Admin'
 import { saveToken, clearToken, hasToken, api } from './api'
 
 export default function App() {
@@ -66,11 +67,13 @@ export default function App() {
       case 'games':
         return <Games />
       case 'store':
-        return <Store cart={cart} onAddToCart={addToCart} onRemoveFromCart={removeFromCart} />
+        return <Store cart={cart} onAddToCart={addToCart} onRemoveFromCart={removeFromCart} user={user} onLogin={() => setShowLogin(true)} />
       case 'courses':
         return <Courses user={user} onLogin={() => setShowLogin(true)} />
       case 'membership':
         return <Membership user={user} onNavigate={navigate} />
+      case 'admin':
+        return <Admin user={user} />
       default:
         return <Home onNavigate={navigate} />
     }

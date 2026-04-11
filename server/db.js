@@ -109,6 +109,30 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL,
+    provider TEXT NOT NULL,
+    provider_id TEXT,
+    amount REAL NOT NULL,
+    currency TEXT DEFAULT 'EUR',
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  );
 `)
+
+// Migration: add image_url to products if missing
+try {
+  db.prepare('SELECT image_url FROM products LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE products ADD COLUMN image_url TEXT DEFAULT ""')
+}
 
 export default db

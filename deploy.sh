@@ -39,14 +39,17 @@ apt-get install -y -qq git build-essential python3
 # === 6. CLONE & BUILD ===
 echo "📦 6/7 Klonuojama ir buildinama..."
 APP_DIR="/var/www/mazujupasaulis"
+BRANCH="claude/kids-learning-platform-4tReq"
 
-if [ -d "$APP_DIR" ]; then
+if [ -d "$APP_DIR/.git" ]; then
   cd "$APP_DIR"
-  git pull origin claude/kids-learning-platform-4tReq
+  git fetch origin "$BRANCH"
+  git reset --hard "origin/$BRANCH"
 else
+  rm -rf "$APP_DIR"
   git clone https://github.com/bigt41gopeay/bigt41gopeay.git "$APP_DIR"
   cd "$APP_DIR"
-  git checkout claude/kids-learning-platform-4tReq
+  git checkout "$BRANCH"
 fi
 
 # Build frontend
@@ -57,7 +60,7 @@ npx vite build
 # Setup backend
 echo "   Setting up backend..."
 cd server
-mkdir -p data
+mkdir -p data uploads
 npm install
 node seed.js
 
@@ -70,6 +73,9 @@ pm2 save
 # === NGINX CONFIG ===
 echo "📦 Konfigūruojamas Nginx..."
 cat > /etc/nginx/sites-available/mazujupasaulis << 'NGINX'
+# Increase client body size for image uploads
+client_max_body_size 10M;
+
 server {
     listen 80;
     server_name 88.198.130.212 mazujupasaulis.lt www.mazujupasaulis.lt;
@@ -78,10 +84,13 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 
     # Gzip
     gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss image/svg+xml;
     gzip_min_length 1000;
 
     # API proxy
@@ -93,8 +102,21 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 60s;
     }
+
+    # Uploaded images - served by backend
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:3001;
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    # SEO files - served by backend
+    location = /sitemap.xml { proxy_pass http://127.0.0.1:3001; }
+    location = /robots.txt { proxy_pass http://127.0.0.1:3001; }
 
     # Static files
     location / {

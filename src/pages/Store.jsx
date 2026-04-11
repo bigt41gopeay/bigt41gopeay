@@ -1,42 +1,79 @@
-import { useState } from 'react'
-
-const STORE_ITEMS = [
-  // === RINKINIAI ===
-  { id: 101, emoji: '📦', title: 'Starto rinkinys "Drąsus vaikas"', desc: '2 spausdintos knygos (Drąsusis liūtukas + Aš galiu viską!) + Emocijų kortelių rinkinys. Puikus startas!', price: 29.99, originalPrice: 37.97, category: 'bundle', bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)', badge: '-21%', type: 'Rinkinys' },
-  { id: 102, emoji: '🎁', title: 'ADHD draugiškas rinkinys', desc: '2 knygos + ramybės kortelės + vizualus laikmatis (PDF) + sensorinis fidget žaislas.', price: 34.99, originalPrice: 49.99, category: 'bundle', bg: 'linear-gradient(135deg, #4CC9F0, #06D6A0)', badge: 'ADHD', type: 'Rinkinys' },
-  { id: 103, emoji: '🌟', title: 'Viskas viename MEGA', desc: '2 knygos + emocijų kortelės + spalvinimo rinkinys (PDF) + dienotvarkės lenta + apdovanojimų lipdukai.', price: 44.99, originalPrice: 69.99, category: 'bundle', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: '-36%', type: 'Mega rinkinys' },
-
-  // === FIZINIAI PRODUKTAI ===
-  { id: 104, emoji: '😊', title: 'Emocijų kortelių rinkinys', desc: '36 spalvingos kortelės su emocijomis lietuvių kalba. Padeda vaikams atpažinti ir įvardinti jausmus. Tinka ADHD.', price: 14.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #FF6B8A, #FFD166)', badge: 'Bestseleris', type: 'Edukacinės kortelės' },
-  { id: 105, emoji: '⭐', title: 'Pasiekimų lipdukai (200 vnt.)', desc: 'Motyvuojantys lipdukai: žvaigždutės, medaliai, šypsenėlės. Už gerus darbus, mokymąsi, tvarką.', price: 7.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: 'Mažiausia kaina', type: 'Lipdukai' },
-  { id: 106, emoji: '🧸', title: 'Sensorinis fidget žaislas', desc: 'Tylus, spalvingas sensorinis žaislas, padedantis vaikams susikaupti. Idealus mokyklai ir namams. Tinka ADHD.', price: 9.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'ADHD draugiškas', type: 'Sensorinis žaislas' },
-  { id: 107, emoji: '⏱️', title: 'Vizualus laikmatis vaikams', desc: 'Spalvotas smėlio tipo laikmatis (15 min.). Padeda suprasti laiko tėkmę, planuoti užduotis. Būtinas ADHD.', price: 12.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #9B5DE5, #FF6B8A)', badge: 'ADHD būtinas', type: 'Mokymosi priemonė' },
-  { id: 108, emoji: '🧲', title: 'Dienotvarkės magnetinė lenta', desc: 'Magnetinė lenta su 40 magnetukų: rytas, mokykla, namų darbai, žaidimas, miegas. Vizuali struktūra dienai.', price: 19.99, originalPrice: null, category: 'physical', bg: 'linear-gradient(135deg, #6C63FF, #4CC9F0)', badge: 'Naujiena', type: 'Organizavimo priemonė' },
-
-  // === SKAITMENINIAI PRODUKTAI (PDF) ===
-  { id: 109, emoji: '📋', title: 'Darbo kortelės: raidės ir skaičiai (PDF)', desc: '60 spausdinamų darbo lapų: raidžių rašymas, skaičiavimas, spalvinimas. Atsisiųskite ir spausdinkite!', price: 6.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #FF6B35, #FFD166)', badge: 'PDF', type: 'Spausdinamas PDF' },
-  { id: 110, emoji: '🎨', title: 'Spalvinimo puslapiai: emocijos (PDF)', desc: '30 unikalių spalvinimo puslapių, kiekvienas susietas su emocija. Terapinė veikla vaikams.', price: 4.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #FF6B8A, #9B5DE5)', badge: 'PDF', type: 'Spausdinamas PDF' },
-  { id: 111, emoji: '📅', title: 'Vaiko dienotvarkė / rutinos planas (PDF)', desc: 'Spausdinama vizuali dienotvarkė su paveikslėliais. Rytas-vakaras struktūra. Ypač naudinga ADHD vaikams.', price: 3.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #06D6A0, #FFD166)', badge: 'ADHD', type: 'Spausdinamas PDF' },
-  { id: 112, emoji: '🏆', title: 'Elgesio žvaigždučių lentelė (PDF)', desc: 'Spausdinama motyvacijos lentelė su lipdukai. Teigiamo elgesio skatinimas per žvaigždučių rinkimą.', price: 3.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #FFD166, #FF6B35)', badge: 'PDF', type: 'Spausdinamas PDF' },
-  { id: 113, emoji: '🧘', title: 'Ramybės pratimai vaikams (PDF)', desc: '20 iliustruotų ramybės ir kvėpavimo pratimų kortelių. Spausdink, kirpk ir naudok kasdien.', price: 5.99, originalPrice: null, category: 'digital', bg: 'linear-gradient(135deg, #9B5DE5, #4CC9F0)', badge: 'Mindfulness', type: 'Spausdinamas PDF' },
-]
+import { useState, useEffect } from 'react'
+import { api } from '../api'
 
 const STORE_CATEGORIES = [
   { id: 'all', label: 'Visi produktai', icon: '🏪' },
-  { id: 'bundle', label: 'Rinkiniai', icon: '📦' },
+  { id: 'books', label: 'Knygos', icon: '📚' },
+  { id: 'bundles', label: 'Rinkiniai', icon: '📦' },
   { id: 'physical', label: 'Fiziniai produktai', icon: '🧸' },
   { id: 'digital', label: 'PDF atsisiuntimui', icon: '📋' },
 ]
 
-export default function Store({ cart, onAddToCart, onRemoveFromCart }) {
+export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLogin }) {
   const [category, setCategory] = useState('all')
   const [showCart, setShowCart] = useState(false)
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false)
+  const [shipping, setShipping] = useState({ name: '', address: '', city: '', zip: '', phone: '' })
+  const [showCheckout, setShowCheckout] = useState(false)
+
+  useEffect(() => {
+    api.getProducts()
+      .then(setProducts)
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false))
+    fetch('/api/payments/config')
+      .then(r => r.json())
+      .then(d => setPaymentsEnabled(d.enabled))
+      .catch(() => {})
+  }, [])
 
   const filtered = category === 'all'
-    ? STORE_ITEMS
-    : STORE_ITEMS.filter(i => i.category === category)
+    ? products
+    : products.filter(i => i.category === category)
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * (item.qty || 1), 0)
+
+  const handleCheckout = async () => {
+    if (!user) {
+      onLogin?.()
+      return
+    }
+    if (!shipping.name || !shipping.address) {
+      setShowCheckout(true)
+      return
+    }
+    setCheckingOut(true)
+    try {
+      const items = cart.map(c => ({ product_id: c.id, quantity: c.qty || 1 }))
+      const order = await api.createOrder(items, shipping)
+
+      if (paymentsEnabled) {
+        const token = localStorage.getItem('mazuju_token')
+        const res = await fetch('/api/payments/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ order_id: order.id }),
+        })
+        const data = await res.json()
+        if (data.url) {
+          window.location.href = data.url
+          return
+        }
+      }
+
+      alert(`✅ Užsakymas #${order.id} pateiktas! Susisieksime su jumis el. paštu.`)
+      cart.forEach((_, i) => onRemoveFromCart(0))
+      setShowCheckout(false)
+      setShowCart(false)
+    } catch (err) {
+      alert('Klaida: ' + err.message)
+    } finally {
+      setCheckingOut(false)
+    }
+  }
 
   return (
     <div className="section">
@@ -82,9 +119,28 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart }) {
                     €{cartTotal.toFixed(2)}
                   </span>
                 </div>
-                <button style={styles.checkoutBtn}>
-                  💳 Apmokėti
+
+                {showCheckout && (
+                  <div style={{ marginTop: '16px', padding: '20px', background: '#F9FAFB', borderRadius: '12px' }}>
+                    <h4 style={{ marginBottom: '12px' }}>📦 Pristatymo duomenys</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <input type="text" placeholder="Vardas Pavardė *" value={shipping.name} onChange={e => setShipping({...shipping, name: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #E8ECF1', fontFamily: 'var(--font)' }} />
+                      <input type="tel" placeholder="Telefonas" value={shipping.phone} onChange={e => setShipping({...shipping, phone: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #E8ECF1', fontFamily: 'var(--font)' }} />
+                      <input type="text" placeholder="Adresas *" value={shipping.address} onChange={e => setShipping({...shipping, address: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #E8ECF1', fontFamily: 'var(--font)', gridColumn: '1 / -1' }} />
+                      <input type="text" placeholder="Miestas" value={shipping.city} onChange={e => setShipping({...shipping, city: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #E8ECF1', fontFamily: 'var(--font)' }} />
+                      <input type="text" placeholder="Pašto kodas" value={shipping.zip} onChange={e => setShipping({...shipping, zip: e.target.value})} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #E8ECF1', fontFamily: 'var(--font)' }} />
+                    </div>
+                  </div>
+                )}
+
+                <button onClick={handleCheckout} disabled={checkingOut} style={styles.checkoutBtn}>
+                  {checkingOut ? '⏳ Palaukite...' : !user ? '🔑 Prisijunkite apmokėjimui' : paymentsEnabled ? '💳 Apmokėti su Stripe' : '📧 Patvirtinti užsakymą'}
                 </button>
+                {!paymentsEnabled && user && (
+                  <p style={{ fontSize: '0.8rem', color: '#636E72', textAlign: 'center', marginTop: '8px' }}>
+                    💡 Susisieksime su jumis dėl apmokėjimo pavedimu
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -106,36 +162,53 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart }) {
           ))}
         </div>
 
+        {/* Loading */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <span style={{ fontSize: '2rem' }}>⏳</span>
+            <p style={{ color: '#636E72', marginTop: '12px' }}>Kraunami produktai...</p>
+          </div>
+        )}
+
         {/* Products Grid */}
-        <div className="grid-3">
-          {filtered.map(item => (
-            <div key={item.id} className="card" style={styles.productCard}>
-              <div style={{ ...styles.productCover, background: item.bg }}>
-                <span style={{ fontSize: '3.5rem' }}>{item.emoji}</span>
-                {item.badge && <span style={styles.productBadge}>{item.badge}</span>}
-                <span style={styles.productType}>{item.type}</span>
-              </div>
-              <div style={styles.productInfo}>
-                <h4>{item.title}</h4>
-                <p style={styles.productDesc}>{item.desc}</p>
-                <div style={styles.productFooter}>
-                  <div style={styles.priceBlock}>
-                    <span style={styles.currentPrice}>€{item.price.toFixed(2)}</span>
-                    {item.originalPrice && (
-                      <span style={styles.originalPrice}>€{item.originalPrice.toFixed(2)}</span>
-                    )}
+        {!loading && (
+          <div className="grid-3">
+            {filtered.map(item => (
+              <div key={item.id} className="card" style={styles.productCard}>
+                <div style={{ ...styles.productCover, background: item.bg, backgroundImage: item.image_url ? `url(${item.image_url})` : item.bg, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                  {!item.image_url && <span style={{ fontSize: '3.5rem' }}>{item.emoji}</span>}
+                  {item.badge && <span style={styles.productBadge}>{item.badge}</span>}
+                  {!item.image_url && <span style={styles.productType}>{item.type === 'digital' ? '📋 Skaitmeninis' : '🧸 Fizinis'}</span>}
+                </div>
+                <div style={styles.productInfo}>
+                  <h4>{item.title}</h4>
+                  <p style={styles.productDesc}>{item.description || item.desc}</p>
+                  <div style={styles.productFooter}>
+                    <div style={styles.priceBlock}>
+                      <span style={styles.currentPrice}>€{item.price.toFixed(2)}</span>
+                      {(item.original_price || item.originalPrice) && (
+                        <span style={styles.originalPrice}>€{(item.original_price || item.originalPrice).toFixed(2)}</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => onAddToCart({ ...item, desc: item.description || item.desc })}
+                      style={styles.addBtn}
+                    >
+                      🛒 Pirkti
+                    </button>
                   </div>
-                  <button
-                    onClick={() => onAddToCart(item)}
-                    style={styles.addBtn}
-                  >
-                    🛒 Pirkti
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && filtered.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <span style={{ fontSize: '3rem' }}>📭</span>
+            <h3 style={{ marginTop: '12px' }}>Produktų šioje kategorijoje nėra</h3>
+          </div>
+        )}
 
         {/* Promo Banner */}
         <div style={styles.promo}>
