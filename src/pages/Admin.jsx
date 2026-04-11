@@ -9,6 +9,8 @@ const TABS = [
   { id: 'users', label: 'Vartotojai', icon: '👥' },
   { id: 'reviews', label: 'Atsiliepimai', icon: '💬' },
   { id: 'coupons', label: 'Kuponai', icon: '🎯' },
+  { id: 'giftcards', label: 'Dovanų kortelės', icon: '🎁' },
+  { id: 'affiliates', label: 'Affiliates', icon: '🤝' },
   { id: 'newsletter', label: 'Naujienlaiškis', icon: '📬' },
 ]
 
@@ -63,6 +65,8 @@ export default function Admin({ user }) {
           {tab === 'users' && <UsersTab />}
           {tab === 'reviews' && <ReviewsTab />}
           {tab === 'coupons' && <CouponsTab />}
+          {tab === 'giftcards' && <GiftCardsTab />}
+          {tab === 'affiliates' && <AffiliatesTab />}
           {tab === 'newsletter' && <NewsletterTab />}
         </div>
       </div>
@@ -1002,6 +1006,232 @@ function CouponForm({ coupon, onClose, onSaved }) {
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+// ============================================
+// GIFT CARDS TAB
+// ============================================
+function GiftCardsTab() {
+  const [cards, setCards] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
+  const [newCard, setNewCard] = useState({ amount: 20, recipient_name: '', recipient_email: '', message: '', expires_days: 365 })
+
+  const load = () => {
+    setLoading(true)
+    api.getAdminGiftCards().then(setCards).catch(() => {}).finally(() => setLoading(false))
+  }
+  useEffect(() => { load() }, [])
+
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    try {
+      await api.createAdminGiftCard(newCard)
+      setCreating(false)
+      setNewCard({ amount: 20, recipient_name: '', recipient_email: '', message: '', expires_days: 365 })
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  const handleDelete = async (id) => {
+    if (!confirm('Pašalinti dovanų kortelę?')) return
+    try {
+      await api.deleteGiftCard(id)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  if (loading) return <div style={styles.loading}>⏳ Kraunama...</div>
+
+  const totalValue = cards.reduce((sum, c) => sum + (c.is_active ? c.balance : 0), 0)
+  const activeCards = cards.filter(c => c.is_active && c.balance > 0).length
+
+  return (
+    <div>
+      <div style={styles.sectionHeader}>
+        <h3>🎁 Dovanų kortelės ({cards.length})</h3>
+        <button onClick={() => setCreating(true)} style={styles.addBtn}>➕ Nauja kortelė</button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #FFD166, #FF6B35)' }}>
+          <span style={styles.statIcon}>🎁</span>
+          <span style={styles.statValue}>{cards.length}</span>
+          <span style={styles.statLabel}>Iš viso kortelių</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)' }}>
+          <span style={styles.statIcon}>✅</span>
+          <span style={styles.statValue}>{activeCards}</span>
+          <span style={styles.statLabel}>Aktyvios</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' }}>
+          <span style={styles.statIcon}>💰</span>
+          <span style={styles.statValue}>€{totalValue.toFixed(2)}</span>
+          <span style={styles.statLabel}>Bendras likutis</span>
+        </div>
+      </div>
+
+      {creating && (
+        <div style={styles.modalOverlay} onClick={() => setCreating(false)}>
+          <div style={styles.modalForm} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3>➕ Sukurti dovanų kortelę</h3>
+              <button onClick={() => setCreating(false)} style={styles.closeX}>✕</button>
+            </div>
+            <form onSubmit={handleCreate} style={styles.form}>
+              <label style={styles.formLabel}>
+                Suma (€) *
+                <input type="number" step="0.01" min="1" required value={newCard.amount} onChange={e => setNewCard({ ...newCard, amount: e.target.value })} style={styles.formInput} />
+              </label>
+              <label style={styles.formLabel}>
+                Galiojimo dienos
+                <input type="number" min="1" value={newCard.expires_days} onChange={e => setNewCard({ ...newCard, expires_days: e.target.value })} style={styles.formInput} />
+              </label>
+              <label style={styles.formLabel}>
+                Gavėjo vardas (neprivaloma)
+                <input type="text" value={newCard.recipient_name} onChange={e => setNewCard({ ...newCard, recipient_name: e.target.value })} style={styles.formInput} />
+              </label>
+              <label style={styles.formLabel}>
+                Gavėjo el. paštas (neprivaloma)
+                <input type="email" value={newCard.recipient_email} onChange={e => setNewCard({ ...newCard, recipient_email: e.target.value })} style={styles.formInput} />
+              </label>
+              <label style={styles.formLabel}>
+                Žinutė
+                <textarea value={newCard.message} onChange={e => setNewCard({ ...newCard, message: e.target.value })} style={{ ...styles.formInput, minHeight: '80px' }} />
+              </label>
+              <div style={styles.formActions}>
+                <button type="button" onClick={() => setCreating(false)} style={styles.cancelBtn}>Atšaukti</button>
+                <button type="submit" style={styles.saveBtn}>💾 Sukurti</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {cards.length === 0 ? (
+        <p style={{ padding: '40px', textAlign: 'center', color: '#636E72' }}>Kol kas nėra dovanų kortelių</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {cards.map(c => (
+            <div key={c.id} style={{ ...styles.productRow, opacity: c.is_active ? 1 : 0.5 }}>
+              <div style={{ ...styles.productEmoji, background: 'linear-gradient(135deg, #FFD166, #FF6B35)' }}>🎁</div>
+              <div style={{ flex: 1 }}>
+                <strong style={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>{c.code}</strong>
+                <div style={{ color: '#636E72', fontSize: '0.85rem', marginTop: '2px' }}>
+                  €{c.balance.toFixed(2)} / €{c.initial_amount.toFixed(2)}
+                  {c.recipient_name && ` · 🎁 ${c.recipient_name}`}
+                  {c.purchaser_name && ` · 👤 ${c.purchaser_name}`}
+                </div>
+                <div style={{ color: '#B2BEC3', fontSize: '0.75rem', marginTop: '2px' }}>
+                  {c.expires_at && `Galioja iki ${new Date(c.expires_at).toLocaleDateString('lt-LT')}`}
+                </div>
+              </div>
+              <span style={{ ...styles.badge, background: c.balance > 0 ? '#06D6A0' : '#B2BEC3' }}>
+                {c.balance > 0 ? 'Aktyvi' : 'Išnaudota'}
+              </span>
+              <button onClick={() => handleDelete(c.id)} style={styles.deleteBtn}>🗑️</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// AFFILIATES TAB
+// ============================================
+function AffiliatesTab() {
+  const [affiliates, setAffiliates] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const load = () => {
+    setLoading(true)
+    api.getAdminAffiliates().then(setAffiliates).catch(() => {}).finally(() => setLoading(false))
+  }
+  useEffect(() => { load() }, [])
+
+  const handleUpdate = async (id, data) => {
+    try {
+      await api.updateAdminAffiliate(id, data)
+      load()
+    } catch (err) { alert('Klaida: ' + err.message) }
+  }
+
+  if (loading) return <div style={styles.loading}>⏳ Kraunama...</div>
+
+  const totalEarnings = affiliates.reduce((sum, a) => sum + (a.total_earnings || 0), 0)
+  const totalSales = affiliates.reduce((sum, a) => sum + (a.total_sales || 0), 0)
+  const totalClicks = affiliates.reduce((sum, a) => sum + (a.total_clicks || 0), 0)
+
+  return (
+    <div>
+      <h3 style={{ marginBottom: '16px' }}>🤝 Affiliate programa ({affiliates.length} narių)</h3>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #6C63FF, #9B5DE5)' }}>
+          <span style={styles.statIcon}>👥</span>
+          <span style={styles.statValue}>{affiliates.length}</span>
+          <span style={styles.statLabel}>Affiliates</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #06D6A0, #4CC9F0)' }}>
+          <span style={styles.statIcon}>👆</span>
+          <span style={styles.statValue}>{totalClicks}</span>
+          <span style={styles.statLabel}>Paspaudimai</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #FF6B35, #FFD166)' }}>
+          <span style={styles.statIcon}>🛒</span>
+          <span style={styles.statValue}>€{totalSales.toFixed(2)}</span>
+          <span style={styles.statLabel}>Pardavimai</span>
+        </div>
+        <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #FF6B8A, #9B5DE5)' }}>
+          <span style={styles.statIcon}>💰</span>
+          <span style={styles.statValue}>€{totalEarnings.toFixed(2)}</span>
+          <span style={styles.statLabel}>Išmokėtina komisija</span>
+        </div>
+      </div>
+
+      {affiliates.length === 0 ? (
+        <p style={{ padding: '40px', textAlign: 'center', color: '#636E72' }}>Kol kas nėra affiliates</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {affiliates.map(a => (
+            <div key={a.id} style={{ ...styles.productRow, opacity: a.is_active ? 1 : 0.5, alignItems: 'flex-start' }}>
+              <div style={styles.userAvatar}>{a.name.charAt(0).toUpperCase()}</div>
+              <div style={{ flex: 1 }}>
+                <strong>{a.name}</strong>
+                <div style={{ color: '#636E72', fontSize: '0.85rem' }}>
+                  {a.email} · Kodas: <code style={{ background: '#F5F5F5', padding: '1px 6px', borderRadius: '4px' }}>{a.code}</code>
+                </div>
+                <div style={{ color: '#B2BEC3', fontSize: '0.8rem', marginTop: '4px' }}>
+                  👆 {a.total_clicks} · 🛒 {a.total_conversions} · 💵 €{(a.total_earnings || 0).toFixed(2)} uždirbta
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.85rem', marginBottom: '4px' }}>
+                  Komisija:
+                  <input
+                    type="number"
+                    value={a.commission_rate}
+                    onChange={e => handleUpdate(a.id, { ...a, commission_rate: e.target.value })}
+                    style={{ width: '50px', marginLeft: '6px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #E8ECF1', fontFamily: 'var(--font)' }}
+                  />%
+                </div>
+                <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!a.is_active}
+                    onChange={e => handleUpdate(a.id, { ...a, is_active: e.target.checked ? 1 : 0 })}
+                  />
+                  Aktyvus
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

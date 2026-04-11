@@ -86,6 +86,18 @@ export default function Header({ currentPage, onNavigate, cartCount, user, onLog
                   >
                     ⭐ Narystė
                   </button>
+                  <button
+                    onClick={() => { onNavigate('giftcards'); setUserMenuOpen(false) }}
+                    style={styles.dropdownItem}
+                  >
+                    🎁 Dovanų kortelės
+                  </button>
+                  <button
+                    onClick={() => { onNavigate('affiliate'); setUserMenuOpen(false) }}
+                    style={styles.dropdownItem}
+                  >
+                    🤝 Affiliate programa
+                  </button>
                   {user.role === 'admin' && (
                     <>
                       <div style={styles.dropdownDivider} />

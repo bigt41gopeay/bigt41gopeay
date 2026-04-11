@@ -175,6 +175,71 @@ db.exec(`
     used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (coupon_id) REFERENCES coupons(id)
   );
+
+  CREATE TABLE IF NOT EXISTS gift_cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    initial_amount REAL NOT NULL,
+    balance REAL NOT NULL,
+    purchaser_id INTEGER,
+    purchaser_email TEXT,
+    recipient_name TEXT DEFAULT '',
+    recipient_email TEXT DEFAULT '',
+    message TEXT DEFAULT '',
+    is_active INTEGER DEFAULT 1,
+    expires_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (purchaser_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS gift_card_uses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    gift_card_id INTEGER NOT NULL,
+    order_id INTEGER,
+    user_id INTEGER,
+    amount_used REAL NOT NULL,
+    used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS affiliates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE,
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    commission_rate REAL DEFAULT 10,
+    discount_for_buyer REAL DEFAULT 5,
+    total_earnings REAL DEFAULT 0,
+    total_sales REAL DEFAULT 0,
+    total_clicks INTEGER DEFAULT 0,
+    total_conversions INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS affiliate_clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    affiliate_id INTEGER NOT NULL,
+    ip TEXT,
+    user_agent TEXT,
+    referer TEXT,
+    clicked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (affiliate_id) REFERENCES affiliates(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS affiliate_conversions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    affiliate_id INTEGER NOT NULL,
+    order_id INTEGER NOT NULL,
+    order_total REAL NOT NULL,
+    commission REAL NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (affiliate_id) REFERENCES affiliates(id),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  );
 `)
 
 // Migration: add image_url to products if missing
@@ -191,6 +256,15 @@ try {
   db.exec("ALTER TABLE orders ADD COLUMN coupon_code TEXT DEFAULT ''")
   db.exec('ALTER TABLE orders ADD COLUMN discount REAL DEFAULT 0')
   db.exec('ALTER TABLE orders ADD COLUMN subtotal REAL DEFAULT 0')
+}
+
+// Migration: add gift card and affiliate fields to orders
+try {
+  db.prepare('SELECT gift_card_code FROM orders LIMIT 1').get()
+} catch {
+  db.exec("ALTER TABLE orders ADD COLUMN gift_card_code TEXT DEFAULT ''")
+  db.exec('ALTER TABLE orders ADD COLUMN gift_card_amount REAL DEFAULT 0')
+  db.exec("ALTER TABLE orders ADD COLUMN affiliate_code TEXT DEFAULT ''")
 }
 
 export default db

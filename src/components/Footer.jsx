@@ -111,8 +111,11 @@ export default function Footer({ onNavigate }) {
               <button onClick={() => onNavigate('home')} style={styles.link}>Pradžia</button>
               <button onClick={() => onNavigate('books')} style={styles.link}>Knygos</button>
               <button onClick={() => onNavigate('games')} style={styles.link}>Žaidimai</button>
+              <button onClick={() => onNavigate('courses')} style={styles.link}>Mokymai</button>
               <button onClick={() => onNavigate('store')} style={styles.link}>Parduotuvė</button>
               <button onClick={() => onNavigate('membership')} style={styles.link}>Narystė</button>
+              <button onClick={() => onNavigate('giftcards')} style={styles.link}>🎁 Dovanų kortelės</button>
+              <button onClick={() => onNavigate('affiliate')} style={styles.link}>🤝 Affiliate programa</button>
             </div>
           </div>
 

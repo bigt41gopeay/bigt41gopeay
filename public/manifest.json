@@ -1,0 +1,72 @@
+{
+  "name": "MažųjųPasaulis - Vaikų mokymosi platforma",
+  "short_name": "MažųjųPasaulis",
+  "description": "Autorinės vaikų knygos, edukaciniai žaidimai ir mokymai pasitikėjimo ugdymui, emocijoms ir ADHD draugiški produktai.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAFBFF",
+  "theme_color": "#6C63FF",
+  "lang": "lt",
+  "dir": "ltr",
+  "categories": ["education", "kids", "books", "games", "shopping"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Pagrindinis puslapis"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Knygos",
+      "short_name": "Knygos",
+      "description": "Peržiūrėti visas knygas",
+      "url": "/?page=books",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Žaidimai",
+      "short_name": "Žaidimai",
+      "description": "Žaisti edukacinius žaidimus",
+      "url": "/?page=games",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mokymai",
+      "short_name": "Mokymai",
+      "description": "Peržiūrėti kursus",
+      "url": "/?page=courses",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Parduotuvė",
+      "short_name": "Pirkti",
+      "description": "Apsipirkti parduotuvėje",
+      "url": "/?page=store",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

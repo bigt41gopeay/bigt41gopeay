@@ -181,7 +181,7 @@ app.delete('/api/products/:id', adminAuth, (req, res) => {
 // ORDERS ROUTES
 // ==========================================
 app.post('/api/orders', auth, (req, res) => {
-  const { items, shipping, coupon_code } = req.body
+  const { items, shipping, coupon_code, gift_card_code, affiliate_code } = req.body
   if (!items || items.length === 0) return res.status(400).json({ error: 'Krepšelis tuščias' })
 
   const subtotal = items.reduce((sum, item) => {
@@ -212,15 +212,62 @@ app.post('/api/orders', auth, (req, res) => {
     }
   }
 
-  const total = Math.max(0, subtotal - discount)
+  // Apply affiliate discount
+  let affiliate = null
+  if (affiliate_code) {
+    affiliate = db.prepare('SELECT * FROM affiliates WHERE code = ? AND is_active = 1').get(affiliate_code.trim())
+    if (affiliate && affiliate.discount_for_buyer > 0) {
+      const affDiscount = (subtotal * affiliate.discount_for_buyer) / 100
+      discount += affDiscount
+    }
+  }
+
+  // Apply gift card
+  const afterDiscount = Math.max(0, subtotal - discount)
+  let giftCardAmount = 0
+  let giftCard = null
+  if (gift_card_code) {
+    giftCard = db.prepare('SELECT * FROM gift_cards WHERE code = ? COLLATE NOCASE AND is_active = 1').get(gift_card_code.trim())
+    if (giftCard && giftCard.balance > 0) {
+      const isExpired = giftCard.expires_at && new Date(giftCard.expires_at) < new Date()
+      if (!isExpired) {
+        giftCardAmount = Math.min(giftCard.balance, afterDiscount)
+      }
+    }
+  }
+
+  const total = Math.max(0, afterDiscount - giftCardAmount)
 
   const result = db.prepare(`
-    INSERT INTO orders (user_id, total, subtotal, discount, coupon_code, shipping_name, shipping_address, shipping_city, shipping_zip, shipping_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (user_id, total, subtotal, discount, coupon_code, gift_card_code, gift_card_amount, affiliate_code,
+                        shipping_name, shipping_address, shipping_city, shipping_zip, shipping_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     req.user.id, total, subtotal, discount, appliedCoupon?.code || '',
+    giftCard?.code || '', giftCardAmount, affiliate?.code || '',
     shipping?.name || '', shipping?.address || '', shipping?.city || '', shipping?.zip || '', shipping?.phone || ''
   )
+
+  // Deduct gift card balance
+  if (giftCard && giftCardAmount > 0) {
+    db.prepare('UPDATE gift_cards SET balance = balance - ? WHERE id = ?').run(giftCardAmount, giftCard.id)
+    db.prepare('INSERT INTO gift_card_uses (gift_card_id, order_id, user_id, amount_used) VALUES (?, ?, ?, ?)').run(
+      giftCard.id, result.lastInsertRowid, req.user.id, giftCardAmount
+    )
+  }
+
+  // Track affiliate conversion
+  if (affiliate) {
+    const commission = (total * affiliate.commission_rate) / 100
+    db.prepare(`
+      INSERT INTO affiliate_conversions (affiliate_id, order_id, order_total, commission)
+      VALUES (?, ?, ?, ?)
+    `).run(affiliate.id, result.lastInsertRowid, total, commission)
+    db.prepare(`
+      UPDATE affiliates SET total_earnings = total_earnings + ?, total_sales = total_sales + ?, total_conversions = total_conversions + 1
+      WHERE id = ?
+    `).run(commission, total, affiliate.id)
+  }
 
   const itemStmt = db.prepare('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)')
   for (const item of items) {
@@ -693,6 +740,240 @@ app.put('/api/admin/coupons/:id', adminAuth, (req, res) => {
 app.delete('/api/admin/coupons/:id', adminAuth, (req, res) => {
   db.prepare('DELETE FROM coupons WHERE id = ?').run(req.params.id)
   res.json({ message: 'Kuponas pašalintas' })
+})
+
+// ==========================================
+// GIFT CARDS
+// ==========================================
+function generateGiftCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = 'GIFT-'
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      code += chars[Math.floor(Math.random() * chars.length)]
+    }
+    if (i < 3) code += '-'
+  }
+  return code
+}
+
+app.post('/api/giftcards/validate', (req, res) => {
+  const { code } = req.body
+  if (!code) return res.status(400).json({ error: 'Įveskite kodą' })
+
+  const card = db.prepare('SELECT * FROM gift_cards WHERE code = ? COLLATE NOCASE AND is_active = 1').get(code.trim())
+  if (!card) return res.status(404).json({ error: 'Dovanų kortelė nerasta' })
+
+  if (card.balance <= 0) return res.status(400).json({ error: 'Dovanų kortelė išnaudota' })
+  if (card.expires_at && new Date(card.expires_at) < new Date()) {
+    return res.status(400).json({ error: 'Dovanų kortelės galiojimas pasibaigęs' })
+  }
+
+  res.json({
+    valid: true,
+    code: card.code,
+    balance: card.balance,
+    initial_amount: card.initial_amount,
+  })
+})
+
+app.post('/api/giftcards/purchase', auth, (req, res) => {
+  const { amount, recipient_name, recipient_email, message } = req.body
+  const parsedAmount = parseFloat(amount)
+  if (!parsedAmount || parsedAmount < 5 || parsedAmount > 500) {
+    return res.status(400).json({ error: 'Suma turi būti tarp €5 ir €500' })
+  }
+
+  // Generate unique code
+  let code
+  let attempts = 0
+  do {
+    code = generateGiftCode()
+    attempts++
+    if (attempts > 10) return res.status(500).json({ error: 'Nepavyko sugeneruoti kodo' })
+  } while (db.prepare('SELECT id FROM gift_cards WHERE code = ?').get(code))
+
+  // Expires in 1 year
+  const expiresAt = new Date()
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+
+  const user = db.prepare('SELECT name, email FROM users WHERE id = ?').get(req.user.id)
+  const result = db.prepare(`
+    INSERT INTO gift_cards (code, initial_amount, balance, purchaser_id, purchaser_email, recipient_name, recipient_email, message, expires_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, parsedAmount, parsedAmount, req.user.id, user.email, recipient_name || '', recipient_email || '', message || '', expiresAt.toISOString())
+
+  // Send email to recipient if provided
+  if (recipient_email) {
+    import('./email.js').then(({ sendEmail }) => {
+      sendEmail({
+        to: recipient_email,
+        subject: `🎁 Jums dovana nuo ${user.name}!`,
+        html: `
+          <div style="max-width: 600px; margin: 0 auto; font-family: system-ui, sans-serif;">
+            <div style="background: linear-gradient(135deg, #FFD166, #FF6B35); padding: 40px; text-align: center; border-radius: 16px 16px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 2rem;">🎁 Dovana!</h1>
+              <p style="color: rgba(255,255,255,0.9); margin-top: 8px;">Jums dovana nuo ${user.name}</p>
+            </div>
+            <div style="background: white; padding: 32px; border-radius: 0 0 16px 16px;">
+              <h2 style="margin: 0 0 16px;">€${parsedAmount.toFixed(2)} dovanų kortelė</h2>
+              ${message ? `<p style="padding: 16px; background: #F9FAFB; border-radius: 10px; font-style: italic;">„${message}"</p>` : ''}
+              <div style="padding: 20px; background: #FAFBFF; border: 2px dashed #6C63FF; border-radius: 12px; text-align: center; margin: 24px 0;">
+                <p style="margin: 0; font-size: 0.85rem; color: #636E72;">Jūsų kodas:</p>
+                <strong style="font-family: monospace; font-size: 1.5rem; color: #6C63FF; letter-spacing: 2px;">${code}</strong>
+              </div>
+              <p style="color: #636E72; font-size: 0.9rem;">Naudokite kodą apmokėdami užsakymus MažųjųPasaulis. Galioja 1 metus.</p>
+            </div>
+          </div>
+        `,
+      }).catch(() => {})
+    })
+  }
+
+  res.json({
+    id: result.lastInsertRowid,
+    code,
+    amount: parsedAmount,
+    expires_at: expiresAt.toISOString(),
+    message: 'Dovanų kortelė sukurta!',
+  })
+})
+
+app.get('/api/giftcards/my', auth, (req, res) => {
+  const cards = db.prepare('SELECT * FROM gift_cards WHERE purchaser_id = ? ORDER BY created_at DESC').all(req.user.id)
+  res.json(cards)
+})
+
+app.get('/api/admin/giftcards', adminAuth, (req, res) => {
+  const cards = db.prepare(`
+    SELECT gc.*, u.name as purchaser_name
+    FROM gift_cards gc
+    LEFT JOIN users u ON u.id = gc.purchaser_id
+    ORDER BY gc.created_at DESC
+  `).all()
+  res.json(cards)
+})
+
+app.post('/api/admin/giftcards', adminAuth, (req, res) => {
+  const { amount, recipient_name, recipient_email, message, expires_days } = req.body
+  const parsedAmount = parseFloat(amount)
+  if (!parsedAmount || parsedAmount < 1) return res.status(400).json({ error: 'Neteisinga suma' })
+
+  let code
+  do { code = generateGiftCode() } while (db.prepare('SELECT id FROM gift_cards WHERE code = ?').get(code))
+
+  const expiresAt = new Date()
+  expiresAt.setDate(expiresAt.getDate() + (parseInt(expires_days) || 365))
+
+  const result = db.prepare(`
+    INSERT INTO gift_cards (code, initial_amount, balance, recipient_name, recipient_email, message, expires_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(code, parsedAmount, parsedAmount, recipient_name || '', recipient_email || '', message || '', expiresAt.toISOString())
+
+  res.json({ id: result.lastInsertRowid, code, message: 'Dovanų kortelė sukurta' })
+})
+
+app.delete('/api/admin/giftcards/:id', adminAuth, (req, res) => {
+  db.prepare('UPDATE gift_cards SET is_active = 0 WHERE id = ?').run(req.params.id)
+  res.json({ message: 'Pašalinta' })
+})
+
+// ==========================================
+// AFFILIATES
+// ==========================================
+function generateAffiliateCode(name) {
+  const base = name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || 'aff'
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `${base}${random}`
+}
+
+app.post('/api/affiliates/apply', auth, (req, res) => {
+  const existing = db.prepare('SELECT id FROM affiliates WHERE user_id = ?').get(req.user.id)
+  if (existing) return res.status(400).json({ error: 'Jūs jau esate affiliate' })
+
+  const user = db.prepare('SELECT name, email FROM users WHERE id = ?').get(req.user.id)
+  let code
+  do { code = generateAffiliateCode(user.name) } while (db.prepare('SELECT id FROM affiliates WHERE code = ?').get(code))
+
+  const result = db.prepare(`
+    INSERT INTO affiliates (user_id, code, name, email)
+    VALUES (?, ?, ?, ?)
+  `).run(req.user.id, code, user.name, user.email)
+
+  res.json({
+    id: result.lastInsertRowid,
+    code,
+    link: `https://mazujupasaulis.lt/?ref=${code}`,
+    message: '🎉 Tapote affiliate! Dalinkitės savo nuoroda ir uždirbkite komisiją.',
+  })
+})
+
+app.get('/api/affiliates/my', auth, (req, res) => {
+  const affiliate = db.prepare('SELECT * FROM affiliates WHERE user_id = ?').get(req.user.id)
+  if (!affiliate) return res.json(null)
+
+  // Last 30 days stats
+  const recentClicks = db.prepare(`
+    SELECT DATE(clicked_at) as date, COUNT(*) as count
+    FROM affiliate_clicks
+    WHERE affiliate_id = ? AND clicked_at >= datetime('now', '-30 days')
+    GROUP BY DATE(clicked_at)
+    ORDER BY date DESC
+  `).all(affiliate.id)
+
+  const conversions = db.prepare(`
+    SELECT ac.*, o.created_at as order_date
+    FROM affiliate_conversions ac
+    LEFT JOIN orders o ON o.id = ac.order_id
+    WHERE ac.affiliate_id = ?
+    ORDER BY ac.created_at DESC
+    LIMIT 20
+  `).all(affiliate.id)
+
+  res.json({
+    ...affiliate,
+    link: `https://mazujupasaulis.lt/?ref=${affiliate.code}`,
+    recent_clicks: recentClicks,
+    conversions,
+  })
+})
+
+app.post('/api/affiliates/track/:code', (req, res) => {
+  const affiliate = db.prepare('SELECT id FROM affiliates WHERE code = ? AND is_active = 1').get(req.params.code)
+  if (!affiliate) return res.status(404).json({ error: 'Not found' })
+
+  db.prepare(`
+    INSERT INTO affiliate_clicks (affiliate_id, ip, user_agent, referer)
+    VALUES (?, ?, ?, ?)
+  `).run(affiliate.id, req.ip || '', req.headers['user-agent'] || '', req.headers.referer || '')
+
+  db.prepare('UPDATE affiliates SET total_clicks = total_clicks + 1 WHERE id = ?').run(affiliate.id)
+
+  res.json({ tracked: true })
+})
+
+app.get('/api/admin/affiliates', adminAuth, (req, res) => {
+  const affiliates = db.prepare(`
+    SELECT a.*, u.email as user_email
+    FROM affiliates a
+    LEFT JOIN users u ON u.id = a.user_id
+    ORDER BY a.total_earnings DESC
+  `).all()
+  res.json(affiliates)
+})
+
+app.put('/api/admin/affiliates/:id', adminAuth, (req, res) => {
+  const { commission_rate, discount_for_buyer, is_active } = req.body
+  db.prepare(`
+    UPDATE affiliates SET commission_rate = ?, discount_for_buyer = ?, is_active = ?
+    WHERE id = ?
+  `).run(
+    parseFloat(commission_rate) || 10,
+    parseFloat(discount_for_buyer) || 5,
+    is_active ? 1 : 0,
+    req.params.id
+  )
+  res.json({ message: 'Affiliate atnaujintas' })
 })
 
 // ==========================================

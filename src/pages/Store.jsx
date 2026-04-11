@@ -10,7 +10,7 @@ const STORE_CATEGORIES = [
   { id: 'digital', label: 'PDF atsisiuntimui', icon: '📋' },
 ]
 
-export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLogin }) {
+export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLogin, affiliateCode }) {
   const [category, setCategory] = useState('all')
   const [showCart, setShowCart] = useState(false)
   const [products, setProducts] = useState([])
@@ -24,6 +24,10 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
   const [couponApplied, setCouponApplied] = useState(null)
   const [couponError, setCouponError] = useState('')
   const [couponChecking, setCouponChecking] = useState(false)
+  const [giftCardCode, setGiftCardCode] = useState('')
+  const [giftCardApplied, setGiftCardApplied] = useState(null)
+  const [giftCardError, setGiftCardError] = useState('')
+  const [giftCardChecking, setGiftCardChecking] = useState(false)
 
   useEffect(() => {
     api.getProducts()
@@ -58,6 +62,28 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
     setCouponError('')
   }
 
+  const applyGiftCard = async () => {
+    if (!giftCardCode.trim()) return
+    setGiftCardChecking(true)
+    setGiftCardError('')
+    try {
+      const result = await api.validateGiftCard(giftCardCode)
+      setGiftCardApplied(result)
+      setGiftCardError('')
+    } catch (err) {
+      setGiftCardError(err.message)
+      setGiftCardApplied(null)
+    } finally {
+      setGiftCardChecking(false)
+    }
+  }
+
+  const removeGiftCard = () => {
+    setGiftCardApplied(null)
+    setGiftCardCode('')
+    setGiftCardError('')
+  }
+
   const filtered = category === 'all'
     ? products
     : products.filter(i => i.category === category)
@@ -76,7 +102,7 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
     setCheckingOut(true)
     try {
       const items = cart.map(c => ({ product_id: c.id, quantity: c.qty || 1 }))
-      const order = await api.createOrder(items, shipping, couponApplied?.code)
+      const order = await api.createOrder(items, shipping, couponApplied?.code, giftCardApplied?.code, affiliateCode)
 
       if (paymentsEnabled) {
         const token = localStorage.getItem('mazuju_token')
@@ -176,7 +202,52 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
                   )}
                 </div>
 
-                {couponApplied && (
+                {/* Gift card input */}
+                <div style={{ ...styles.couponSection, marginTop: '8px' }}>
+                  {giftCardApplied ? (
+                    <div style={{ ...styles.couponApplied, background: 'rgba(255, 209, 102, 0.1)', borderColor: '#FFD166' }}>
+                      <div>
+                        <strong>🎁 {giftCardApplied.code}</strong>
+                        <div style={{ fontSize: '0.8rem', color: '#FF6B35', marginTop: '2px' }}>
+                          Turimas likutis: €{giftCardApplied.balance.toFixed(2)}
+                        </div>
+                      </div>
+                      <button onClick={removeGiftCard} style={{ ...styles.couponRemove, borderColor: '#FFD166', color: '#FF6B35' }}>✕</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          placeholder="🎁 Dovanų kortelės kodas"
+                          value={giftCardCode}
+                          onChange={e => setGiftCardCode(e.target.value.toUpperCase())}
+                          style={styles.couponInput}
+                        />
+                        <button
+                          onClick={applyGiftCard}
+                          disabled={giftCardChecking || !giftCardCode}
+                          style={{ ...styles.couponBtn, background: 'linear-gradient(135deg, #FFD166, #FF6B35)' }}
+                        >
+                          {giftCardChecking ? '⏳' : 'Taikyti'}
+                        </button>
+                      </div>
+                      {giftCardError && (
+                        <div style={{ color: '#FF6B8A', fontSize: '0.8rem', marginTop: '6px', fontWeight: 700 }}>
+                          ❌ {giftCardError}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {affiliateCode && (
+                  <div style={{ marginTop: '8px', padding: '10px 14px', background: 'rgba(6, 214, 160, 0.1)', borderRadius: '10px', fontSize: '0.85rem', color: '#06D6A0', fontWeight: 700 }}>
+                    🤝 Affiliate nuolaida (5%) bus pritaikyta automatiškai
+                  </div>
+                )}
+
+                {(couponApplied || giftCardApplied || affiliateCode) && (
                   <div style={styles.cartRow}>
                     <span>Tarpinė suma:</span>
                     <span>€{cartTotal.toFixed(2)}</span>
@@ -184,14 +255,35 @@ export default function Store({ cart, onAddToCart, onRemoveFromCart, user, onLog
                 )}
                 {couponApplied && (
                   <div style={{ ...styles.cartRow, color: '#06D6A0' }}>
-                    <span>Nuolaida ({couponApplied.code}):</span>
+                    <span>Kuponas ({couponApplied.code}):</span>
                     <strong>-€{couponApplied.discount_amount.toFixed(2)}</strong>
                   </div>
                 )}
+                {affiliateCode && (
+                  <div style={{ ...styles.cartRow, color: '#06D6A0' }}>
+                    <span>Affiliate nuolaida (5%):</span>
+                    <strong>-€{(cartTotal * 0.05).toFixed(2)}</strong>
+                  </div>
+                )}
+                {giftCardApplied && (() => {
+                  const afterDiscount = Math.max(0, cartTotal - (couponApplied?.discount_amount || 0) - (affiliateCode ? cartTotal * 0.05 : 0))
+                  const gcAmount = Math.min(giftCardApplied.balance, afterDiscount)
+                  return (
+                    <div style={{ ...styles.cartRow, color: '#FF6B35' }}>
+                      <span>🎁 Dovanų kortelė:</span>
+                      <strong>-€{gcAmount.toFixed(2)}</strong>
+                    </div>
+                  )
+                })()}
                 <div style={styles.cartTotal}>
                   <span>Viso:</span>
                   <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#6C63FF' }}>
-                    €{Math.max(0, cartTotal - (couponApplied?.discount_amount || 0)).toFixed(2)}
+                    {(() => {
+                      const afterCoupon = Math.max(0, cartTotal - (couponApplied?.discount_amount || 0))
+                      const afterAff = affiliateCode ? afterCoupon - (cartTotal * 0.05) : afterCoupon
+                      const gcAmount = giftCardApplied ? Math.min(giftCardApplied.balance, afterAff) : 0
+                      return `€${Math.max(0, afterAff - gcAmount).toFixed(2)}`
+                    })()}
                   </span>
                 </div>
 

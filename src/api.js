@@ -29,7 +29,8 @@ export const api = {
   getProduct: (id) => request(`/products/${id}`),
 
   // Orders
-  createOrder: (items, shipping, coupon_code) => request('/orders', { method: 'POST', body: JSON.stringify({ items, shipping, coupon_code }) }),
+  createOrder: (items, shipping, coupon_code, gift_card_code, affiliate_code) =>
+    request('/orders', { method: 'POST', body: JSON.stringify({ items, shipping, coupon_code, gift_card_code, affiliate_code }) }),
   getOrders: () => request('/orders'),
 
   // Courses
@@ -82,6 +83,21 @@ export const api = {
   createCoupon: (data) => request('/admin/coupons', { method: 'POST', body: JSON.stringify(data) }),
   updateCoupon: (id, data) => request(`/admin/coupons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCoupon: (id) => request(`/admin/coupons/${id}`, { method: 'DELETE' }),
+
+  // Gift Cards
+  validateGiftCard: (code) => request('/giftcards/validate', { method: 'POST', body: JSON.stringify({ code }) }),
+  purchaseGiftCard: (data) => request('/giftcards/purchase', { method: 'POST', body: JSON.stringify(data) }),
+  getMyGiftCards: () => request('/giftcards/my'),
+  getAdminGiftCards: () => request('/admin/giftcards'),
+  createAdminGiftCard: (data) => request('/admin/giftcards', { method: 'POST', body: JSON.stringify(data) }),
+  deleteGiftCard: (id) => request(`/admin/giftcards/${id}`, { method: 'DELETE' }),
+
+  // Affiliates
+  applyAffiliate: () => request('/affiliates/apply', { method: 'POST' }),
+  getMyAffiliate: () => request('/affiliates/my'),
+  trackAffiliate: (code) => request(`/affiliates/track/${code}`, { method: 'POST' }),
+  getAdminAffiliates: () => request('/admin/affiliates'),
+  updateAdminAffiliate: (id, data) => request(`/admin/affiliates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 }
 
 export function saveToken(token) { localStorage.setItem('mazuju_token', token) }
