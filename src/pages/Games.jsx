@@ -3,8 +3,10 @@ import MemoryGame from '../games/MemoryGame'
 import MathGame from '../games/MathGame'
 import WordGame from '../games/WordGame'
 import ColorGame from '../games/ColorGame'
+import TypingGame from '../games/TypingGame'
 
 const GAME_LIST = [
+  { id: 'typing', emoji: '⌨️', title: 'Spartaus rašymo iššūkis', desc: 'Krentančios raidės ir žodžiai – spauskite juos ant klaviatūros! 7 lygiai nuo raidžių iki sakinių.', type: 'Klaviatūra', age: '6-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #9B5DE5, #6C63FF)', badge: 'Naujas!', players: '800+ žaidžia' },
   { id: 'memory', emoji: '🧩', title: 'Atminties iššūkis', desc: 'Atversk korteles ir surask poras! Lavina atmintį ir dėmesingumą.', type: 'Atmintis', age: '4-8 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #6C63FF, #4CC9F0)', badge: 'Nemokamas', players: '2.5k žaidžia' },
   { id: 'math', emoji: '🔢', title: 'Matematikos burtininkas', desc: 'Spręsk matematinius uždavinius ir tapk tikru skaičių meistru!', type: 'Matematika', age: '6-10 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #FF6B35, #FFD166)', badge: 'Populiarus', players: '1.8k žaidžia' },
   { id: 'word', emoji: '📝', title: 'Žodžių dėlionė', desc: 'Sudėliok raides ir surask paslėptą žodį! Mokykis naujų žodžių.', type: 'Kalbos', age: '7-12 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'Naujas', players: '1.2k žaidžia' },
@@ -12,6 +14,7 @@ const GAME_LIST = [
 ]
 
 const GAME_COMPONENTS = {
+  typing: TypingGame,
   memory: MemoryGame,
   math: MathGame,
   word: WordGame,
