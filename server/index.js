@@ -134,6 +134,33 @@ app.get('/api/auth/me', auth, (req, res) => {
   res.json(user)
 })
 
+// Google Sign-In
+app.post('/api/auth/google', (req, res) => {
+  const { credential, name, email, picture } = req.body
+  if (!email) return res.status(400).json({ error: 'Trūksta el. pašto' })
+
+  // Check if user exists
+  let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email)
+
+  if (user) {
+    // Existing user - login
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role, membership: user.membership }, JWT_SECRET, { expiresIn: '30d' })
+    return res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, membership: user.membership } })
+  }
+
+  // New user - register with Google
+  const displayName = name || email.split('@')[0]
+  const hash = bcrypt.hashSync(Math.random().toString(36).slice(2) + Date.now(), 10) // random password
+  const result = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)').run(displayName, email, hash)
+
+  const token = jwt.sign({ id: result.lastInsertRowid, email, name: displayName, role: 'user', membership: 'free' }, JWT_SECRET, { expiresIn: '30d' })
+
+  // Send welcome email
+  onUserRegistered({ name: displayName, email }).catch(err => console.warn('Email failed:', err.message))
+
+  res.json({ token, user: { id: result.lastInsertRowid, name: displayName, email, role: 'user', membership: 'free' } })
+})
+
 // ==========================================
 // PRODUCTS ROUTES
 // ==========================================
