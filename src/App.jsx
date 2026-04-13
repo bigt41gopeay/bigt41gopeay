@@ -30,6 +30,14 @@ function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
+const LEAD_STATUSES = [
+  { id: 'saltas', label: 'šaltas kontaktas', color: '#64748b' },
+  { id: 'siltas', label: 'šiltas kontaktas', color: '#f59e0b' },
+  { id: 'aktyvus_klientas', label: 'aktyvus klientas', color: '#22c55e' },
+  { id: 'buves', label: 'buvęs klientas', color: '#6b7280' },
+]
+const CLIENT_SOURCES = ['Renginys', 'Rekomendacija', 'Tinklapis', 'Skambutis', 'LinkedIn', 'El. paštas', 'Facebook', 'Kita']
+
 const STATUS_COLORS = {
   aktyvus: '#22c55e',
   neaktyvus: '#6b7280',
@@ -46,6 +54,12 @@ const STATUS_COLORS = {
   išsiųsta: '#3b82f6',
   apmokėta: '#22c55e',
   vėluoja: '#ef4444',
+  'šaltas kontaktas': '#64748b',
+  'šiltas kontaktas': '#f59e0b',
+  'aktyvus klientas': '#22c55e',
+  'buvęs klientas': '#6b7280',
+  priimta: '#22c55e',
+  atmesta: '#ef4444',
 }
 
 function Badge({ status }) {
@@ -241,24 +255,79 @@ function NotificationBar({ tasks }) {
   )
 }
 
-// ─── CONTACTS ─────────────────────────────────────────────────────────────────
+// ─── CLIENTS ──────────────────────────────────────────────────────────────────
 
-function ContactForm({ initial, onSave, onClose }) {
-  const [form, setForm] = useState(initial || { name: '', company: '', email: '', phone: '', notes: '' })
+const emptyClient = {
+  name: '', company: '', position: '', email: '', phone: '',
+  source: '', leadStatus: 'saltas', previousCompanies: '',
+  hostingProvider: '', systems: '', ipAddresses: '', domains: '',
+  notes: '',
+}
+
+function ClientForm({ initial, onSave, onClose }) {
+  const [form, setForm] = useState(initial ? { ...emptyClient, ...initial } : { ...emptyClient })
+  const [tab, setTab] = useState('info')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const tabs = [
+    { id: 'info', label: 'Pagrindinė info' },
+    { id: 'infra', label: 'Infrastruktūra' },
+  ]
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form); onClose() }}>
-      <div style={formGroup}><label style={labelStyle}>Vardas Pavardė *</label>
-        <input style={inputStyle} required value={form.name} onChange={e => set('name', e.target.value)} /></div>
-      <div style={formGroup}><label style={labelStyle}>Įmonė</label>
-        <input style={inputStyle} value={form.company} onChange={e => set('company', e.target.value)} /></div>
-      <div style={formGroup}><label style={labelStyle}>El. paštas</label>
-        <input style={inputStyle} type="email" value={form.email} onChange={e => set('email', e.target.value)} /></div>
-      <div style={formGroup}><label style={labelStyle}>Telefonas</label>
-        <input style={inputStyle} value={form.phone} onChange={e => set('phone', e.target.value)} /></div>
-      <div style={formGroup}><label style={labelStyle}>Pastabos</label>
-        <textarea style={{ ...inputStyle, height: 70, resize: 'vertical' }} value={form.notes} onChange={e => set('notes', e.target.value)} /></div>
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
+        {tabs.map(t => (
+          <button key={t.id} type="button" onClick={() => setTab(t.id)} style={{
+            ...btnSecondary, padding: '5px 12px', fontSize: 13,
+            background: tab === t.id ? '#6366f1' : '#2e2e3e',
+            color: tab === t.id ? '#fff' : '#94a3b8',
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {tab === 'info' && <>
+        <div style={formGroup}><label style={labelStyle}>Vardas Pavardė *</label>
+          <input style={inputStyle} required value={form.name} onChange={e => set('name', e.target.value)} /></div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Įmonė</label>
+            <input style={inputStyle} value={form.company} onChange={e => set('company', e.target.value)} /></div>
+          <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Pareigos</label>
+            <input style={inputStyle} value={form.position} onChange={e => set('position', e.target.value)} /></div>
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>El. paštas</label>
+            <input style={inputStyle} type="email" value={form.email} onChange={e => set('email', e.target.value)} /></div>
+          <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Telefonas</label>
+            <input style={inputStyle} value={form.phone} onChange={e => set('phone', e.target.value)} /></div>
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Statusas</label>
+            <select style={inputStyle} value={form.leadStatus} onChange={e => set('leadStatus', e.target.value)}>
+              {LEAD_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select></div>
+          <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Šaltinis</label>
+            <select style={inputStyle} value={form.source} onChange={e => set('source', e.target.value)}>
+              <option value="">— Pasirinkti —</option>
+              {CLIENT_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select></div>
+        </div>
+        <div style={formGroup}><label style={labelStyle}>Ankstesnės įmonės</label>
+          <input style={inputStyle} placeholder="pvz. UAB Firma, MB Projektas" value={form.previousCompanies} onChange={e => set('previousCompanies', e.target.value)} /></div>
+        <div style={formGroup}><label style={labelStyle}>Pastabos</label>
+          <textarea style={{ ...inputStyle, height: 70, resize: 'vertical' }} value={form.notes} onChange={e => set('notes', e.target.value)} /></div>
+      </>}
+
+      {tab === 'infra' && <>
+        <div style={formGroup}><label style={labelStyle}>Hostingo tiekėjas</label>
+          <input style={inputStyle} placeholder="pvz. Hostinger, Hetzner, DigitalOcean" value={form.hostingProvider} onChange={e => set('hostingProvider', e.target.value)} /></div>
+        <div style={formGroup}><label style={labelStyle}>Naudojamos sistemos</label>
+          <input style={inputStyle} placeholder="pvz. WordPress, WooCommerce, Laravel" value={form.systems} onChange={e => set('systems', e.target.value)} /></div>
+        <div style={formGroup}><label style={labelStyle}>IP adresai</label>
+          <textarea style={{ ...inputStyle, height: 60, resize: 'vertical' }} placeholder="Kiekvienas IP atskiroje eilutėje" value={form.ipAddresses} onChange={e => set('ipAddresses', e.target.value)} /></div>
+        <div style={formGroup}><label style={labelStyle}>Domenai</label>
+          <textarea style={{ ...inputStyle, height: 60, resize: 'vertical' }} placeholder="Kiekvienas domenas atskiroje eilutėje" value={form.domains} onChange={e => set('domains', e.target.value)} /></div>
+      </>}
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
         <button type="button" style={btnSecondary} onClick={onClose}>Atšaukti</button>
         <button type="submit" style={btnPrimary}>Išsaugoti</button>
       </div>
@@ -266,61 +335,291 @@ function ContactForm({ initial, onSave, onClose }) {
   )
 }
 
-function Contacts({ contacts, setContacts }) {
+function ClientDetail({ client, onClose, communications, credentials, invoices, projects, tasks }) {
+  const [tab, setTab] = useState('overview')
+  if (!client) return null
+  const leadInfo = LEAD_STATUSES.find(s => s.id === client.leadStatus) || LEAD_STATUSES[0]
+  const clientComms = communications.filter(c => c.contactId === client.id).sort((a, b) => b.date.localeCompare(a.date))
+  const clientCreds = credentials.filter(c => c.clientId === client.id || c.projectId && projects.filter(p => p.contactId === client.id).some(p => p.id === c.projectId))
+  const clientInvoices = invoices.filter(i => i.contactId === client.id).sort((a, b) => b.date.localeCompare(a.date))
+  const clientProjects = projects.filter(p => p.contactId === client.id)
+  const clientTasks = tasks.filter(t => t.contactId === client.id)
+  const events = client.events || []
+
+  const tabs = [
+    { id: 'overview', label: 'Apžvalga' },
+    { id: 'infra', label: 'Infrastruktūra' },
+    { id: 'history', label: 'Istorija' },
+    { id: 'creds', label: 'Prisijungimai' },
+    { id: 'finance', label: 'Finansai' },
+  ]
+
+  return (
+    <div>
+      <button onClick={onClose} style={{ ...btnSecondary, marginBottom: 16, fontSize: 13 }}>← Grįžti į sąrašą</button>
+      <div style={{ ...cardStyle, marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <h2 style={{ margin: '0 0 4px', color: '#e2e8f0' }}>{client.name}</h2>
+            {client.company && <div style={{ color: '#94a3b8', fontSize: 14 }}>{client.company}{client.position ? ` · ${client.position}` : ''}</div>}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Badge status={leadInfo.label} />
+              {client.source && <span style={{ color: '#64748b', fontSize: 12 }}>Šaltinis: {client.source}</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+              {client.email && <a href={`mailto:${client.email}`} style={{ color: '#6366f1', fontSize: 13 }}>📧 {client.email}</a>}
+              {client.phone && <a href={`tel:${client.phone}`} style={{ color: '#22c55e', fontSize: 13 }}>📞 {client.phone}</a>}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', fontSize: 12, color: '#64748b' }}>
+            <div>Projektai: <b style={{ color: '#e2e8f0' }}>{clientProjects.length}</b></div>
+            <div>Sąskaitos: <b style={{ color: '#e2e8f0' }}>{clientInvoices.length}</b></div>
+            <div>Komunikacijos: <b style={{ color: '#e2e8f0' }}>{clientComms.length}</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            ...btnSecondary, padding: '6px 14px', fontSize: 13,
+            background: tab === t.id ? '#6366f1' : '#2e2e3e',
+            color: tab === t.id ? '#fff' : '#94a3b8',
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {tab === 'overview' && (
+        <div>
+          {client.notes && <div style={{ ...cardStyle }}><label style={{ ...labelStyle, marginBottom: 8 }}>Pastabos</label><div style={{ color: '#e2e8f0', fontSize: 14, whiteSpace: 'pre-wrap' }}>{client.notes}</div></div>}
+          {client.previousCompanies && <div style={cardStyle}><label style={labelStyle}>Ankstesnės įmonės</label><div style={{ color: '#e2e8f0', fontSize: 14 }}>{client.previousCompanies}</div></div>}
+          {events.length > 0 && (
+            <div style={cardStyle}>
+              <label style={{ ...labelStyle, marginBottom: 8 }}>Renginių istorija</label>
+              {events.map((ev, i) => (
+                <div key={i} style={{ padding: '6px 0', borderBottom: i < events.length - 1 ? '1px solid #2e2e3e' : 'none', fontSize: 13 }}>
+                  <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{ev.eventName}</span>
+                  <span style={{ color: '#64748b', marginLeft: 8 }}>{ev.date}</span>
+                  {ev.notes && <div style={{ color: '#94a3b8', fontSize: 12 }}>{ev.notes}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+          {clientProjects.length > 0 && (
+            <div style={cardStyle}>
+              <label style={{ ...labelStyle, marginBottom: 8 }}>Projektai</label>
+              {clientProjects.map(p => (
+                <div key={p.id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #2e2e3e' }}>
+                  <Badge status={p.status} />
+                  <span style={{ color: '#e2e8f0', fontSize: 14 }}>{p.name}</span>
+                  {p.budget && <span style={{ color: '#22c55e', fontSize: 12 }}>€{p.budget}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'infra' && (
+        <div>
+          <div style={cardStyle}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div><label style={labelStyle}>Hostingo tiekėjas</label><div style={{ color: '#e2e8f0', fontSize: 14 }}>{client.hostingProvider || '—'}</div></div>
+              <div><label style={labelStyle}>Naudojamos sistemos</label><div style={{ color: '#e2e8f0', fontSize: 14 }}>{client.systems || '—'}</div></div>
+            </div>
+          </div>
+          <div style={cardStyle}>
+            <label style={{ ...labelStyle, marginBottom: 8 }}>IP adresai</label>
+            {client.ipAddresses ? client.ipAddresses.split('\n').filter(Boolean).map((ip, i) => (
+              <div key={i} style={{ color: '#06b6d4', fontFamily: 'monospace', fontSize: 14, padding: '2px 0' }}>{ip.trim()}</div>
+            )) : <div style={{ color: '#64748b', fontSize: 13 }}>—</div>}
+          </div>
+          <div style={cardStyle}>
+            <label style={{ ...labelStyle, marginBottom: 8 }}>Domenai</label>
+            {client.domains ? client.domains.split('\n').filter(Boolean).map((d, i) => (
+              <div key={i} style={{ color: '#6366f1', fontSize: 14, padding: '2px 0' }}>{d.trim()}</div>
+            )) : <div style={{ color: '#64748b', fontSize: 13 }}>—</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'history' && (
+        <div>
+          {clientComms.length === 0 && clientTasks.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>Nėra istorijos</p>}
+          {clientComms.map(c => (
+            <div key={c.id} style={{ ...cardStyle, borderLeft: `3px solid ${STATUS_COLORS[c.type] || '#6b7280'}` }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Badge status={c.type} />
+                {c.subject && <span style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 14 }}>{c.subject}</span>}
+                <span style={{ color: '#64748b', fontSize: 12 }}>{new Date(c.date).toLocaleString('lt-LT')}</span>
+              </div>
+              {c.notes && <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 6, whiteSpace: 'pre-wrap' }}>{c.notes}</div>}
+            </div>
+          ))}
+          {clientTasks.filter(t => t.status === 'baigtas').map(t => (
+            <div key={t.id} style={{ ...cardStyle, borderLeft: '3px solid #22c55e' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ color: '#22c55e' }}>✓</span>
+                <span style={{ color: '#e2e8f0', fontSize: 14 }}>{t.title}</span>
+                {t.deadline && <span style={{ color: '#64748b', fontSize: 12 }}>{new Date(t.deadline).toLocaleDateString('lt-LT')}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'creds' && (
+        <div>
+          {clientCreds.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>Nėra prisijungimų</p>}
+          {clientCreds.map(c => (
+            <div key={c.id} style={cardStyle}>
+              <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 14 }}>🔑 {c.label}</div>
+              {c.url && <a href={c.url} target="_blank" rel="noreferrer" style={{ color: '#06b6d4', fontSize: 13, wordBreak: 'break-all' }}>{c.url}</a>}
+              <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                {c.username && <span style={{ color: '#94a3b8', fontSize: 13 }}>👤 {c.username}</span>}
+                {c.password && (
+                  <button style={{ ...btnSecondary, padding: '2px 10px', fontSize: 11 }}
+                    onClick={() => navigator.clipboard.writeText(c.password).then(() => alert('Slaptažodis nukopijuotas!'))}>
+                    📋 Kopijuoti slaptažodį
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'finance' && (
+        <div>
+          {clientInvoices.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>Nėra sąskaitų</p>}
+          {clientInvoices.map(inv => (
+            <div key={inv.id} style={{ ...cardStyle, borderLeft: `3px solid ${STATUS_COLORS[inv.status] || '#6b7280'}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                <div>
+                  <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 14 }}>📄 {inv.number}</span>
+                  <span style={{ marginLeft: 8 }}><Badge status={inv.status} /></span>
+                </div>
+                <div style={{ color: '#22c55e', fontWeight: 700, fontSize: 16 }}>{(inv.total || 0).toFixed(2)} €</div>
+              </div>
+              <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{inv.date}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Clients({ contacts, setContacts, communications, credentials, invoices, projects, tasks }) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
   const [search, setSearch] = useState('')
+  const [leadFilter, setLeadFilter] = useState('visi')
+  const [viewingClient, setViewingClient] = useState(null)
 
-  const filtered = contacts.filter(c =>
-    [c.name, c.company, c.email, c.phone].some(v => v?.toLowerCase().includes(search.toLowerCase()))
-  )
+  const filtered = contacts
+    .filter(c => leadFilter === 'visi' || c.leadStatus === leadFilter)
+    .filter(c =>
+      [c.name, c.company, c.email, c.phone, c.source, c.domains, c.systems]
+        .some(v => v?.toLowerCase().includes(search.toLowerCase()))
+    )
 
   const save = (form) => {
     if (editing) {
       setContacts(cs => cs.map(c => c.id === editing.id ? { ...c, ...form } : c))
     } else {
-      setContacts(cs => [...cs, { ...form, id: genId(), createdAt: new Date().toISOString() }])
+      setContacts(cs => [...cs, { ...form, id: genId(), events: [], createdAt: new Date().toISOString() }])
     }
     setEditing(null)
+  }
+
+  const getLeadLabel = (id) => {
+    const s = LEAD_STATUSES.find(x => x.id === id)
+    return s ? s.label : 'šaltas kontaktas'
+  }
+
+  if (viewingClient) {
+    const client = contacts.find(c => c.id === viewingClient)
+    if (client) return <ClientDetail client={client} onClose={() => setViewingClient(null)}
+      communications={communications} credentials={credentials} invoices={invoices} projects={projects} tasks={tasks} />
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-        <h2 style={{ margin: 0, color: '#e2e8f0' }}>Kontaktai</h2>
+        <h2 style={{ margin: 0, color: '#e2e8f0' }}>Klientai</h2>
         <div style={{ display: 'flex', gap: 8 }}>
           <button style={{ ...btnSecondary, fontSize: 13, padding: '7px 14px' }}
             onClick={() => exportContactsCSV(contacts)}
-            title="Eksportuoti visus kontaktus į CSV">
-            📥 Eksportuoti CSV
+            title="Eksportuoti visus klientus į CSV">
+            📥 CSV
           </button>
-          <button style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
+          <button style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Naujas klientas</button>
         </div>
       </div>
-      <input style={{ ...inputStyle, marginBottom: 16 }} placeholder="Ieškoti..." value={search} onChange={e => setSearch(e.target.value)} />
-      {filtered.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>Nėra kontaktų</p>}
-      {filtered.map(c => (
-        <div key={c.id} style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <div>
-              <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 16 }}>{c.name}</div>
-              {c.company && <div style={{ color: '#94a3b8', fontSize: 13 }}>{c.company}</div>}
-              <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {c.email && <a href={`mailto:${c.email}`} style={{ color: '#6366f1', fontSize: 13 }}>{c.email}</a>}
-                {c.phone && <a href={`tel:${c.phone}`} style={{ color: '#22c55e', fontSize: 13 }}>{c.phone}</a>}
-              </div>
-              {c.notes && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{c.notes}</div>}
+
+      {/* Lead pipeline summary */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {LEAD_STATUSES.map(s => {
+          const count = contacts.filter(c => c.leadStatus === s.id).length
+          return (
+            <div key={s.id} style={{
+              background: s.color + '15', border: `1px solid ${s.color}33`, borderRadius: 8,
+              padding: '6px 12px', fontSize: 12, textAlign: 'center', minWidth: 80,
+            }}>
+              <div style={{ fontWeight: 800, fontSize: 20, color: s.color }}>{count}</div>
+              <div style={{ color: '#94a3b8' }}>{s.label}</div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          )
+        })}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+        <button onClick={() => setLeadFilter('visi')} style={{
+          ...btnSecondary, padding: '5px 12px', fontSize: 13,
+          background: leadFilter === 'visi' ? '#6366f1' : '#2e2e3e',
+          color: leadFilter === 'visi' ? '#fff' : '#94a3b8',
+        }}>Visi ({contacts.length})</button>
+        {LEAD_STATUSES.map(s => (
+          <button key={s.id} onClick={() => setLeadFilter(s.id)} style={{
+            ...btnSecondary, padding: '5px 12px', fontSize: 13,
+            background: leadFilter === s.id ? s.color : '#2e2e3e',
+            color: leadFilter === s.id ? '#fff' : '#94a3b8',
+          }}>{s.label}</button>
+        ))}
+      </div>
+      <input style={{ ...inputStyle, marginBottom: 16 }} placeholder="Ieškoti pagal vardą, įmonę, domeną, sistemą..." value={search} onChange={e => setSearch(e.target.value)} />
+
+      {filtered.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>Nėra klientų</p>}
+      {filtered.map(c => (
+        <div key={c.id} style={{ ...cardStyle, borderLeft: `3px solid ${(LEAD_STATUSES.find(s => s.id === c.leadStatus) || LEAD_STATUSES[0]).color}`, cursor: 'pointer' }}
+          onClick={() => setViewingClient(c.id)}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: 16 }}>{c.name}</span>
+                <Badge status={getLeadLabel(c.leadStatus)} />
+              </div>
+              {c.company && <div style={{ color: '#94a3b8', fontSize: 13 }}>{c.company}{c.position ? ` · ${c.position}` : ''}</div>}
+              <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {c.email && <span style={{ color: '#6366f1', fontSize: 13 }}>📧 {c.email}</span>}
+                {c.phone && <span style={{ color: '#22c55e', fontSize: 13 }}>📞 {c.phone}</span>}
+                {c.source && <span style={{ color: '#64748b', fontSize: 12 }}>Šaltinis: {c.source}</span>}
+              </div>
+              {c.domains && <div style={{ color: '#06b6d4', fontSize: 12, marginTop: 4 }}>🌐 {c.domains.split('\n').filter(Boolean).join(', ')}</div>}
+              {c.systems && <div style={{ color: '#8b5cf6', fontSize: 12 }}>⚙ {c.systems}</div>}
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }} onClick={e => e.stopPropagation()}>
               <button style={btnSecondary} onClick={() => { setEditing(c); setShowForm(true) }}>Redaguoti</button>
-              <button style={btnDanger} onClick={() => { if (confirm('Ištrinti kontaktą?')) setContacts(cs => cs.filter(x => x.id !== c.id)) }}>Ištrinti</button>
+              <button style={btnDanger} onClick={() => { if (confirm('Ištrinti klientą?')) setContacts(cs => cs.filter(x => x.id !== c.id)) }}>Ištrinti</button>
             </div>
           </div>
         </div>
       ))}
       {showForm && (
-        <Modal title={editing ? 'Redaguoti kontaktą' : 'Naujas kontaktas'} onClose={() => { setShowForm(false); setEditing(null) }}>
-          <ContactForm initial={editing} onSave={save} onClose={() => { setShowForm(false); setEditing(null) }} />
+        <Modal title={editing ? 'Redaguoti klientą' : 'Naujas klientas'} onClose={() => { setShowForm(false); setEditing(null) }}>
+          <ClientForm initial={editing} onSave={save} onClose={() => { setShowForm(false); setEditing(null) }} />
         </Modal>
       )}
     </div>
@@ -991,13 +1290,27 @@ function Communications({ communications, setCommunications, projects, contacts 
 
 // ─── CREDENTIALS ──────────────────────────────────────────────────────────────
 
-function CredForm({ initial, projects, onSave, onClose }) {
-  const [form, setForm] = useState(initial || { projectId: '', label: '', url: '', username: '', password: '', notes: '' })
+const SERVER_TYPES = ['Hosting', 'SSH / Serveris', 'FTP', 'Domenų registratorius', 'Duomenų bazė', 'El. paštas', 'CMS admin', 'API', 'Kita']
+
+function CredForm({ initial, projects, contacts, onSave, onClose }) {
+  const [form, setForm] = useState(initial || { clientId: '', projectId: '', serverType: '', label: '', url: '', username: '', password: '', notes: '' })
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form); onClose() }}>
       <div style={formGroup}><label style={labelStyle}>Pavadinimas *</label>
         <input style={inputStyle} required value={form.label} onChange={e => set('label', e.target.value)} /></div>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Klientas</label>
+          <select style={inputStyle} value={form.clientId} onChange={e => set('clientId', e.target.value)}>
+            <option value="">— Pasirinkti —</option>
+            {contacts.map(c => <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ''}</option>)}
+          </select></div>
+        <div style={{ ...formGroup, flex: 1 }}><label style={labelStyle}>Serverio tipas</label>
+          <select style={inputStyle} value={form.serverType} onChange={e => set('serverType', e.target.value)}>
+            <option value="">— Pasirinkti —</option>
+            {SERVER_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select></div>
+      </div>
       <div style={formGroup}><label style={labelStyle}>Projektas</label>
         <select style={inputStyle} value={form.projectId} onChange={e => set('projectId', e.target.value)}>
           <option value="">— Pasirinkti —</option>
@@ -1019,15 +1332,17 @@ function CredForm({ initial, projects, onSave, onClose }) {
   )
 }
 
-function Credentials({ credentials, setCredentials, projects }) {
+function Credentials({ credentials, setCredentials, projects, contacts }) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
-  const [revealed, setRevealed] = useState({})
   const [search, setSearch] = useState('')
+  const [copied, setCopied] = useState({})
   const getProject = id => projects.find(p => p.id === id)
+  const getContact = id => contacts.find(c => c.id === id)
 
   const filtered = credentials.filter(c =>
-    [c.label, c.url, c.username, getProject(c.projectId)?.name].some(v => v?.toLowerCase().includes(search.toLowerCase()))
+    [c.label, c.url, c.username, c.serverType, getProject(c.projectId)?.name, getContact(c.clientId)?.name]
+      .some(v => v?.toLowerCase().includes(search.toLowerCase()))
   )
 
   const save = (form) => {
@@ -1039,44 +1354,59 @@ function Credentials({ credentials, setCredentials, projects }) {
     setEditing(null)
   }
 
+  const copyField = (id, field, value) => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(c => ({ ...c, [`${id}-${field}`]: true }))
+      setTimeout(() => setCopied(c => ({ ...c, [`${id}-${field}`]: false })), 2000)
+    })
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
         <h2 style={{ margin: 0, color: '#e2e8f0' }}>Prisijungimai</h2>
         <button style={btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>+ Pridėti</button>
       </div>
-      <p style={{ color: '#64748b', fontSize: 12, marginBottom: 12 }}>⚠ Duomenys saugomi naršyklės localStorage. Nenaudokite jautrių slaptažodžių.</p>
-      <input style={{ ...inputStyle, marginBottom: 16 }} placeholder="Ieškoti..." value={search} onChange={e => setSearch(e.target.value)} />
+      <input style={{ ...inputStyle, marginBottom: 16 }} placeholder="Ieškoti pagal pavadinimą, klientą, URL..." value={search} onChange={e => setSearch(e.target.value)} />
       {filtered.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>Nėra prisijungimų</p>}
       {filtered.map(c => {
         const project = getProject(c.projectId)
+        const client = getContact(c.clientId)
         return (
           <div key={c.id} style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: '#e2e8f0' }}>🔑 {c.label}</div>
-                {project && <div style={{ color: '#6366f1', fontSize: 12 }}>📁 {project.name}</div>}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 700, color: '#e2e8f0' }}>🔑 {c.label}</span>
+                  {c.serverType && <span style={{ background: '#6366f122', color: '#6366f1', border: '1px solid #6366f144', borderRadius: 6, padding: '1px 8px', fontSize: 11 }}>{c.serverType}</span>}
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
+                  {client && <span style={{ color: '#f59e0b', fontSize: 12 }}>👤 {client.name}</span>}
+                  {project && <span style={{ color: '#6366f1', fontSize: 12 }}>📁 {project.name}</span>}
+                </div>
                 {c.url && (
                   <div style={{ marginTop: 4 }}>
                     <a href={c.url} target="_blank" rel="noreferrer" style={{ color: '#06b6d4', fontSize: 13, wordBreak: 'break-all' }}>{c.url}</a>
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {c.username && <span style={{ color: '#94a3b8', fontSize: 13 }}>👤 {c.username}</span>}
+                <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {c.username && (
+                    <div style={{ background: '#0f0f1a', border: '1px solid #2e2e3e', borderRadius: 6, padding: '4px 10px', display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ color: '#94a3b8', fontSize: 13 }}>👤 {c.username}</span>
+                      <button style={{ background: 'none', border: 'none', color: copied[`${c.id}-user`] ? '#22c55e' : '#6366f1', cursor: 'pointer', fontSize: 11, padding: 0 }}
+                        onClick={() => copyField(c.id, 'user', c.username)}>
+                        {copied[`${c.id}-user`] ? '✓' : '📋'}
+                      </button>
+                    </div>
+                  )}
                   {c.password && (
-                    <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'monospace' }}>
-                        {revealed[c.id] ? c.password : '••••••••'}
-                      </span>
-                      <button style={{ ...btnSecondary, padding: '2px 8px', fontSize: 11 }}
-                        onClick={() => setRevealed(r => ({ ...r, [c.id]: !r[c.id] }))}>
-                        {revealed[c.id] ? 'Slėpti' : 'Rodyti'}
+                    <div style={{ background: '#0f0f1a', border: '1px solid #2e2e3e', borderRadius: 6, padding: '4px 10px', display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'monospace' }}>🔒 ••••••••</span>
+                      <button style={{ background: 'none', border: 'none', color: copied[`${c.id}-pass`] ? '#22c55e' : '#6366f1', cursor: 'pointer', fontSize: 11, padding: 0 }}
+                        onClick={() => copyField(c.id, 'pass', c.password)}>
+                        {copied[`${c.id}-pass`] ? '✓ Nukopijuota' : '📋 Kopijuoti'}
                       </button>
-                      <button style={{ ...btnSecondary, padding: '2px 8px', fontSize: 11 }}
-                        onClick={() => navigator.clipboard.writeText(c.password).then(() => alert('Nukopijuota!'))}>
-                        Kopijuoti
-                      </button>
-                    </span>
+                    </div>
                   )}
                 </div>
                 {c.notes && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{c.notes}</div>}
@@ -1091,7 +1421,7 @@ function Credentials({ credentials, setCredentials, projects }) {
       })}
       {showForm && (
         <Modal title={editing ? 'Redaguoti prisijungimą' : 'Naujas prisijungimas'} onClose={() => { setShowForm(false); setEditing(null) }}>
-          <CredForm initial={editing} projects={projects} onSave={save} onClose={() => { setShowForm(false); setEditing(null) }} />
+          <CredForm initial={editing} projects={projects} contacts={contacts} onSave={save} onClose={() => { setShowForm(false); setEditing(null) }} />
         </Modal>
       )}
     </div>
@@ -1100,7 +1430,7 @@ function Credentials({ credentials, setCredentials, projects }) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 
-function Dashboard({ contacts, projects, tasks, communications, gcalToken }) {
+function Dashboard({ contacts, projects, tasks, communications, invoices, gcalToken }) {
   const [gcalEvents, setGcalEvents] = useState([])
   const [gcalLoading, setGcalLoading] = useState(false)
 
@@ -1136,10 +1466,29 @@ function Dashboard({ contacts, projects, tasks, communications, gcalToken }) {
     <div>
       <h2 style={{ color: '#e2e8f0', marginBottom: 20 }}>Apžvalga</h2>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
-        {statCard('Kontaktai', contacts.length, '#6366f1')}
+        {statCard('Klientai', contacts.length, '#6366f1')}
         {statCard('Aktyvūs projektai', activeProjects, '#3b82f6')}
         {statCard('Laukiantys darbai', pendingTasks, '#f59e0b')}
         {statCard('Vėluojantys', overdueTasks.length, '#ef4444')}
+      </div>
+
+      {/* Lead pipeline */}
+      <div style={{ marginBottom: 24 }}>
+        <h3 style={{ color: '#94a3b8', marginBottom: 10 }}>Klientų pipeline</h3>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {LEAD_STATUSES.map(s => {
+            const count = contacts.filter(c => c.leadStatus === s.id).length
+            return (
+              <div key={s.id} style={{
+                background: s.color + '15', border: `1px solid ${s.color}33`, borderRadius: 10,
+                padding: '10px 16px', flex: 1, minWidth: 120, textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: s.color }}>{count}</div>
+                <div style={{ color: '#94a3b8', fontSize: 12 }}>{s.label}</div>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {overdueTasks.length > 0 && (
@@ -1388,7 +1737,7 @@ function Settings({ settings, setSettings, gcalToken, setGcalToken, tasks, setTa
 
 const TABS = [
   { id: 'dashboard', label: '📊 Apžvalga' },
-  { id: 'contacts', label: '👥 Kontaktai' },
+  { id: 'clients', label: '👥 Klientai' },
   { id: 'projects', label: '📁 Projektai' },
   { id: 'tasks', label: '✅ Darbai' },
   { id: 'communications', label: '💬 Komunikacijos' },
@@ -1449,12 +1798,12 @@ export default function App() {
 
       {/* Main content */}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px' }}>
-        {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} gcalToken={gcalToken} />}
-        {tab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
+        {tab === 'dashboard' && <Dashboard contacts={contacts} projects={projects} tasks={tasks} communications={communications} invoices={invoices} gcalToken={gcalToken} />}
+        {tab === 'clients' && <Clients contacts={contacts} setContacts={setContacts} communications={communications} credentials={credentials} invoices={invoices} projects={projects} tasks={tasks} />}
         {tab === 'projects' && <Projects projects={projects} setProjects={setProjects} contacts={contacts} />}
         {tab === 'tasks' && <Tasks tasks={tasks} setTasks={setTasks} projects={projects} contacts={contacts} gcalToken={gcalToken} />}
         {tab === 'communications' && <Communications communications={communications} setCommunications={setCommunications} projects={projects} contacts={contacts} />}
-        {tab === 'credentials' && <Credentials credentials={credentials} setCredentials={setCredentials} projects={projects} />}
+        {tab === 'credentials' && <Credentials credentials={credentials} setCredentials={setCredentials} projects={projects} contacts={contacts} />}
         {tab === 'invoices' && <Invoices invoices={invoices} setInvoices={setInvoices} contacts={contacts} />}
         {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} gcalToken={gcalToken} setGcalToken={setGcalToken} tasks={tasks} setTasks={setTasks} />}
       </div>
