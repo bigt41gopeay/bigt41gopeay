@@ -1,0 +1,53 @@
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: crm_pocketbase
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - ./pocketbase/pb_data:/pb_data
+      - ./pocketbase/pb_migrations:/pb_migrations
+      - ./pocketbase/pb_hooks:/pb_hooks
+    command:
+      - --http=0.0.0.0:8090
+      - --dir=/pb_data
+      - --hooksDir=/pb_hooks
+      - --migrationsDir=/pb_migrations
+    environment:
+      - TZ=Europe/Vilnius
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: crm_n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - N8N_HOST=n8n.oktoja.lt
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.oktoja.lt/
+      - N8N_EDITOR_BASE_URL=https://n8n.oktoja.lt/
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-changeMeInEnv}
+      - GENERIC_TIMEZONE=Europe/Vilnius
+      - N8N_DEFAULT_LOCALE=lt
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      - POCKETBASE_URL=http://pocketbase:8090
+    volumes:
+      - ./n8n/data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+    depends_on:
+      - pocketbase
+
+networks:
+  default:
+    name: crm_network

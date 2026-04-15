@@ -1,0 +1,168 @@
+{
+  "name": "01 - Lead Discovery & Enrichment",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [ { "field": "hours", "hoursInterval": 24, "triggerAtHour": 8 } ]
+        }
+      },
+      "name": "Cron — kiekvieną rytą 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "id": "cron-1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "query", "value": "web development Lietuva" },
+            { "name": "location", "value": "Vilnius, Kaunas, Klaipėda" },
+            { "name": "limit", "value": "30" }
+          ]
+        }
+      },
+      "name": "Paieškos parametrai",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [400, 300],
+      "id": "params-1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-scraper/run-sync-get-dataset-items",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "Bearer {{$env.APIFY_TOKEN}}" } ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"searchStringsArray\": [\"{{$json.query}}\"],\n  \"locationQuery\": \"{{$json.location}}\",\n  \"maxCrawledPlacesPerSearch\": {{$json.limit}}\n}",
+        "method": "POST"
+      },
+      "name": "Apify — Google Maps scrape",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 300],
+      "id": "apify-1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Split into items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [800, 300],
+      "id": "split-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{$json.website}}", "operation": "isNotEmpty" }
+          ]
+        }
+      },
+      "name": "Turi svetainę?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "id": "if-1"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.POCKETBASE_URL}}/api/collections/leads/records?filter=(domain='{{ new URL($json.website).hostname }}')",
+        "method": "GET"
+      },
+      "name": "Ar jau egzistuoja?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1200, 260],
+      "id": "check-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [ { "value1": "={{$json.totalItems}}", "operation": "equal", "value2": 0 } ]
+        }
+      },
+      "name": "Naujas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1400, 260],
+      "id": "if-2"
+    },
+    {
+      "parameters": {
+        "url": "https://api.wappalyzer.com/v2/lookup/",
+        "qs": { "urls": "={{$json.website}}" },
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [ { "name": "x-api-key", "value": "{{$env.WAPPALYZER_API_KEY}}" } ]
+        }
+      },
+      "name": "Wappalyzer → tech stack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1600, 200],
+      "id": "wap-1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+        "qs": {
+          "url": "={{$json.website}}",
+          "strategy": "mobile"
+        }
+      },
+      "name": "PageSpeed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1600, 320],
+      "id": "ps-1"
+    },
+    {
+      "parameters": {
+        "functionCode": "const maps = $('Apify — Google Maps scrape').item.json;\nconst wap  = $('Wappalyzer → tech stack').item.json;\nconst ps   = $('PageSpeed').item.json;\n\nconst lcp = ps.lighthouseResult?.audits?.['largest-contentful-paint']?.numericValue || 0;\nconst fcp = ps.lighthouseResult?.audits?.['first-contentful-paint']?.numericValue || 0;\nconst loadMs = Math.round(lcp || fcp);\nconst mobileFriendly = (ps.lighthouseResult?.categories?.performance?.score || 0) > 0.5;\n\nconst url = new URL(maps.website);\nreturn [{\n  json: {\n    url: maps.website,\n    domain: url.hostname,\n    company_name: maps.title,\n    contact_phone: maps.phone,\n    country: 'LT',\n    industry: maps.categoryName,\n    source: 'google_maps',\n    status: 'cold',\n    load_time_ms: loadMs,\n    mobile_friendly: mobileFriendly,\n    has_analytics: (wap?.technologies || []).some(t => t.categories?.some(c => c.name === 'Analytics')),\n    last_scanned: new Date().toISOString(),\n    _wappalyzer: wap,\n  }\n}];"
+      },
+      "name": "Sulipdyti lead'ą",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1800, 260],
+      "id": "merge-1"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.POCKETBASE_URL}}/api/collections/leads/records",
+        "method": "POST",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "Bearer {{$env.PB_ADMIN_TOKEN}}" } ]
+        },
+        "sendBody": true,
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "PocketBase → create lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2000, 260],
+      "id": "pb-1"
+    }
+  ],
+  "connections": {
+    "Cron — kiekvieną rytą 08:00": { "main": [[{ "node": "Paieškos parametrai", "type": "main", "index": 0 }]] },
+    "Paieškos parametrai": { "main": [[{ "node": "Apify — Google Maps scrape", "type": "main", "index": 0 }]] },
+    "Apify — Google Maps scrape": { "main": [[{ "node": "Split into items", "type": "main", "index": 0 }]] },
+    "Split into items": { "main": [[{ "node": "Turi svetainę?", "type": "main", "index": 0 }]] },
+    "Turi svetainę?": { "main": [[{ "node": "Ar jau egzistuoja?", "type": "main", "index": 0 }]] },
+    "Ar jau egzistuoja?": { "main": [[{ "node": "Naujas?", "type": "main", "index": 0 }]] },
+    "Naujas?": { "main": [[{ "node": "Wappalyzer → tech stack", "type": "main", "index": 0 }, { "node": "PageSpeed", "type": "main", "index": 0 }]] },
+    "Wappalyzer → tech stack": { "main": [[{ "node": "Sulipdyti lead'ą", "type": "main", "index": 0 }]] },
+    "Sulipdyti lead'ą": { "main": [[{ "node": "PocketBase → create lead", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "versionId": "",
+  "meta": {},
+  "tags": ["crm", "lead-gen"]
+}

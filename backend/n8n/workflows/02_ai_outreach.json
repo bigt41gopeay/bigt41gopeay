@@ -1,0 +1,134 @@
+{
+  "name": "02 - AI Personalized Outreach",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "outreach",
+        "responseMode": "lastNode"
+      },
+      "name": "Webhook — POST /webhook/outreach",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "id": "wh-1"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.POCKETBASE_URL}}/api/collections/leads/records/{{$json.body.lead_id}}?expand=tech_stack_via_lead",
+        "method": "GET",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "Bearer {{$env.PB_ADMIN_TOKEN}}" } ]
+        }
+      },
+      "name": "Gauti lead + tech",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [400, 300],
+      "id": "get-1"
+    },
+    {
+      "parameters": {
+        "functionCode": "const L = $json;\nconst issues = [];\nif ((L.load_time_ms||0) > 3000) issues.push('svetainė lėta (' + Math.round(L.load_time_ms/1000) + 's)');\nif (L.ssl_valid === false) issues.push('SSL negalioja');\nif (L.mobile_friendly === false) issues.push('neoptimizuota mobiliam');\nconst tech = (L.expand?.tech_stack_via_lead || []).map(t => t.name + (t.version?' '+t.version:'')).join(', ');\nreturn [{ json: { ...L, _issues: issues.join(', '), _tech_list: tech } }];"
+      },
+      "name": "Paruošti kontekstą",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [600, 300],
+      "id": "fn-1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{$env.ANTHROPIC_API_KEY}}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5-20251001\",\n  \"max_tokens\": 500,\n  \"system\": \"Tu esi B2B pardavimų ekspertas. Rašai LIETUVIŠKAI trumpą (max 120 žodžių), asmenišką el. laišką web dev paslaugoms. Stilius: konsultantiškas, naudingas, NE spaminis. Pradėk su konkrečiu pastebėjimu apie jų svetainę. Baik su aiškiu CTA (15 min pokalbis). Grąžink TIK JSON: {\\\"subject\\\": \\\"...\\\", \\\"body\\\": \\\"...\\\"}\",\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Įmonė: {{$json.company_name}}\\nSvetainė: {{$json.url}}\\nAptiktos problemos: {{$json._issues}}\\nTech stack: {{$json._tech_list}}\\nLoad time: {{$json.load_time_ms}}ms\"\n  }]\n}"
+      },
+      "name": "Claude Haiku → personalizuotas tekstas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [800, 300],
+      "id": "ai-1"
+    },
+    {
+      "parameters": {
+        "functionCode": "const claudeResp = $json;\nconst text = claudeResp.content?.[0]?.text || '{}';\nlet parsed = { subject: '', body: '' };\ntry { parsed = JSON.parse(text); } catch(e) { parsed = { subject: 'Pastebėjimas apie jūsų svetainę', body: text }; }\n\nconst trackingId = crypto.randomUUID();\nconst pixel = `<img src=\"https://crm.oktoja.lt/api/tracking/pixel/${trackingId}.gif\" width=\"1\" height=\"1\" style=\"display:none\"/>`;\nconst bodyHtml = parsed.body.replace(/\\n/g, '<br>') + '<br><br>—<br>Tomas<br>Oktoja' + pixel;\n\nconst lead = $('Paruošti kontekstą').item.json;\n\nreturn [{ json: {\n  lead: lead.id,\n  subject: parsed.subject,\n  body_html: bodyHtml,\n  body_text: parsed.body,\n  from_email: 'tomas@oktoja.lt',\n  to_email: lead.contact_email,\n  status: 'queued',\n  tracking_id: trackingId,\n  ai_generated: true,\n  ai_model: 'claude-haiku-4-5',\n}}];"
+      },
+      "name": "Suformuoti outreach įrašą",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "id": "fn-2"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{$json.from_email}}",
+        "toEmail": "={{$json.to_email}}",
+        "subject": "={{$json.subject}}",
+        "html": "={{$json.body_html}}",
+        "options": {}
+      },
+      "name": "SMTP → siųsti laišką",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1200, 300],
+      "id": "smtp-1"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.POCKETBASE_URL}}/api/collections/outreach/records",
+        "method": "POST",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "Bearer {{$env.PB_ADMIN_TOKEN}}" } ]
+        },
+        "sendBody": true,
+        "jsonBody": "={{ JSON.stringify({...$('Suformuoti outreach įrašą').item.json, status: 'sent', sent_at: new Date().toISOString()}) }}"
+      },
+      "name": "PocketBase → įrašyti outreach",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1400, 300],
+      "id": "pb-2"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.POCKETBASE_URL}}/api/collections/leads/records/{{$('Paruošti kontekstą').item.json.id}}",
+        "method": "PATCH",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [ { "name": "Authorization", "value": "Bearer {{$env.PB_ADMIN_TOKEN}}" } ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\"status\": \"contacted\"}"
+      },
+      "name": "Atnaujinti lead statusą",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1600, 300],
+      "id": "pb-3"
+    }
+  ],
+  "connections": {
+    "Webhook — POST /webhook/outreach": { "main": [[{ "node": "Gauti lead + tech", "type": "main", "index": 0 }]] },
+    "Gauti lead + tech": { "main": [[{ "node": "Paruošti kontekstą", "type": "main", "index": 0 }]] },
+    "Paruošti kontekstą": { "main": [[{ "node": "Claude Haiku → personalizuotas tekstas", "type": "main", "index": 0 }]] },
+    "Claude Haiku → personalizuotas tekstas": { "main": [[{ "node": "Suformuoti outreach įrašą", "type": "main", "index": 0 }]] },
+    "Suformuoti outreach įrašą": { "main": [[{ "node": "SMTP → siųsti laišką", "type": "main", "index": 0 }]] },
+    "SMTP → siųsti laišką": { "main": [[{ "node": "PocketBase → įrašyti outreach", "type": "main", "index": 0 }]] },
+    "PocketBase → įrašyti outreach": { "main": [[{ "node": "Atnaujinti lead statusą", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "versionId": "",
+  "meta": {},
+  "tags": ["crm", "outreach", "ai"]
+}
