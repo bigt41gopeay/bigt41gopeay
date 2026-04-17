@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { pb } from '../lib/pb'
 
 const STATUSES = ['cold', 'contacted', 'interested', 'proposal_sent', 'negotiating', 'won', 'lost']
-const PRIORITIES = ['urgent', 'high', 'medium', 'low']
 const PRIORITY_COLOR = { urgent: '#ef4444', high: '#f97316', medium: '#eab308', low: '#64748b' }
 
 export default function Leads() {
@@ -16,12 +15,7 @@ export default function Leads() {
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      try {
-        const list = await pb.collection('leads').getFullList({ sort: '-score,-created' })
-        setLeads(list)
-      } catch (e) {
-        console.warn(e)
-      }
+      try { setLeads(await pb.collection('leads').getFullList({ sort: '-score,-created' })) } catch {}
       setLoading(false)
     }
     load()
@@ -42,17 +36,12 @@ export default function Leads() {
     const domain = prompt('Domenas (pvz. imone.lt):')
     if (!domain) return
     try {
-      const lead = await pb.collection('leads').create({
-        url: `https://${domain}`,
-        domain,
-        status: 'cold',
-        source: 'manual',
-      })
+      const lead = await pb.collection('leads').create({ url: `https://${domain}`, domain, status: 'cold', source: 'manual' })
       nav(`/leads/${lead.id}`)
-    } catch (e) {
-      alert('Klaida: ' + e.message)
-    }
+    } catch (e) { alert('Klaida: ' + e.message) }
   }
+
+  const getInitials = (l) => (l.company_name || l.domain || '?').slice(0, 2).toUpperCase()
 
   return (
     <div>
@@ -61,52 +50,50 @@ export default function Leads() {
           <h1>Leads</h1>
           <div className="text-muted text-sm">{leads.length} iš viso</div>
         </div>
-        <button className="btn btn-primary" onClick={createLead}>+ Naujas lead</button>
       </div>
 
-      <div className="flex gap-2 mb-4" style={{ flexWrap: 'wrap' }}>
-        <button className={'btn ' + (statusFilter === 'all' ? 'btn-primary' : 'btn-secondary')} onClick={() => setStatusFilter('all')}>Visi</button>
-        {STATUSES.map(s => (
-          <button key={s} className={'btn ' + (statusFilter === s ? 'btn-primary' : 'btn-secondary')} onClick={() => setStatusFilter(s)}>
-            {s} ({leads.filter(l => l.status === s).length})
-          </button>
-        ))}
+      <input className="input mb-4" placeholder="🔍 Ieškoti pagal domeną, įmonę..." value={search} onChange={e => setSearch(e.target.value)} />
+
+      <div className="pill-scroll">
+        <button className={'pill' + (statusFilter === 'all' ? ' active' : '')} onClick={() => setStatusFilter('all')}>
+          Visi<span className="count">{leads.length}</span>
+        </button>
+        {STATUSES.map(s => {
+          const c = leads.filter(l => l.status === s).length
+          if (c === 0 && statusFilter !== s) return null
+          return (
+            <button key={s} className={'pill' + (statusFilter === s ? ' active' : '')} onClick={() => setStatusFilter(s)}>
+              {s}<span className="count">{c}</span>
+            </button>
+          )
+        })}
       </div>
 
-      <input className="input mb-4" placeholder="Ieškoti pagal domeną, įmonę, el. paštą..." value={search} onChange={e => setSearch(e.target.value)} />
+      {loading ? <div className="empty-state"><div className="empty-text">Kraunama...</div></div>
+        : filtered.length === 0 ? <div className="empty-state"><div className="empty-icon">⊞</div><div className="empty-text">Nerasta lead'ų</div></div>
+        : <div className="card-list">
+            {filtered.map(l => (
+              <div key={l.id} className="lead-card" onClick={() => nav('/leads/' + l.id)}>
+                <div className="lead-avatar" style={{ borderLeft: `3px solid ${PRIORITY_COLOR[l.priority || 'low']}` }}>
+                  {getInitials(l)}
+                </div>
+                <div className="lead-info">
+                  <div className="lead-name">{l.company_name || l.domain}</div>
+                  <div className="lead-meta">
+                    {l.contact_email || l.domain}
+                    {l.load_time_ms ? ` · ${Math.round(l.load_time_ms)}ms` : ''}
+                  </div>
+                </div>
+                <div className="lead-right">
+                  <div className="lead-score font-mono" style={{ color: PRIORITY_COLOR[l.priority || 'low'] }}>{l.score || 0}</div>
+                  <span className={'badge badge-' + (l.status === 'won' ? 'won' : l.status === 'lost' ? 'lost' : l.status === 'cold' ? 'cold' : l.status === 'interested' ? 'interested' : 'contacted')} style={{ fontSize: 10 }}>{l.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+      }
 
-      <div className="card">
-        {loading ? <div className="text-muted" style={{ padding: 20 }}>Kraunama...</div>
-          : filtered.length === 0 ? <div className="text-muted" style={{ padding: 20, textAlign: 'center' }}>Nerasta</div>
-          : <table className="table">
-              <thead>
-                <tr>
-                  <th>Prior.</th>
-                  <th>Įmonė / Domenas</th>
-                  <th>Kontaktas</th>
-                  <th>Score</th>
-                  <th>Load</th>
-                  <th>Statusas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(l => (
-                  <tr key={l.id} onClick={() => nav('/leads/' + l.id)}>
-                    <td><span className="status-dot" style={{ color: PRIORITY_COLOR[l.priority || 'low'] }} /></td>
-                    <td>
-                      <div style={{ fontWeight: 500 }}>{l.company_name || l.domain}</div>
-                      <div className="text-sm text-muted font-mono">{l.domain}</div>
-                    </td>
-                    <td className="text-sm">{l.contact_email || <span className="text-muted">—</span>}</td>
-                    <td><span className="font-mono">{l.score || 0}</span></td>
-                    <td className="text-sm font-mono text-muted">{l.load_time_ms ? Math.round(l.load_time_ms) + 'ms' : '—'}</td>
-                    <td><span className={'badge badge-' + (l.status === 'won' ? 'won' : l.status === 'lost' ? 'lost' : l.status === 'cold' ? 'cold' : l.status === 'interested' ? 'interested' : 'contacted')}>{l.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-        }
-      </div>
+      <button className="fab" onClick={createLead} aria-label="Naujas lead">+</button>
     </div>
   )
 }
