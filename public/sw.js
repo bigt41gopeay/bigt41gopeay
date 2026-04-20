@@ -1,58 +1,76 @@
-const CACHE_NAME = 'manocrm-v1'
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/favicon.svg',
-]
+// Bump this on every deploy to force cache refresh
+const VERSION = 'v3-' + Date.now()
+const CACHE_NAME = `manocrm-${VERSION}`
 
-// Install — cache core assets
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  )
+// Install — activate immediately, do not cache anything upfront
+self.addEventListener('install', () => {
   self.skipWaiting()
 })
 
-// Activate — clean old caches
+// Activate — clean ALL old caches and take control right away
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    (async () => {
+      const keys = await caches.keys()
+      await Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
+      await self.clients.claim()
+      // Tell all tabs to reload to pick up the new version
+      const clients = await self.clients.matchAll({ type: 'window' })
+      clients.forEach(c => c.postMessage({ type: 'SW_UPDATED' }))
+    })()
   )
-  self.clients.claim()
 })
 
-// Fetch — network first, fallback to cache
+// Fetch strategy:
+// - index.html and navigation requests: ALWAYS network (never stale)
+// - hashed assets (/assets/*): cache-first (safe — hashed filenames)
+// - everything else: network-first with cache fallback for offline
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET and external requests
-  if (event.request.method !== 'GET') return
-  if (!event.request.url.startsWith(self.location.origin)) return
+  const req = event.request
+  if (req.method !== 'GET') return
+  if (!req.url.startsWith(self.location.origin)) return
+  if (req.url.includes('googleapis.com')) return
+  if (req.url.includes('accounts.google.com')) return
 
-  // Skip Google API requests (must be live)
-  if (event.request.url.includes('googleapis.com')) return
-  if (event.request.url.includes('accounts.google.com')) return
+  const url = new URL(req.url)
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Cache successful responses
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-        }
-        return response
-      })
-      .catch(() => {
-        // Network failed — try cache
-        return caches.match(event.request).then((cached) => {
-          if (cached) return cached
-          // For navigation requests, return cached index.html (SPA)
-          if (event.request.mode === 'navigate') {
-            return caches.match('/index.html')
+  // Always network for HTML / navigations — prevents stale index.html
+  if (req.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(req, { cache: 'no-store' }).catch(() =>
+        caches.match('/index.html').then(r => r || new Response('Offline', { status: 503 }))
+      )
+    )
+    return
+  }
+
+  // Hashed assets — cache-first
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(req).then(cached => {
+        if (cached) return cached
+        return fetch(req).then(resp => {
+          if (resp.ok) {
+            const clone = resp.clone()
+            caches.open(CACHE_NAME).then(c => c.put(req, clone))
           }
-          return new Response('Offline', { status: 503 })
+          return resp
         })
       })
+    )
+    return
+  }
+
+  // Other requests — network first, cache fallback
+  event.respondWith(
+    fetch(req).then(resp => {
+      if (resp.ok) {
+        const clone = resp.clone()
+        caches.open(CACHE_NAME).then(c => c.put(req, clone))
+      }
+      return resp
+    }).catch(() => caches.match(req))
   )
 })
