@@ -68,7 +68,7 @@ function ToastContainer({ toasts, onRemove }) {
         const c = TOAST_COLORS[t.type] || TOAST_COLORS.info
         return (
           <div key={t.id} style={{
-            background: '#1a1625', border: `1px solid ${c.border}`,
+            background: '#262042', border: `1px solid ${c.border}`,
             borderLeft: `4px solid ${c.color}`, borderRadius: 14,
             padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10,
             animation: 'slideIn 0.25s ease-out',
@@ -77,12 +77,12 @@ function ToastContainer({ toasts, onRemove }) {
             WebkitBackdropFilter: 'blur(12px)',
           }}>
             <span style={{ fontSize: 16 }}>{c.icon}</span>
-            <span style={{ color: '#f0ecf6', fontSize: 14, flex: 1, lineHeight: 1.4 }}>{t.message}</span>
+            <span style={{ color: '#f5f2ff', fontSize: 14, flex: 1, lineHeight: 1.4 }}>{t.message}</span>
             <button
               onClick={() => onRemove(t.id)}
               aria-label="Uždaryti pranešimą"
               style={{
-                background: 'none', border: 'none', color: '#6e6287',
+                background: 'none', border: 'none', color: '#8d82ab',
                 cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4,
                 borderRadius: 6, transition: 'color 0.15s',
               }}

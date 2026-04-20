@@ -93,7 +93,7 @@ export function Modal({ title, onClose, children }) {
       aria-label={title}
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(8,6,13,0.85)',
+        background: 'rgba(14,12,25,0.82)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 1000,
@@ -171,7 +171,7 @@ export function ConfirmDialog({ message, onConfirm, onCancel }) {
       aria-label="Patvirtinimas"
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(8,6,13,0.85)',
+        background: 'rgba(14,12,25,0.82)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 1001,

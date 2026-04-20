@@ -18,21 +18,21 @@ export class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div style={{
-          minHeight: '100vh', background: '#08060d', color: '#f0ecf6',
+          minHeight: '100vh', background: '#141225', color: '#f5f2ff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', padding: 20,
         }}>
           <div style={{
-            background: '#1a1625', border: '1px solid #ef444433', borderRadius: 18,
+            background: '#262042', border: '1px solid #ef444433', borderRadius: 18,
             padding: 36, maxWidth: 480, textAlign: 'center',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           }}>
             <div style={{ fontSize: 52, marginBottom: 18 }}>⚠️</div>
             <h2 style={{ margin: '0 0 12px', color: '#ef4444', fontSize: 20, fontWeight: 700 }}>Kažkas nutiko ne taip</h2>
-            <p style={{ color: '#a99fc4', fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>
+            <p style={{ color: '#c0b6db', fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>
               Įvyko nenumatyta klaida. Jūsų duomenys yra saugūs naršyklėje.
             </p>
-            <p style={{ color: '#6e6287', fontSize: 12, fontFamily: 'monospace', marginBottom: 24, wordBreak: 'break-all' }}>
+            <p style={{ color: '#8d82ab', fontSize: 12, fontFamily: 'monospace', marginBottom: 24, wordBreak: 'break-all' }}>
               {this.state.error?.message}
             </p>
             <button

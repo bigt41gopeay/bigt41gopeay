@@ -4,8 +4,8 @@
   "description": "Asmeninė CRM sistema projektų, kontaktų, darbų ir sąskaitų valdymui",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#08060d",
-  "theme_color": "#08060d",
+  "background_color": "#141225",
+  "theme_color": "#141225",
   "orientation": "any",
   "categories": ["business", "productivity"],
   "icons": [

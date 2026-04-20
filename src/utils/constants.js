@@ -6,14 +6,14 @@ export const BRAND = {
   purpleMuted: '#b388ff',
   cyan: '#47bfff',
   cyanLight: '#e0f4ff',
-  dark: '#08060d',
-  darkCard: '#13101c',
-  darkSurface: '#1a1625',
-  darkBorder: '#2a2438',
-  darkBorderLight: '#362e48',
-  textPrimary: '#f0ecf6',
-  textSecondary: '#a99fc4',
-  textMuted: '#6e6287',
+  dark: '#141225',
+  darkCard: '#1e1a35',
+  darkSurface: '#262042',
+  darkBorder: '#3d3560',
+  darkBorderLight: '#4e4578',
+  textPrimary: '#f5f2ff',
+  textSecondary: '#c0b6db',
+  textMuted: '#8d82ab',
 }
 
 export const STORAGE_KEYS = {
