@@ -7,6 +7,7 @@ import {
   Modal, Badge, SectionHeader, SearchInput, EmptyState,
   inputStyle, labelStyle, formGroup, btnPrimary, btnSecondary, btnDanger, cardStyle,
 } from './ui'
+import { ImportContactsModal } from './ImportContactsModal'
 
 function ContactForm({ initial, onSave, onClose }) {
   const [form, setForm] = useState(initial || { name: '', company: '', email: '', phone: '', notes: '' })
@@ -59,6 +60,7 @@ function ContactForm({ initial, onSave, onClose }) {
 
 export const Contacts = memo(function Contacts({ contacts, setContacts }) {
   const [showForm, setShowForm] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
   const [search, setSearch] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(null)
@@ -88,6 +90,12 @@ export const Contacts = memo(function Contacts({ contacts, setContacts }) {
   return (
     <div>
       <SectionHeader title="Kontaktai">
+        <button style={{ ...btnSecondary, fontSize: 13, padding: '7px 14px' }}
+          className="btn-press"
+          onClick={() => setShowImport(true)}
+          title="Importuoti iš Excel arba CSV failo">
+          📤 Importuoti
+        </button>
         <button style={{ ...btnSecondary, fontSize: 13, padding: '7px 14px' }}
           className="btn-press"
           onClick={() => { exportContactsCSV(contacts); toast.success('CSV eksportuotas') }}
@@ -135,6 +143,16 @@ export const Contacts = memo(function Contacts({ contacts, setContacts }) {
         <Modal title={editing ? 'Redaguoti kontaktą' : 'Naujas kontaktas'} onClose={() => { setShowForm(false); setEditing(null) }}>
           <ContactForm initial={editing} onSave={save} onClose={() => { setShowForm(false); setEditing(null) }} />
         </Modal>
+      )}
+
+      {showImport && (
+        <ImportContactsModal
+          existingContacts={contacts}
+          onImport={(newContacts) => {
+            setContacts(cs => [...cs, ...newContacts])
+          }}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   )
