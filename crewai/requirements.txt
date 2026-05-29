@@ -1,0 +1,20 @@
+# --- Core runtime dependencies (pinned to compatible major ranges) ---
+
+# Multi-agent orchestration
+crewai>=0.86,<1.0
+
+# API gateway
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+python-multipart>=0.0.18,<1.0      # OAuth2 password form parsing
+websockets>=13.0,<15.0
+
+# Configuration & validation
+pydantic>=2.9,<3.0
+pydantic-settings>=2.6,<3.0
+
+# Security
+PyJWT>=2.10,<3.0                    # JWT access tokens
+passlib[bcrypt]>=1.7.4,<2.0        # password hashing
+bcrypt>=4.0,<5.0                    # passlib backend (pinned for compatibility)
+slowapi>=0.1.9,<1.0                # rate limiting

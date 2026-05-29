@@ -1,0 +1,15 @@
+# Secrets & certs — never commit
+.env
+.env.*
+!.env.example
+nginx/certs/*.pem
+nginx/certs/*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

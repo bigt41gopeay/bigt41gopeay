@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrewAI Control · Monitoring Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>CrewAI Control</h1>
+    <div class="conn">
+      <span id="ws-dot" class="dot offline" title="WebSocket status"></span>
+      <span id="ws-label">disconnected</span>
+      <button id="logout-btn" class="ghost" hidden>Log out</button>
+    </div>
+  </header>
+
+  <!-- Login -->
+  <section id="login-view" class="card login">
+    <h2>Sign in</h2>
+    <p class="muted">Authenticate to monitor and control multi-agent runs.</p>
+    <form id="login-form">
+      <label>Username
+        <input id="username" name="username" autocomplete="username" required />
+      </label>
+      <label>Password
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit">Sign in</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- Dashboard -->
+  <main id="dash-view" hidden>
+    <div class="grid">
+      <section class="card">
+        <h2>Launch a crew</h2>
+        <form id="launch-form">
+          <label>Crew
+            <select id="crew-select" required></select>
+          </label>
+          <label>Topic
+            <input id="topic-input" placeholder="e.g. vector databases" />
+          </label>
+          <button type="submit">Start run</button>
+        </form>
+        <p id="crew-desc" class="muted"></p>
+      </section>
+
+      <section class="card stats">
+        <h2>Status</h2>
+        <div class="stat"><span id="stat-active">0</span><label>active</label></div>
+        <div class="stat"><span id="stat-total">0</span><label>total</label></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Runs</h2>
+      <table id="runs-table">
+        <thead>
+          <tr><th>ID</th><th>Crew</th><th>Status</th><th>Started</th><th></th></tr>
+        </thead>
+        <tbody id="runs-body">
+          <tr class="empty"><td colspan="5">No runs yet.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Live activity</h2>
+      <ul id="event-log" class="log"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

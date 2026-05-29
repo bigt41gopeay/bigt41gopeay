@@ -1,0 +1,17 @@
+# Keep the build context (and final image) small and secret-free.
+.env
+.env.*
+*.pem
+*.key
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+tests/
+*.md
+.git
+.gitignore
+nginx/certs/

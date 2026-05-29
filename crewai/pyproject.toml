@@ -1,0 +1,24 @@
+[project]
+name = "crewai-gateway"
+version = "1.0.0"
+description = "Secure API gateway and monitoring dashboard for CrewAI multi-agent runs."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "S"]
+ignore = [
+    "S104",  # binding to 0.0.0.0 is intentional inside the container
+    "B008",  # Depends(...) in defaults is the standard FastAPI pattern
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]

@@ -1,0 +1,58 @@
+# Production-oriented compose stack for the CrewAI gateway.
+#
+#   gateway  — the FastAPI app + dashboard (never published directly)
+#   proxy    — nginx terminating TLS and forwarding to the gateway
+#
+# Bring up:  docker compose up -d --build
+# Logs:      docker compose logs -f gateway
+#
+# The gateway is only reachable through the proxy on the internal network, so
+# unencrypted traffic never crosses the host boundary.
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: crewai-gateway:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8000"            # internal network only; not published to the host
+    networks:
+      - crewai
+    # Hardening: drop privileges and prevent privilege escalation.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - gateway
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - crewai
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  crewai:
+    driver: bridge

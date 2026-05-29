@@ -1,0 +1,7 @@
+# Place TLS certificates here (NOT committed):
+#   fullchain.pem   — certificate + intermediate chain
+#   privkey.pem     — private key
+#
+# For local testing you can generate a self-signed pair:
+#   openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+#     -keyout privkey.pem -out fullchain.pem -subj "/CN=localhost"
