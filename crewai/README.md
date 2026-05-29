@@ -67,6 +67,9 @@ docker compose logs -f gateway
 The gateway is reachable only through the nginx proxy on `https://<host>`. The
 container itself is never published directly.
 
+For a full server-hardening + deployment runbook (SSH key-only auth, firewall,
+TLS, secret rotation), see [DEPLOY.md](DEPLOY.md).
+
 ## API reference (for the iOS app)
 
 Base URL: `https://<your-host>`. All `/api/v1/*` endpoints except `/healthz`
