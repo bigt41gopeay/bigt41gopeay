@@ -74,8 +74,8 @@ sed -i 's/^CREWAI_ENVIRONMENT=.*/CREWAI_ENVIRONMENT=production/' .env
 if grep -q '^CREWAI_SECRET_KEY=CHANGE_ME' .env || ! grep -q '^CREWAI_SECRET_KEY=' .env; then
   sed -i "s#^CREWAI_SECRET_KEY=.*#CREWAI_SECRET_KEY=$(openssl rand -hex 32)#" .env
 fi
-HASH=$(printf '%s' "$ADMIN_PW" | docker run --rm -i -v "$PWD":/app -w /app python:3.12-slim \
-  sh -c "pip install -q 'passlib[bcrypt]' 'bcrypt<5' >/dev/null 2>&1 && python -c \"import sys;from app.security import hash_password;print(hash_password(sys.stdin.read()))\"")
+HASH=$(printf '%s' "$ADMIN_PW" | docker run --rm -i python:3.12-slim \
+  sh -c "pip install -q 'passlib[bcrypt]' 'bcrypt<5' >/dev/null 2>&1 && python -c \"import sys;from passlib.context import CryptContext;print(CryptContext(schemes=['bcrypt']).hash(sys.stdin.read()))\"")
 ESCAPED=$(printf '%s' "$HASH" | sed -e 's/[#&\\]/\\&/g')
 sed -i "s#^CREWAI_ADMIN_PASSWORD_HASH=.*#CREWAI_ADMIN_PASSWORD_HASH=${ESCAPED}#" .env
 chmod 600 .env
@@ -126,10 +126,11 @@ ssh "${SSH_OPTS[@]}" -o ControlMaster=yes -o ControlPersist=180 -o ConnectTimeou
 printf '%s' "$remote_script" \
   | ssh "${SSH_OPTS[@]}" "${SSH_USER}@${SERVER}" 'cat > /tmp/crewai_deploy.sh'
 
-# Execute it, feeding ONLY the admin password on stdin.
+# Execute it, feeding ONLY the admin password on stdin. Preserve the script's
+# exit code so a remote failure surfaces here instead of being masked by `rm`.
 printf '%s\n' "$ADMIN_PW" \
   | ssh "${SSH_OPTS[@]}" "${SSH_USER}@${SERVER}" \
-      "bash /tmp/crewai_deploy.sh '${BRANCH}' '${DOMAIN}' '${REPO_URL}'; rm -f /tmp/crewai_deploy.sh"
+      "bash /tmp/crewai_deploy.sh '${BRANCH}' '${DOMAIN}' '${REPO_URL}'; rc=\$?; rm -f /tmp/crewai_deploy.sh; exit \$rc"
 
 echo ">> Local: deployment script finished."
 echo ">> Next: rotate any chat-shared password and switch the server to SSH key-only auth (see crewai/DEPLOY.md)."
