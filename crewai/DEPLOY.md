@@ -8,6 +8,15 @@ checkout on your laptop.
 > commit `.env` or TLS keys, and treat any secret that has touched a chat window
 > or shared channel as compromised — rotate it.
 
+> **Fast path:** to do all of the below in one shot, run the helper script from
+> your own machine:
+> ```bash
+> SERVER=185.2.103.72 ./scripts/deploy.sh        # add DOMAIN=... for a real origin
+> ```
+> It prompts for the admin password (streamed over SSH, never stored), installs
+> Docker, checks out this branch, configures `.env`, provisions a cert, and
+> brings the stack up. The manual steps below are the same actions, broken out.
+
 ---
 
 ## 0. Harden the server before anything else
