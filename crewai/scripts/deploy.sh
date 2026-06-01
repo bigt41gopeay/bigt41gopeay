@@ -17,9 +17,11 @@
 #   DOMAIN    (optional)  cert CN / origin; defaults to the server's primary IP
 #
 # Security notes:
-#   - The dashboard admin password is read interactively and streamed over the
-#     existing SSH channel via stdin — it is never placed in this script, in
-#     shell history, or in process arguments on either machine.
+#   - The dashboard admin password is read interactively and streamed to the
+#     server over a separate SSH channel via stdin into a script *file* — it is
+#     never placed in this script, in shell history, or in process arguments on
+#     either machine. (A single ControlMaster connection means one password
+#     prompt for the server.)
 #   - This provisions a SELF-SIGNED cert for first boot. For production, use a
 #     real certificate (Let's Encrypt) — see crewai/DEPLOY.md.
 #   - After first successful boot, harden SSH (key-only auth, disable root
@@ -37,7 +39,6 @@ if [[ -z "$SERVER" ]]; then
   echo "ERROR: set SERVER, e.g.  SERVER=1.2.3.4 ./deploy.sh" >&2
   exit 1
 fi
-
 if ! command -v ssh >/dev/null 2>&1; then
   echo "ERROR: ssh client not found on this machine." >&2
   exit 1
@@ -49,22 +50,18 @@ if [[ ${#ADMIN_PW} -lt 8 ]]; then
   exit 1
 fi
 
-echo ">> Deploying to ${SSH_USER}@${SERVER} (branch: ${BRANCH})"
-
-# The remote script reads the admin password from the first line of stdin so it
-# never appears in argv or the remote shell history.
+# The remote script is executed as a FILE on the server, so its own `read`
+# consumes the password we pipe on stdin — not its own source lines.
 remote_script=$(cat <<'REMOTE'
 set -euo pipefail
-IFS= read -r ADMIN_PW
-BRANCH="$1"; DOMAIN="$2"; REPO_URL="$3"
+IFS= read -r ADMIN_PW            # first (and only) line of stdin = admin password
+BRANCH="${1:-}"; DOMAIN="${2:-}"; REPO_URL="${3:-}"
 
 echo ">> [remote] installing Docker if needed"
 command -v docker >/dev/null 2>&1 || curl -fsSL https://get.docker.com | sh
 
 echo ">> [remote] fetching code"
-if [[ ! -d bigt41gopeay/.git ]]; then
-  git clone "$REPO_URL" bigt41gopeay
-fi
+[[ -d bigt41gopeay/.git ]] || git clone "$REPO_URL" bigt41gopeay
 cd bigt41gopeay
 git fetch origin "$BRANCH"
 git checkout "$BRANCH"
@@ -78,8 +75,7 @@ if grep -q '^CREWAI_SECRET_KEY=CHANGE_ME' .env || ! grep -q '^CREWAI_SECRET_KEY=
   sed -i "s#^CREWAI_SECRET_KEY=.*#CREWAI_SECRET_KEY=$(openssl rand -hex 32)#" .env
 fi
 HASH=$(printf '%s' "$ADMIN_PW" | docker run --rm -i -v "$PWD":/app -w /app python:3.12-slim \
-  sh -c "pip install -q 'passlib[bcrypt]' >/dev/null 2>&1 && python -c \"import sys;from app.security import hash_password;print(hash_password(sys.stdin.read()))\"")
-# Escape '#' and '&' for sed replacement safety.
+  sh -c "pip install -q 'passlib[bcrypt]' 'bcrypt<5' >/dev/null 2>&1 && python -c \"import sys;from app.security import hash_password;print(hash_password(sys.stdin.read()))\"")
 ESCAPED=$(printf '%s' "$HASH" | sed -e 's/[#&\\]/\\&/g')
 sed -i "s#^CREWAI_ADMIN_PASSWORD_HASH=.*#CREWAI_ADMIN_PASSWORD_HASH=${ESCAPED}#" .env
 chmod 600 .env
@@ -114,12 +110,26 @@ echo ">> [remote] done. Dashboard: https://${CN}/  (user: admin)"
 REMOTE
 )
 
-# Stream the password (line 1) followed by the remote script into a remote bash.
-{
-  printf '%s\n' "$ADMIN_PW"
-  printf '%s' "$remote_script"
-} | ssh -o StrictHostKeyChecking=accept-new "${SSH_USER}@${SERVER}" \
-      "bash -s -- '${BRANCH}' '${DOMAIN}' '${REPO_URL}'"
+echo ">> Deploying to ${SSH_USER}@${SERVER} (branch: ${BRANCH})"
+
+# Single multiplexed SSH connection -> one password prompt for the server.
+CTRL="$(mktemp -u "${TMPDIR:-/tmp}/crewai_ssh.XXXXXX")"
+SSH_OPTS=(-o ControlPath="$CTRL" -o StrictHostKeyChecking=accept-new)
+cleanup() { ssh "${SSH_OPTS[@]}" -O exit "${SSH_USER}@${SERVER}" 2>/dev/null || true; }
+trap cleanup EXIT
+
+# Open the master connection (this is the only password prompt).
+ssh "${SSH_OPTS[@]}" -o ControlMaster=yes -o ControlPersist=180 -o ConnectTimeout=20 \
+    "${SSH_USER}@${SERVER}" true
+
+# Upload the remote script as a file (stdin = the script text).
+printf '%s' "$remote_script" \
+  | ssh "${SSH_OPTS[@]}" "${SSH_USER}@${SERVER}" 'cat > /tmp/crewai_deploy.sh'
+
+# Execute it, feeding ONLY the admin password on stdin.
+printf '%s\n' "$ADMIN_PW" \
+  | ssh "${SSH_OPTS[@]}" "${SSH_USER}@${SERVER}" \
+      "bash /tmp/crewai_deploy.sh '${BRANCH}' '${DOMAIN}' '${REPO_URL}'; rm -f /tmp/crewai_deploy.sh"
 
 echo ">> Local: deployment script finished."
 echo ">> Next: rotate any chat-shared password and switch the server to SSH key-only auth (see crewai/DEPLOY.md)."
