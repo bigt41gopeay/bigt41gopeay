@@ -76,7 +76,11 @@ if grep -q '^CREWAI_SECRET_KEY=CHANGE_ME' .env || ! grep -q '^CREWAI_SECRET_KEY=
 fi
 HASH=$(printf '%s' "$ADMIN_PW" | docker run --rm -i python:3.12-slim \
   sh -c "pip install -q 'passlib[bcrypt]' 'bcrypt<5' >/dev/null 2>&1 && python -c \"import sys;from passlib.context import CryptContext;print(CryptContext(schemes=['bcrypt']).hash(sys.stdin.read()))\"")
-ESCAPED=$(printf '%s' "$HASH" | sed -e 's/[#&\\]/\\&/g')
+# A bcrypt hash contains '$' (e.g. $2b$12$...). docker compose interpolates
+# '$xxx' in env_file values, which would blank out part of the hash. Escape
+# every '$' as '$$' so compose restores the literal hash; also escape sed-
+# special chars (&, \, #) for the replacement below.
+ESCAPED=$(printf '%s' "$HASH" | sed -e 's/[#&\\]/\\&/g' -e 's/\$/$$/g')
 sed -i "s#^CREWAI_ADMIN_PASSWORD_HASH=.*#CREWAI_ADMIN_PASSWORD_HASH=${ESCAPED}#" .env
 chmod 600 .env
 
