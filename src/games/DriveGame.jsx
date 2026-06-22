@@ -3,10 +3,32 @@ import { useEffect, useRef, useState } from 'react'
 const LETTERS = ['A','Ą','B','C','Č','D','E','Ę','Ė','F','G','H','I','Į','Y','J','K','L','M','N','O','P','R','S','Š','T','U','Ų','Ū','V','Z','Ž']
 const NUMBERS = ['0','1','2','3','4','5','6','7','8','9']
 
-const CELL_SIZE = 84
-const PLAYER_SIZE = 68
+const CELL_SIZE = 88
+const PLAYER_SIZE = 70
 const SPEED = 6
 const CELL_BG = ['#FDE68A','#FECACA','#BBF7D0','#BAE6FD','#DDD6FE','#FBCFE8','#FED7AA','#A7F3D0']
+
+// Finger hint per Lithuanian QWERTY layout (used for the small "press with" pill)
+const KEY_FINGER = {
+  'Q':'☝🏼 maž. kair.', 'A':'☝🏼 maž. kair.', 'Z':'☝🏼 maž. kair.',
+  'W':'🤞 bevardis kair.','S':'🤞 bevardis kair.','X':'🤞 bevardis kair.',
+  'E':'🖕 vid. kair.','D':'🖕 vid. kair.','C':'🖕 vid. kair.',
+  'R':'👆 rodom. kair.','F':'👆 rodom. kair.','V':'👆 rodom. kair.',
+  'T':'👆 rodom. kair.','G':'👆 rodom. kair.','B':'👆 rodom. kair.',
+  'Y':'👆 rodom. deš.','H':'👆 rodom. deš.','N':'👆 rodom. deš.',
+  'U':'👆 rodom. deš.','J':'👆 rodom. deš.','M':'👆 rodom. deš.',
+  'I':'🖕 vid. deš.','K':'🖕 vid. deš.',
+  'O':'🤞 bevardis deš.','L':'🤞 bevardis deš.',
+  'P':'☝🏼 maž. deš.',
+  'Ą':'☝🏼 maž. kair.','Č':'🤞 bevardis kair.','Ę':'🖕 vid. kair.',
+  'Ė':'👆 rodom. kair.','Į':'👆 rodom. kair.',
+  'Š':'👆 rodom. deš.','Ų':'👆 rodom. deš.',
+  'Ū':'🖕 vid. deš.','Ž':'☝🏼 maž. deš.',
+  '1':'☝🏼 maž. kair.','2':'🤞 bevardis kair.','3':'🖕 vid. kair.',
+  '4':'👆 rodom. kair.','5':'👆 rodom. kair.',
+  '6':'👆 rodom. deš.','7':'👆 rodom. deš.','8':'🖕 vid. deš.',
+  '9':'🤞 bevardis deš.','0':'☝🏼 maž. deš.',
+}
 
 function pickVoice(voices) {
   if (!voices || !voices.length) return null
@@ -21,16 +43,24 @@ export default function DriveGame({ mode = 'letters', onScore }) {
   const stateRef = useRef({
     cells: [],
     target: null,
-    player: { x: 40, y: 60 },
+    player: { x: 40, y: 60, lastDx: 1 },
+    trail: [],
     keys: {},
     running: false,
     audioCtx: null,
+    engineGain: null,
+    engineOsc: null,
     voices: [],
+    lastEngineUpdate: 0,
+    combo: 0,
+    shake: 0,
   })
 
   const [, forceRender] = useState(0)
   const [score, setScore] = useState(0)
   const [targetLabel, setTargetLabel] = useState('?')
+  const [combo, setCombo] = useState(0)
+  const [showFireworks, setShowFireworks] = useState(false)
 
   const pool = mode === 'letters' ? LETTERS : NUMBERS
   const wordPrefix = mode === 'letters' ? 'Raidė ' : 'Skaičius '
@@ -71,10 +101,34 @@ export default function DriveGame({ mode = 'letters', onScore }) {
     osc.stop(ctx.currentTime + duration)
   }
 
-  const winSound = () => {
-    beep(660, 0.14, 'triangle', 0.22)
-    setTimeout(() => beep(880, 0.14, 'triangle', 0.22), 140)
-    setTimeout(() => beep(1320, 0.22, 'triangle', 0.22), 280)
+  const winSound = (level = 0) => {
+    const base = 660 + level * 80
+    beep(base, 0.12, 'triangle', 0.22)
+    setTimeout(() => beep(base * 1.33, 0.12, 'triangle', 0.22), 110)
+    setTimeout(() => beep(base * 2, 0.2, 'triangle', 0.22), 220)
+    if (level >= 3) setTimeout(() => beep(base * 2.5, 0.25, 'triangle', 0.22), 360)
+  }
+
+  const setEngine = (active) => {
+    const s = stateRef.current
+    const ctx = ensureAudio()
+    if (!ctx) return
+    if (active && !s.engineOsc) {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sawtooth'
+      osc.frequency.value = 90
+      gain.gain.value = 0.025
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      s.engineOsc = osc
+      s.engineGain = gain
+    } else if (!active && s.engineOsc) {
+      try { s.engineOsc.stop() } catch { /* ignore */ }
+      s.engineOsc = null
+      s.engineGain = null
+    }
   }
 
   const speak = (text) => {
@@ -157,45 +211,73 @@ export default function DriveGame({ mode = 'letters', onScore }) {
   const finishRound = () => {
     stateRef.current.target = null
     setTargetLabel('🏆')
+    setShowFireworks(true)
     speak('Šauniai pavyko! Žaidžiam dar!')
+    bigFireworks()
     setTimeout(() => {
+      setShowFireworks(false)
       if (stateRef.current.running) buildBoard()
-    }, 1600)
+    }, 2200)
   }
 
   const buildBoard = () => {
     const s = stateRef.current
     const count = mode === 'letters' ? 10 : 8
     const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, count)
-    const positions = randomPositions(count, CELL_SIZE + 20)
+    const positions = randomPositions(count, CELL_SIZE + 22)
     s.cells = shuffled.map((ch, i) => ({
       ch,
       x: positions[i]?.x ?? (30 + i * 96),
       y: positions[i]?.y ?? 40,
       collected: false,
       bg: CELL_BG[i % CELL_BG.length],
+      wobble: Math.random() * Math.PI * 2,
     }))
     const pp = findFreePlayerSpot(s.cells)
     s.player.x = pp.x
     s.player.y = pp.y
+    s.trail = []
+    s.combo = 0
+    setCombo(0)
     forceRender(n => n + 1)
     pickTarget()
   }
 
-  const confettiBurst = (x, y) => {
+  const confettiBurst = (x, y, count = 28) => {
     const board = boardRef.current
     if (!board) return
-    const colors = ['#EF4444','#F59E0B','#22C55E','#3B82F6','#A855F7','#EC4899']
-    for (let i = 0; i < 22; i++) {
+    const colors = ['#EF4444','#F59E0B','#22C55E','#3B82F6','#A855F7','#EC4899','#06D6A0','#FFD166']
+    for (let i = 0; i < count; i++) {
       const el = document.createElement('div')
       el.className = 'drive-confetti'
-      el.style.left = (x + (Math.random() * 100 - 50)) + 'px'
-      el.style.top = (y + (Math.random() * 40 - 20)) + 'px'
+      const angle = Math.random() * Math.PI * 2
+      const dist = 40 + Math.random() * 140
+      el.style.left = (x) + 'px'
+      el.style.top = (y) + 'px'
+      el.style.setProperty('--dx', `${Math.cos(angle) * dist}px`)
+      el.style.setProperty('--dy', `${Math.sin(angle) * dist + 60}px`)
       el.style.background = colors[i % colors.length]
       el.style.transform = `rotate(${Math.random() * 360}deg)`
       board.appendChild(el)
       setTimeout(() => el.remove(), 1300)
     }
+  }
+
+  const bigFireworks = () => {
+    const board = boardRef.current
+    if (!board) return
+    const W = board.clientWidth
+    const H = board.clientHeight
+    for (let burst = 0; burst < 5; burst++) {
+      setTimeout(() => {
+        confettiBurst(Math.random() * W, Math.random() * H * 0.6 + 40, 40)
+        beep(440 + burst * 110, 0.2, 'triangle', 0.18)
+      }, burst * 280)
+    }
+  }
+
+  const triggerShake = (intensity = 1) => {
+    stateRef.current.shake = intensity
   }
 
   const checkCollision = () => {
@@ -209,10 +291,14 @@ export default function DriveGame({ mode = 'letters', onScore }) {
     const hit = CELL_SIZE / 2 + PLAYER_SIZE / 2 - 18
     if (d2 < hit * hit) {
       s.target.collected = true
-      winSound()
-      confettiBurst(s.target.x + CELL_SIZE / 2 - 5, s.target.y + CELL_SIZE / 2 - 5)
+      s.combo += 1
+      setCombo(s.combo)
+      winSound(Math.min(s.combo - 1, 4))
+      confettiBurst(s.target.x + CELL_SIZE / 2, s.target.y + CELL_SIZE / 2, 26 + s.combo * 4)
+      triggerShake(Math.min(s.combo, 4))
       setScore(prev => {
-        const next = prev + 1
+        const gained = 1 + Math.floor(s.combo / 3)
+        const next = prev + gained
         onScore?.(next)
         return next
       })
@@ -230,15 +316,41 @@ export default function DriveGame({ mode = 'letters', onScore }) {
     if (s.keys['ArrowUp']    || s.keys['w'] || s.keys['W']) dy -= SPEED
     if (s.keys['ArrowDown']  || s.keys['s'] || s.keys['S']) dy += SPEED
     const board = boardRef.current
-    if (board && (dx || dy)) {
+    const moving = dx !== 0 || dy !== 0
+
+    if (board && moving) {
       const maxX = board.clientWidth - PLAYER_SIZE
       const maxY = board.clientHeight - PLAYER_SIZE
       s.player.x = Math.max(0, Math.min(maxX, s.player.x + dx))
       s.player.y = Math.max(0, Math.min(maxY, s.player.y + dy))
-      s.lastDx = dx
-      forceRender(n => n + 1)
+      if (dx !== 0) s.player.lastDx = dx > 0 ? 1 : -1
+      s.player.tilt = dx * 1.2
+      s.trail.push({ x: s.player.x + PLAYER_SIZE / 2, y: s.player.y + PLAYER_SIZE / 2, age: 0 })
+      if (s.trail.length > 16) s.trail.shift()
       checkCollision()
     }
+    // age trail
+    s.trail.forEach(t => t.age += 1)
+    s.trail = s.trail.filter(t => t.age < 20)
+
+    // engine: on while moving
+    setEngine(moving)
+    if (s.engineGain && moving) {
+      const now = performance.now()
+      if (now - s.lastEngineUpdate > 60) {
+        s.engineGain.gain.value = 0.03 + (Math.random() * 0.01)
+        s.engineOsc.frequency.value = 70 + Math.random() * 30
+        s.lastEngineUpdate = now
+      }
+    }
+
+    // shake decay
+    if (s.shake > 0) s.shake = Math.max(0, s.shake - 0.18)
+
+    // wobble cells
+    s.cells.forEach(c => { if (!c.collected) c.wobble += 0.06 })
+
+    forceRender(n => n + 1)
     requestAnimationFrame(step)
   }
 
@@ -267,6 +379,7 @@ export default function DriveGame({ mode = 'letters', onScore }) {
 
     return () => {
       s.running = false
+      setEngine(false)
       if (window.speechSynthesis) window.speechSynthesis.cancel()
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
@@ -275,7 +388,6 @@ export default function DriveGame({ mode = 'letters', onScore }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode])
 
-  // touch controls
   const touchStartRef = useRef(null)
   const onTouchStart = (e) => {
     const t = e.touches[0]
@@ -300,27 +412,72 @@ export default function DriveGame({ mode = 'letters', onScore }) {
   }
 
   const s = stateRef.current
-  const flip = (s.lastDx || 0) < 0
+  const flip = s.player.lastDx < 0
+  const tilt = Math.max(-15, Math.min(15, (s.player.tilt || 0)))
+  const shake = s.shake
+  const shakeX = (Math.random() - 0.5) * shake * 8
+  const shakeY = (Math.random() - 0.5) * shake * 8
+  const fingerHint = (mode === 'letters' || mode === 'numbers') && targetLabel && KEY_FINGER[targetLabel]
 
   return (
     <div style={styles.wrap}>
       <style>{`
         @keyframes drivePop {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.3) rotate(-8deg); }
+          0%   { transform: scale(1); }
+          50%  { transform: scale(1.35) rotate(-8deg); }
           100% { transform: scale(0) rotate(14deg); opacity: 0; }
         }
+        @keyframes drivePulse {
+          0%, 100% { transform: scale(1); }
+          50%      { transform: scale(1.08); }
+        }
+        .drive-cell { transition: transform 0.15s; }
         .drive-cell.collected { animation: drivePop 0.4s ease-out forwards; }
+        .drive-cell.is-target {
+          outline: 4px dashed #ef4444;
+          outline-offset: 4px;
+          animation: drivePulse 0.9s ease-in-out infinite;
+        }
         .drive-confetti {
           position: absolute; width: 10px; height: 14px;
           pointer-events: none; z-index: 20; border-radius: 2px;
-          animation: driveFall 1.2s ease-out forwards;
+          animation: driveFall 1.3s cubic-bezier(.2,.6,.4,1) forwards;
         }
         @keyframes driveFall {
-          0% { transform: translateY(0) rotate(0); opacity: 1; }
-          100% { transform: translateY(220px) rotate(540deg); opacity: 0; }
+          0%   { transform: translate(0,0) rotate(0); opacity: 1; }
+          100% { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; }
+        }
+        @keyframes comboShout {
+          0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+          40%{ transform: scale(1.2) rotate(4deg);  opacity: 1; }
+          100%{transform: scale(1)   rotate(0);     opacity: 0; }
+        }
+        .drive-combo {
+          position: absolute; top: 30%; left: 50%;
+          transform: translate(-50%, -50%);
+          background: linear-gradient(135deg,#FFD166,#FF6B8A);
+          color: white; padding: 8px 24px; border-radius: 16px;
+          font-size: 26px; font-weight: 900; pointer-events: none;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+          animation: comboShout 1s ease-out forwards;
+          z-index: 30;
+        }
+        .drive-trail {
+          position: absolute; width: 14px; height: 14px;
+          border-radius: 50%; pointer-events: none;
+          background: radial-gradient(circle, #ffffff99, transparent);
+        }
+        .drive-grid::before {
+          content: ''; position: absolute; inset: 0;
+          background-image:
+            radial-gradient(rgba(255,255,255,0.4) 2px, transparent 2px),
+            radial-gradient(rgba(255,255,255,0.3) 2px, transparent 2px);
+          background-size: 60px 60px, 60px 60px;
+          background-position: 0 0, 30px 30px;
+          opacity: 0.6; pointer-events: none;
         }
       `}</style>
+
       <div style={styles.hud}>
         <div style={styles.banner}>
           Rask: <span style={styles.bigCh}>{targetLabel}</span>
@@ -329,35 +486,75 @@ export default function DriveGame({ mode = 'letters', onScore }) {
         <div style={styles.score}>⭐ {score}</div>
       </div>
 
+      {fingerHint && (
+        <div style={styles.fingerHint}>
+          <span style={{ fontWeight: 700 }}>Spaudžiama:</span> {fingerHint}
+        </div>
+      )}
+
       <div
         ref={boardRef}
-        style={styles.board}
+        className="drive-grid"
+        style={{
+          ...styles.board,
+          transform: `translate(${shakeX}px, ${shakeY}px)`,
+        }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {s.cells.map((c, i) => (
+        {s.trail.map((t, i) => (
           <div
             key={i}
-            className={'drive-cell' + (c.collected ? ' collected' : '')}
+            className="drive-trail"
             style={{
-              ...styles.cell,
-              left: c.x,
-              top: c.y,
-              background: c.bg,
+              left: t.x - 7,
+              top: t.y - 7,
+              opacity: Math.max(0, 1 - t.age / 20) * 0.6,
+              transform: `scale(${1 - t.age / 30})`,
             }}
-          >
-            {c.ch}
-          </div>
+          />
         ))}
+
+        {s.cells.map((c, i) => {
+          const isTarget = s.target === c && !c.collected
+          const bob = Math.sin(c.wobble) * 3
+          return (
+            <div
+              key={i}
+              className={'drive-cell' + (c.collected ? ' collected' : '') + (isTarget ? ' is-target' : '')}
+              style={{
+                ...styles.cell,
+                left: c.x,
+                top: c.y + bob,
+                background: c.bg,
+              }}
+            >
+              {c.ch}
+            </div>
+          )
+        })}
+
         <div
           style={{
             ...styles.player,
             left: s.player.x,
             top: s.player.y,
-            transform: flip ? 'scaleX(-1)' : 'scaleX(1)',
+            transform: `${flip ? 'scaleX(-1)' : 'scaleX(1)'} rotate(${flip ? -tilt : tilt}deg)`,
           }}
         >🚗</div>
+
+        {combo >= 2 && (
+          <div className="drive-combo" key={'combo-' + score}>
+            ✨ {combo}x ✨
+          </div>
+        )}
+
+        {showFireworks && (
+          <div style={styles.fireworksOverlay}>
+            <div style={styles.fireworksText}>🎉 🏆 ŠAUNUOLIS! 🏆 🎉</div>
+          </div>
+        )}
       </div>
 
       <div style={styles.help}>
@@ -379,7 +576,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 10,
     flexWrap: 'wrap',
   },
   banner: {
@@ -420,15 +617,26 @@ const styles = {
     color: '#1F2937',
     boxShadow: '0 4px 0 rgba(0,0,0,0.08)',
   },
+  fingerHint: {
+    marginBottom: 8,
+    fontSize: 14,
+    color: '#475569',
+    background: '#F1F5F9',
+    border: '1px dashed #CBD5E1',
+    borderRadius: 10,
+    padding: '6px 12px',
+    display: 'inline-block',
+  },
   board: {
     position: 'relative',
     width: '100%',
     height: 460,
     borderRadius: 20,
     overflow: 'hidden',
-    background: 'linear-gradient(180deg, #E0F2FE 0%, #EDE9FE 100%)',
+    background: 'linear-gradient(180deg, #93C5FD 0%, #C4B5FD 60%, #FBCFE8 100%)',
     touchAction: 'none',
-    boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.06)',
+    boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.08)',
+    transition: 'transform 0.05s linear',
   },
   cell: {
     position: 'absolute',
@@ -437,12 +645,11 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 48,
+    fontSize: 50,
     fontWeight: 900,
     color: '#1E293B',
-    borderRadius: 16,
-    boxShadow: '0 5px 0 rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.12)',
-    transition: 'transform 0.15s',
+    borderRadius: 18,
+    boxShadow: '0 6px 0 rgba(0,0,0,0.18), 0 10px 20px rgba(0,0,0,0.18)',
   },
   player: {
     position: 'absolute',
@@ -451,11 +658,24 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 50,
+    fontSize: 56,
     pointerEvents: 'none',
     zIndex: 5,
     filter: 'drop-shadow(0 6px 6px rgba(0,0,0,0.25))',
-    transition: 'transform 0.1s',
+    transition: 'transform 0.08s',
+  },
+  fireworksOverlay: {
+    position: 'absolute', inset: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    pointerEvents: 'none', zIndex: 40,
+    background: 'radial-gradient(circle at center, rgba(255,255,255,0.4), transparent 60%)',
+  },
+  fireworksText: {
+    background: 'linear-gradient(135deg, #FFD166, #FF6B8A, #9B5DE5)',
+    color: 'white', padding: '16px 36px', borderRadius: 20,
+    fontSize: 32, fontWeight: 900,
+    boxShadow: '0 12px 30px rgba(0,0,0,0.3)',
+    transform: 'scale(1.1)',
   },
   help: {
     marginTop: 10,

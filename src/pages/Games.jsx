@@ -5,11 +5,13 @@ import WordGame from '../games/WordGame'
 import ColorGame from '../games/ColorGame'
 import TypingGame from '../games/TypingGame'
 import DriveGame from '../games/DriveGame'
+import FingerGame from '../games/FingerGame'
 
 const GAME_LIST = [
+  { id: 'fingers', emoji: '🖐️', title: 'Pirštukų pamokos', desc: 'Animuotos rankos rodo, kuriuo pirštuku spausti raidę. 6 pamokos nuo F/J iki lietuviškų raidžių ir žodžių.', type: 'Klaviatūra', age: '5-10 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'typing', emoji: '⌨️', title: 'Spartaus rašymo iššūkis', desc: 'Krentančios raidės ir žodžiai – spauskite juos ant klaviatūros! 7 lygiai nuo raidžių iki sakinių.', type: 'Klaviatūra', age: '6-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #9B5DE5, #6C63FF)', badge: 'Naujas!', players: '800+ žaidžia' },
-  { id: 'driveLetters', emoji: '🚗', title: 'Raidžių medžioklė', desc: 'Išgirsk raidę ir rodyklėmis ⬅ ⬆ ⬇ ➡ nuvažiuok iki jos! Mokomės abėcėlės žaidžiant.', type: 'Abėcėlė', age: '4-7 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFB86B, #FF6B8A)', badge: 'Mažyliams', players: 'Nauja!' },
-  { id: 'driveNumbers', emoji: '🔢', title: 'Skaičių medžioklė', desc: 'Išgirsk skaičių ir rodyklėmis ⬅ ⬆ ⬇ ➡ pervažiuok per jį! Mokomės skaitmenų.', type: 'Skaičiai', age: '4-7 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #4CC9F0, #06D6A0)', badge: 'Mažyliams', players: 'Nauja!' },
+  { id: 'driveLetters', emoji: '🚗', title: 'Raidžių medžioklė', desc: 'Išgirsk raidę ir rodyklėmis ⬅ ⬆ ⬇ ➡ nuvažiuok iki jos! Mokomės abėcėlės žaidžiant. Su combo ir pirštukų patarimu.', type: 'Abėcėlė', age: '4-7 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFB86B, #FF6B8A)', badge: 'Atnaujintas!', players: 'Nauja!' },
+  { id: 'driveNumbers', emoji: '🔢', title: 'Skaičių medžioklė', desc: 'Išgirsk skaičių ir rodyklėmis ⬅ ⬆ ⬇ ➡ pervažiuok per jį! Mokomės skaitmenų. Su combo ir pirštukų patarimu.', type: 'Skaičiai', age: '4-7 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #4CC9F0, #06D6A0)', badge: 'Atnaujintas!', players: 'Nauja!' },
   { id: 'memory', emoji: '🧩', title: 'Atminties iššūkis', desc: 'Atversk korteles ir surask poras! Lavina atmintį ir dėmesingumą.', type: 'Atmintis', age: '4-8 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #6C63FF, #4CC9F0)', badge: 'Nemokamas', players: '2.5k žaidžia' },
   { id: 'math', emoji: '🔢', title: 'Matematikos burtininkas', desc: 'Spręsk matematinius uždavinius ir tapk tikru skaičių meistru!', type: 'Matematika', age: '6-10 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #FF6B35, #FFD166)', badge: 'Populiarus', players: '1.8k žaidžia' },
   { id: 'word', emoji: '📝', title: 'Žodžių dėlionė', desc: 'Sudėliok raides ir surask paslėptą žodį! Mokykis naujų žodžių.', type: 'Kalbos', age: '7-12 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)', badge: 'Naujas', players: '1.2k žaidžia' },
@@ -20,6 +22,7 @@ const DriveLettersGame = (props) => <DriveGame mode="letters" {...props} />
 const DriveNumbersGame = (props) => <DriveGame mode="numbers" {...props} />
 
 const GAME_COMPONENTS = {
+  fingers: FingerGame,
   typing: TypingGame,
   driveLetters: DriveLettersGame,
   driveNumbers: DriveNumbersGame,
