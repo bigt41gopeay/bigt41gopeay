@@ -1,0 +1,26 @@
+{
+  "name": "missioncontrol-autonomous",
+  "version": "1.0.0",
+  "description": "Autonomous Agent Council with adaptive learning, automation hub, and full integrations",
+  "scripts": {
+    "setup": "./setup.sh",
+    "build": "cd web && bun run build",
+    "test": "echo 'Tests not yet implemented'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/missioncontrol-autonomous.git"
+  },
+  "keywords": [
+    "ai",
+    "automation",
+    "orchestration",
+    "claude",
+    "chatgpt",
+    "gemini",
+    "ollama",
+    "n8n",
+    "telegram"
+  ],
+  "license": "MIT"
+}
