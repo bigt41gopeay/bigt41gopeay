@@ -6,8 +6,14 @@ import ColorGame from '../games/ColorGame'
 import TypingGame from '../games/TypingGame'
 import DriveGame from '../games/DriveGame'
 import FingerGame from '../games/FingerGame'
+import SpellGame from '../games/SpellGame'
+import MathStoryGame from '../games/MathStoryGame'
+import WorldGame from '../games/WorldGame'
 
 const GAME_LIST = [
+  { id: 'spell', emoji: '🔤', title: 'Rašyba su paveikslėliais', desc: 'Pamatyk paveikslėlį, išgirsk žodį ir sudėk raides į langelius. Šeima, gyvūnai, gamta, maistas, namai – 5 temos.', type: 'Rašyba', age: '5-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Naujas!', players: 'Nauja!' },
+  { id: 'mathStory', emoji: '🐰', title: 'Matematikos pasakos', desc: 'Zuikis, voverytė ir bitutė pasakoja istorijas. Suskaičiuok daikčius pirštu spaudžiant ir gauk taškus.', type: 'Matematika', age: '5-9 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #A7F3D0, #4CC9F0)', badge: 'Naujas!', players: 'Nauja!' },
+  { id: 'world', emoji: '🌍', title: 'Pasaulio pažinimas', desc: 'Kaimo, miško, jūros gyvūnai, transportas, metų laikai. „Kas tai?" ir „Sugrupuok" režimai – kategorizavimas su garsais.', type: 'Pasaulio pažinimas', age: '4-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #9B5DE5, #6C63FF)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'fingers', emoji: '🖐️', title: 'Pirštukų pamokos', desc: 'Animuotos rankos rodo, kuriuo pirštuku spausti raidę. 6 pamokos nuo F/J iki lietuviškų raidžių ir žodžių.', type: 'Klaviatūra', age: '5-10 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'typing', emoji: '⌨️', title: 'Spartaus rašymo iššūkis', desc: 'Krentančios raidės ir žodžiai – spauskite juos ant klaviatūros! 7 lygiai nuo raidžių iki sakinių.', type: 'Klaviatūra', age: '6-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #9B5DE5, #6C63FF)', badge: 'Naujas!', players: '800+ žaidžia' },
   { id: 'driveLetters', emoji: '🚗', title: 'Raidžių medžioklė', desc: 'Išgirsk raidę ir rodyklėmis ⬅ ⬆ ⬇ ➡ nuvažiuok iki jos! Mokomės abėcėlės žaidžiant. Su combo ir pirštukų patarimu.', type: 'Abėcėlė', age: '4-7 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFB86B, #FF6B8A)', badge: 'Atnaujintas!', players: 'Nauja!' },
@@ -22,6 +28,9 @@ const DriveLettersGame = (props) => <DriveGame mode="letters" {...props} />
 const DriveNumbersGame = (props) => <DriveGame mode="numbers" {...props} />
 
 const GAME_COMPONENTS = {
+  spell: SpellGame,
+  mathStory: MathStoryGame,
+  world: WorldGame,
   fingers: FingerGame,
   typing: TypingGame,
   driveLetters: DriveLettersGame,
