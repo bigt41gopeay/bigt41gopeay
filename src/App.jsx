@@ -16,6 +16,7 @@ import Profile from './pages/Profile'
 import MyOrders from './pages/MyOrders'
 import GiftCards from './pages/GiftCards'
 import Affiliate from './pages/Affiliate'
+import About from './pages/About'
 import { saveToken, clearToken, hasToken, api } from './api'
 
 export default function App() {
@@ -65,7 +66,7 @@ export default function App() {
 
     // Deep link to specific page
     const pageParam = params.get('page')
-    if (pageParam && ['home', 'books', 'games', 'courses', 'store', 'membership', 'giftcards', 'affiliate'].includes(pageParam)) {
+    if (pageParam && ['home', 'books', 'games', 'courses', 'store', 'membership', 'giftcards', 'affiliate', 'about'].includes(pageParam)) {
       setPage(pageParam)
     }
 
@@ -125,6 +126,8 @@ export default function App() {
         return <GiftCards user={user} onLogin={() => setShowLogin(true)} />
       case 'affiliate':
         return <Affiliate user={user} onLogin={() => setShowLogin(true)} />
+      case 'about':
+        return <About onNavigate={navigate} />
       case 'admin':
         return <Admin user={user} />
       default:
