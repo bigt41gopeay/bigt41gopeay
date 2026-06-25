@@ -90,6 +90,19 @@ export default function Games() {
           </p>
         </div>
 
+        {/* Free banner */}
+        <div style={styles.freeBanner}>
+          <span style={{ fontSize: 28 }}>🎉</span>
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 18, color: 'white' }}>
+              Visi žaidimai 100% nemokami!
+            </div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>
+              Be apribojimų · be reklamų · be registracijos · iškart prieinami visiems vaikams
+            </div>
+          </div>
+        </div>
+
         {/* Score overview */}
         {Object.keys(scores).length > 0 && (
           <div style={styles.scoreBar}>
@@ -120,7 +133,10 @@ export default function Games() {
               <div style={styles.gameInfo}>
                 <div style={styles.gameInfoHeader}>
                   <h3>{game.title}</h3>
-                  {game.badge && <span className="badge badge-free">{game.badge}</span>}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={styles.freePill}>NEMOKAMA</span>
+                    {game.badge && <span className="badge badge-free">{game.badge}</span>}
+                  </div>
                 </div>
                 <p style={styles.gameDesc}>{game.desc}</p>
                 <div style={styles.gameMeta}>
@@ -165,6 +181,29 @@ export default function Games() {
 }
 
 const styles = {
+  freeBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    padding: '14px 22px',
+    borderRadius: 18,
+    background: 'linear-gradient(135deg, #4FD1A5, #06D6A0)',
+    boxShadow: '0 10px 24px rgba(79, 209, 165, 0.35)',
+    marginBottom: 28,
+    color: 'white',
+  },
+  freePill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '3px 10px',
+    borderRadius: 999,
+    background: 'linear-gradient(135deg, #4FD1A5, #06D6A0)',
+    color: 'white',
+    fontWeight: 900,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    boxShadow: '0 2px 6px rgba(79, 209, 165, 0.4)',
+  },
   header: {
     marginBottom: '32px',
   },

@@ -11,11 +11,11 @@ const PLANS = [
     color: '#06D6A0',
     bg: 'linear-gradient(135deg, #06D6A0, #4CC9F0)',
     features: [
+      { text: 'Visi žaidimai – nemokamai ir visada', included: true },
       { text: '3 nemokamos knygos per mėnesį', included: true },
-      { text: '2 žaidimai', included: true },
       { text: 'Pagrindiniai pasiekimai', included: true },
       { text: 'Reklama rodoma', included: false },
-      { text: 'Ribota prieiga prie turinio', included: false },
+      { text: 'Ribota prieiga prie knygų', included: false },
       { text: 'Be atsisiuntimų', included: false },
     ],
     badge: null,
@@ -31,7 +31,7 @@ const PLANS = [
     bg: 'linear-gradient(135deg, #6C63FF, #9B5DE5)',
     features: [
       { text: 'Visos knygos be apribojimų', included: true },
-      { text: 'Visi žaidimai', included: true },
+      { text: 'Visi žaidimai (kaip ir nemokamame plane)', included: true },
       { text: 'Visi pasiekimai ir apdovanojimai', included: true },
       { text: 'Be reklamų', included: true },
       { text: 'Tėvų kontrolė ir progresas', included: true },
@@ -61,7 +61,7 @@ const PLANS = [
 ]
 
 const FAQ = [
-  { q: 'Ar galiu išbandyti nemokamai?', a: 'Taip! Nemokamas planas leidžia naudotis 3 knygomis ir 2 žaidimais per mėnesį. Taip pat galite išbandyti Premium planą 7 dienas nemokamai.' },
+  { q: 'Ar galiu išbandyti nemokamai?', a: 'Taip! VISI žaidimai yra 100% nemokami visada – be apribojimų, be registracijos, be reklamų. Nemokamas planas papildomai leidžia naudotis 3 knygomis per mėnesį. Premium planą taip pat galite išbandyti 7 dienas nemokamai.' },
   { q: 'Kaip atšaukti narystę?', a: 'Narystę galite atšaukti bet kuriuo metu per savo paskyros nustatymus. Atšaukus narystė galioja iki apmokėto laikotarpio pabaigos.' },
   { q: 'Kiek vaikų gali naudotis viena paskyra?', a: 'Nemokamas planas – 1 profilis, Šeimos planas – iki 3, Premium – neribotai.' },
   { q: 'Ar turinys saugus vaikams?', a: '100% taip! Visas turinys yra kruopščiai peržiūrimas ir pritaikytas atitinkamam amžiui. Jokių reklamų Premium planuose.' },
@@ -187,7 +187,7 @@ export default function Membership({ user, onNavigate }) {
             </div>
             {[
               ['Knygos', '3/mėn.', 'Neribotai', 'Neribotai'],
-              ['Žaidimai', '2', 'Visi', 'Visi + nauji'],
+              ['Žaidimai', '✓ Visi nemokamai', '✓ Visi nemokamai', '✓ Visi + ankstyva prieiga'],
               ['Vaikų profiliai', '1', '3', 'Neribotai'],
               ['Reklamos', 'Taip', 'Ne', 'Ne'],
               ['Atsisiuntimai', 'Ne', 'Ne', 'Taip'],
