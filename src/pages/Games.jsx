@@ -9,8 +9,10 @@ import FingerGame from '../games/FingerGame'
 import SpellGame from '../games/SpellGame'
 import MathStoryGame from '../games/MathStoryGame'
 import WorldGame from '../games/WorldGame'
+import NeuroPlanetGame from '../games/NeuroPlanetGame'
 
 const GAME_LIST = [
+  { id: 'neuroplanet', emoji: '🪐', title: 'NeuroPlaneta', desc: 'Trijų lygių ADHD draugiškas kelionė kosmose: raidės ir garsai, skiemenų dėlionė, atminties planeta. Lygiai atrakinami iš eilės.', type: 'Visapusiškas', age: '5-10 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #1e1b4b, #6C63FF)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'spell', emoji: '🔤', title: 'Rašyba su paveikslėliais', desc: 'Pamatyk paveikslėlį, išgirsk žodį ir sudėk raides į langelius. Šeima, gyvūnai, gamta, maistas, namai – 5 temos.', type: 'Rašyba', age: '5-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'mathStory', emoji: '🐰', title: 'Matematikos pasakos', desc: 'Zuikis, voverytė ir bitutė pasakoja istorijas. Suskaičiuok daikčius pirštu spaudžiant ir gauk taškus.', type: 'Matematika', age: '5-9 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #A7F3D0, #4CC9F0)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'world', emoji: '🌍', title: 'Pasaulio pažinimas', desc: 'Kaimo, miško, jūros gyvūnai, transportas, metų laikai. „Kas tai?" ir „Sugrupuok" režimai – kategorizavimas su garsais.', type: 'Pasaulio pažinimas', age: '4-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #9B5DE5, #6C63FF)', badge: 'Naujas!', players: 'Nauja!' },
@@ -28,6 +30,7 @@ const DriveLettersGame = (props) => <DriveGame mode="letters" {...props} />
 const DriveNumbersGame = (props) => <DriveGame mode="numbers" {...props} />
 
 const GAME_COMPONENTS = {
+  neuroplanet: NeuroPlanetGame,
   spell: SpellGame,
   mathStory: MathStoryGame,
   world: WorldGame,
