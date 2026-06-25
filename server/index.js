@@ -1042,7 +1042,7 @@ Sitemap: ${baseUrl}/sitemap.xml`)
 // ==========================================
 // SPA FALLBACK
 // ==========================================
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Endpointas nerastas' })
   const indexPath = join(distPath, 'index.html')
   if (existsSync(indexPath)) {
