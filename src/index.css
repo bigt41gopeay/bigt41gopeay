@@ -1,6 +1,6 @@
 /* ===== MažųjųPasaulis - 2026 redizainas ===== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap&subset=latin,latin-ext');
 
 :root {
   /* Brand colors per 2026 design handoff */
@@ -68,7 +68,7 @@
   --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
 
   --font: 'Nunito', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Fredoka', 'Nunito', sans-serif;
+  --font-heading: 'Baloo 2', 'Nunito', sans-serif;
 
   --radius: 16px;
   --radius-sm: 13px;
