@@ -72,12 +72,17 @@ pm2 save
 
 # === NGINX CONFIG ===
 echo "📦 Konfigūruojamas Nginx..."
+mkdir -p /etc/ssl/mazujupasaulis
+[ -f /etc/ssl/mazujupasaulis/fullchain.pem ] || openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/mazujupasaulis/privkey.pem -out /etc/ssl/mazujupasaulis/fullchain.pem -subj "/CN=mazujupasaulis.lt" -addext "subjectAltName=DNS:mazujupasaulis.lt,DNS:www.mazujupasaulis.lt" 2>/dev/null
 cat > /etc/nginx/sites-available/mazujupasaulis << 'NGINX'
 # Increase client body size for image uploads
 client_max_body_size 10M;
 
 server {
     listen 80;
+    listen 443 ssl;
+    ssl_certificate /etc/ssl/mazujupasaulis/fullchain.pem;
+    ssl_certificate_key /etc/ssl/mazujupasaulis/privkey.pem;
     server_name 88.198.130.212 mazujupasaulis.lt www.mazujupasaulis.lt;
 
     # Security headers
