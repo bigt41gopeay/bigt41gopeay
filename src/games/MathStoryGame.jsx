@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { speak as libSpeak } from '../lib/speak'
 
 // NLP principles:
 //  - storytelling/metaphor: math wrapped in characters and adventures
@@ -97,22 +98,8 @@ const LEVELS = [
   },
 ]
 
-function pickVoice(voices) {
-  if (!voices || !voices.length) return null
-  return voices.find(v => /^lt(-LT)?$/i.test(v.lang)) ||
-         voices.find(v => /^lt/i.test(v.lang)) ||
-         voices[0]
-}
-function speak(text, voices) {
-  if (!('speechSynthesis' in window)) return
-  try {
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    const v = pickVoice(voices); if (v) u.voice = v
-    u.lang = v ? v.lang : 'lt-LT'
-    u.rate = 0.86; u.pitch = 1.1
-    window.speechSynthesis.speak(u)
-  } catch { /* ignore */ }
+function speak(text /* voices arg ignored */) {
+  libSpeak(text)
 }
 
 export default function MathStoryGame({ onScore }) {

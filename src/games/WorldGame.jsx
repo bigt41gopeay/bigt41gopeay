@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { speak as libSpeak } from '../lib/speak'
 
 // NLP principles:
 //  - categorization helps build mental "frames" / chunks
@@ -84,22 +85,8 @@ const CATEGORIES = [
   },
 ]
 
-function pickVoice(voices) {
-  if (!voices || !voices.length) return null
-  return voices.find(v => /^lt(-LT)?$/i.test(v.lang)) ||
-         voices.find(v => /^lt/i.test(v.lang)) ||
-         voices[0]
-}
-function speak(text, voices) {
-  if (!('speechSynthesis' in window)) return
-  try {
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    const v = pickVoice(voices); if (v) u.voice = v
-    u.lang = v ? v.lang : 'lt-LT'
-    u.rate = 0.88; u.pitch = 1.12
-    window.speechSynthesis.speak(u)
-  } catch { /* ignore */ }
+function speak(text /* voices arg ignored */) {
+  libSpeak(text)
 }
 
 function shuffle(arr) {

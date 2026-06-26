@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { speak as libSpeak } from '../lib/speak'
 
 // Finger ids: L-pinky, L-ring, L-mid, L-idx, R-idx, R-mid, R-ring, R-pinky
 const FINGER_COLORS = {
@@ -97,12 +98,6 @@ const LESSONS = [
   },
 ]
 
-function pickVoice(voices) {
-  if (!voices || !voices.length) return null
-  return voices.find(v => /^lt(-LT)?$/i.test(v.lang)) ||
-         voices.find(v => /^lt/i.test(v.lang)) ||
-         voices[0]
-}
 
 function Hand({ side, activeFinger }) {
   // Side: 'L' or 'R'. Fingers from outside (pinky) inward (idx), then thumb.
@@ -216,18 +211,8 @@ const kbStyles = {
   bump: { fontSize: 8, marginTop: -4, color: '#475569' },
 }
 
-function speak(text, voices) {
-  if (!('speechSynthesis' in window)) return
-  try {
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    const v = pickVoice(voices)
-    if (v) u.voice = v
-    u.lang = v ? v.lang : 'lt-LT'
-    u.rate = 0.9
-    u.pitch = 1.1
-    window.speechSynthesis.speak(u)
-  } catch { /* ignore */ }
+function speak(text /* voices arg kept for back-compat, ignored */) {
+  libSpeak(text)
 }
 
 export default function FingerGame({ onScore }) {

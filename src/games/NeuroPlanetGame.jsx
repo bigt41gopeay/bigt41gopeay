@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { speak as libSpeak, stop as libStop } from '../lib/speak'
 
 // NeuroPlanet — lietuviška versija (inspiracija: Armin-000/ADHD_game)
 // Trys lygiai: 1) Raidės ir garsai  2) Skiemenys  3) Atminties planeta
@@ -34,13 +35,6 @@ const LEVEL3_PRESETS = {
   easy:   { pairs: ['🚀','⭐','🌙'],            intro: 5000, preview: 5000, label: 'Lengvas' },
   normal: { pairs: ['🚀','⭐','🌙','🪐'],       intro: 3500, preview: 3500, label: 'Vidutinis' },
   hard:   { pairs: ['🚀','⭐','🌙','🪐','☄️','🛸'], intro: 1800, preview: 2200, label: 'Sunkus' },
-}
-
-function pickVoice(voices) {
-  if (!voices?.length) return null
-  return voices.find(v => /^lt(-LT)?$/i.test(v.lang)) ||
-         voices.find(v => /^lt/i.test(v.lang)) ||
-         voices[0]
 }
 
 function useAudioCtx() {
@@ -219,16 +213,7 @@ function Level1({ onBack, onDone }) {
     load(); if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = load
   }, [])
 
-  const speak = (text) => {
-    if (!window.speechSynthesis) return
-    try {
-      window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
-      const v = pickVoice(voicesRef.current); if (v) u.voice = v
-      u.lang = v ? v.lang : 'lt-LT'; u.rate = 0.85; u.pitch = 1.1
-      window.speechSynthesis.speak(u)
-    } catch { /* ignore */ }
-  }
+  const speak = (text) => libSpeak(text)
 
   // announce on round change
   useEffect(() => {
@@ -325,16 +310,7 @@ function Level2({ onBack, onDone }) {
     load(); if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = load
   }, [])
 
-  const speak = (text) => {
-    if (!window.speechSynthesis) return
-    try {
-      window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
-      const v = pickVoice(voicesRef.current); if (v) u.voice = v
-      u.lang = v ? v.lang : 'lt-LT'; u.rate = 0.85; u.pitch = 1.1
-      window.speechSynthesis.speak(u)
-    } catch { /* ignore */ }
-  }
+  const speak = (text) => libSpeak(text)
 
   const item = LEVEL2_WORDS[idx]
   const needed = item.syllables
