@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { speak as libSpeak } from '../lib/speak'
 
 // NLP principles applied:
 //  - multi-sensory (VAK): voice (auditory) + emoji (visual) + drag/type (kinesthetic)
@@ -64,25 +65,9 @@ const WORD_SETS = [
 const PRAISES = ['Šaunu! ✨', 'Puiku! 🌟', 'Tu gali! 💪', 'Taip! 🎉', 'Genialiai! 🧠', 'Bravo! 👏']
 const ALMOST = ['Beveik! Bandom dar 💡', 'Šalia! Klausyk dar kartą 👂', 'Pabandykim 🌈', 'Sėkmės kitam kartui 🔄']
 
-function pickVoice(voices) {
-  if (!voices || !voices.length) return null
-  return voices.find(v => /^lt(-LT)?$/i.test(v.lang)) ||
-         voices.find(v => /^lt/i.test(v.lang)) ||
-         voices[0]
-}
 
-function speak(text, voices) {
-  if (!('speechSynthesis' in window)) return
-  try {
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    const v = pickVoice(voices)
-    if (v) u.voice = v
-    u.lang = v ? v.lang : 'lt-LT'
-    u.rate = 0.88
-    u.pitch = 1.12
-    window.speechSynthesis.speak(u)
-  } catch { /* ignore */ }
+function speak(text /* voices arg kept for back-compat */) {
+  libSpeak(text)
 }
 
 function shuffle(arr) {

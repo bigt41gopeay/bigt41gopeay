@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { speak as libSpeak } from '../lib/speak'
 
 const LETTERS = ['A','Ą','B','C','Č','D','E','Ę','Ė','F','G','H','I','Į','Y','J','K','L','M','N','O','P','R','S','Š','T','U','Ų','Ū','V','Z','Ž']
 const NUMBERS = ['0','1','2','3','4','5','6','7','8','9']
@@ -28,14 +29,6 @@ const KEY_FINGER = {
   '4':'👆 rodom. kair.','5':'👆 rodom. kair.',
   '6':'👆 rodom. deš.','7':'👆 rodom. deš.','8':'🖕 vid. deš.',
   '9':'🤞 bevardis deš.','0':'☝🏼 maž. deš.',
-}
-
-function pickVoice(voices) {
-  if (!voices || !voices.length) return null
-  return voices.find(v => /^lt(-LT)?$/i.test(v.lang)) ||
-         voices.find(v => /^lt/i.test(v.lang)) ||
-         voices.find(v => /^en/i.test(v.lang)) ||
-         voices[0]
 }
 
 export default function DriveGame({ mode = 'letters', onScore }) {
@@ -131,19 +124,7 @@ export default function DriveGame({ mode = 'letters', onScore }) {
     }
   }
 
-  const speak = (text) => {
-    if (!('speechSynthesis' in window)) return
-    try {
-      window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
-      const v = pickVoice(stateRef.current.voices)
-      if (v) u.voice = v
-      u.lang = v ? v.lang : 'lt-LT'
-      u.rate = 0.85
-      u.pitch = 1.12
-      window.speechSynthesis.speak(u)
-    } catch { /* ignore */ }
-  }
+  const speak = (text) => libSpeak(text)
 
   const randomPositions = (count, minDist) => {
     const board = boardRef.current

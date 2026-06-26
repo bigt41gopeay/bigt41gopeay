@@ -60,9 +60,22 @@ npx vite build
 # Setup backend
 echo "   Setting up backend..."
 cd server
-mkdir -p data uploads
+mkdir -p data uploads cache/tts
 npm install
 node seed.js
+
+# Persist .env across deploys: create a template if missing
+if [ ! -f .env ]; then
+  cat > .env << 'ENV'
+# Azure Speech Service (lt-LT Neural voices). Get from portal.azure.com
+# AZURE_SPEECH_KEY=
+# AZURE_SPEECH_REGION=westeurope
+
+# Stripe (optional)
+# STRIPE_SECRET_KEY=
+ENV
+  echo "   ⚠️  Sukurtas tuščias server/.env — pridėk AZURE_SPEECH_KEY!"
+fi
 
 # === 7. START WITH PM2 ===
 echo "📦 7/7 Paleidžiamas serveris..."

@@ -1,3 +1,6 @@
+// Load server/.env on startup (Node 22+ native). Safe to call even if absent.
+try { process.loadEnvFile('.env') } catch { /* no .env yet */ }
+
 import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
@@ -9,6 +12,7 @@ import { dirname, join, extname } from 'path'
 import db from './db.js'
 import { sendEmail, onOrderCreated, onUserRegistered, onMembershipChanged } from './email.js'
 import { createCheckoutSession, handleStripeWebhook, stripeEnabled } from './payments.js'
+import ttsRouter from './tts.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -28,6 +32,9 @@ app.use(cors())
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook)
 
 app.use(express.json())
+
+// Text-to-Speech proxy (must be before static catch-all)
+app.use('/api', ttsRouter)
 
 // Serve uploaded images
 app.use('/uploads', express.static(uploadsDir))
