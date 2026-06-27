@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import Countdown from '../components/Countdown'
 
 // Paukštelio nuotykiai — web variant inspired by phonethantko/StappieBird.
 // Original is a Python+OpenCV desktop game using webcam hand detection;
@@ -62,7 +63,7 @@ export default function FlapBirdGame({ onScore }) {
   const [highScore, setHighScore] = useState(() => {
     try { return parseInt(localStorage.getItem(HS_KEY) || '0', 10) } catch { return 0 }
   })
-  const [phase, setPhase] = useState('ready') // 'ready' | 'playing' | 'dead'
+  const [phase, setPhase] = useState('ready') // 'ready' | 'countdown' | 'playing' | 'dead'
 
   const ensureAudio = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -90,10 +91,10 @@ export default function FlapBirdGame({ onScore }) {
     const s = stateRef.current
     if (!s) return
     if (phase === 'ready') {
-      setPhase('playing')
-      s.tStart = performance.now()
-      s.lastSpawn = performance.now() - SPAWN_EVERY
+      setPhase('countdown')
+      return
     }
+    if (phase === 'countdown') return
     if (phase === 'playing') {
       s.vy = FLAP_VY
       beep(560, 0.07, 'square', 0.1)
@@ -103,6 +104,14 @@ export default function FlapBirdGame({ onScore }) {
       setPhase('ready')
     }
   }, [phase, reset, beep])
+
+  const onCountdownDone = useCallback(() => {
+    const s = stateRef.current
+    if (!s) return
+    s.tStart = performance.now()
+    s.lastSpawn = performance.now() - SPAWN_EVERY
+    setPhase('playing')
+  }, [])
 
   // input
   useEffect(() => {
@@ -314,7 +323,7 @@ export default function FlapBirdGame({ onScore }) {
         <div style={styles.title}>🐦 Paukštelio nuotykiai</div>
         <div style={styles.hsPill}>🏆 Rekordas: {Math.max(highScore, score)}</div>
       </div>
-      <div style={styles.canvasWrap}>
+      <div style={{ ...styles.canvasWrap, position: 'relative' }}>
         <canvas
           ref={canvasRef}
           width={W}
@@ -323,6 +332,7 @@ export default function FlapBirdGame({ onScore }) {
           onMouseDown={onPointer}
           onTouchStart={onPointer}
         />
+        {phase === 'countdown' && <Countdown onDone={onCountdownDone} />}
       </div>
       <div style={styles.help}>
         Spauskite <b>Tarpą</b>, rodyklę aukštyn arba liesk ekraną, kad paukštelis pakiltų aukštyn.

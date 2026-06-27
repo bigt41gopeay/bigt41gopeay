@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Countdown from '../components/Countdown'
 
 // Skaičių sprintas — inspiruota welshDog/Ultimate-ADHD-Brain-Arcade
 // „Number Rush" žaidimo. 60 sek. greitos matematikos. Lavina aritmetikos
@@ -59,8 +60,10 @@ export default function NumberRushGame({ onScore }) {
     setInput('')
     setTimeLeft(DURATION_S)
     setQuestion(gen(1))
-    setPhase('playing')
+    setPhase('countdown')
   }, [ensureAudio])
+
+  const onCountdownDone = useCallback(() => setPhase('playing'), [])
 
   useEffect(() => {
     if (phase !== 'playing') return
@@ -172,9 +175,10 @@ export default function NumberRushGame({ onScore }) {
     )
   }
 
-  // playing
+  // playing / countdown
   return (
-    <div style={s.wrap}>
+    <div style={{ ...s.wrap, position: 'relative' }}>
+      {phase === 'countdown' && <Countdown onDone={onCountdownDone} />}
       <div style={s.hud}>
         <div style={s.scorePill}>⭐ {score}</div>
         <div style={{ ...s.timerPill, color: timeLeft <= 10 ? '#FF7A6B' : 'var(--ink)' }}>

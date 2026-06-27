@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Countdown from '../components/Countdown'
 
 // 🏰 Pilies gynyba — pabaisos artėja iš dešinės. Kad sustabdytum, paspausk
 // pabaisą ir teisingai išspręsk matematikos uždavinį. Vis greitėjantys
@@ -59,8 +60,13 @@ export default function CastleDefenseGame({ onScore }) {
     setInput('')
     monsterIdRef.current = 0
     lastSpawnRef.current = 0
-    setPhase('playing')
+    setPhase('countdown')
   }, [ensureAudio])
+
+  const onCountdownDone = useCallback(() => {
+    lastSpawnRef.current = 0
+    setPhase('playing')
+  }, [])
 
   const spawn = useCallback((t) => {
     setMonsters(prev => {
@@ -204,6 +210,7 @@ export default function CastleDefenseGame({ onScore }) {
       </div>
 
       <div style={s.field}>
+        {phase === 'countdown' && <Countdown onDone={onCountdownDone} />}
         {/* castle */}
         <div style={{ ...s.castle, left: 0 }}>🏰</div>
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { speak as libSpeak } from '../lib/speak'
+import Countdown from '../components/Countdown'
 
 const LETTERS = ['A','Ą','B','C','Č','D','E','Ę','Ė','F','G','H','I','Į','Y','J','K','L','M','N','O','P','R','S','Š','T','U','Ų','Ū','V','Z','Ž']
 const NUMBERS = ['0','1','2','3','4','5','6','7','8','9']
@@ -54,6 +55,8 @@ export default function DriveGame({ mode = 'letters', onScore }) {
   const [targetLabel, setTargetLabel] = useState('?')
   const [combo, setCombo] = useState(0)
   const [showFireworks, setShowFireworks] = useState(false)
+  const [showCountdown, setShowCountdown] = useState(true)
+  const countdownRef = useRef(true)
 
   const pool = mode === 'letters' ? LETTERS : NUMBERS
   const wordPrefix = mode === 'letters' ? 'Raidė ' : 'Skaičius '
@@ -291,6 +294,7 @@ export default function DriveGame({ mode = 'letters', onScore }) {
   const step = () => {
     const s = stateRef.current
     if (!s.running) return
+    if (countdownRef.current) { requestAnimationFrame(step); return }
     let dx = 0, dy = 0
     if (s.keys['ArrowLeft']  || s.keys['a'] || s.keys['A']) dx -= SPEED
     if (s.keys['ArrowRight'] || s.keys['d'] || s.keys['D']) dx += SPEED
@@ -355,6 +359,7 @@ export default function DriveGame({ mode = 'letters', onScore }) {
 
     requestAnimationFrame(() => {
       buildBoard()
+      // do not start the player input until countdown clears
       requestAnimationFrame(step)
     })
 
@@ -529,6 +534,10 @@ export default function DriveGame({ mode = 'letters', onScore }) {
           <div className="drive-combo" key={'combo-' + score}>
             ✨ {combo}x ✨
           </div>
+        )}
+
+        {showCountdown && (
+          <Countdown onDone={() => { countdownRef.current = false; setShowCountdown(false) }} />
         )}
 
         {showFireworks && (
