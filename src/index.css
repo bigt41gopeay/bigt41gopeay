@@ -3,40 +3,70 @@
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap&subset=latin,latin-ext');
 
 :root {
-  /* Brand colors per 2026 design handoff */
+  /* ============================================================
+     2026 ADHD-friendly palette — calming + focusing
+     Research notes:
+       - Soft blues/greens reduce cognitive load and anxiety
+       - Warm whites (not pure) lower eye strain over long sessions
+       - One bright accent per surface (multiple = overstimulation)
+       - High-contrast text always; muted decorative chrome
+     ============================================================ */
+
+  /* Brand (kept for continuity — referenced inline across games) */
   --primary: #6C63FF;
   --primary-light: #9B7BFF;
   --primary-dark: #5048C7;
+  --primary-softer: #7C75F0;
 
-  --ink: #2D2A45;             /* primary text / footer bg */
+  /* Text */
+  --ink: #2D2A45;
   --text: #2D2A45;
   --text-secondary: #5C5872;
   --text-light: #5C5872;
   --text-muted: #8A86A0;
 
-  --cream: #FFF9F0;
-  --bg: #FFF9F0;
+  /* Background — warm cream is intentional: less harsh than pure white,
+     gentle on the eye for long focused sessions */
+  --cream: #FAF6EC;          /* slightly softer than before */
+  --cream-deep: #F5EFE3;
+  --bg: var(--cream);
   --bg-card: #FFFFFF;
-  --bg-warm: #FFF9F0;
+  --bg-warm: #FFFBF3;
 
-  --yellow: #FFC845;
+  /* === CALMING accents (new) — research-backed for focus ===
+     Used for backgrounds, surfaces, supporting elements */
+  --calm-blue: #7DBED9;       /* gentle sky blue */
+  --calm-blue-soft: #E0F0F7;
+  --calm-blue-softer: #F1F8FB;
+
+  --sage: #8BBFAF;            /* muted sage green */
+  --sage-soft: #E5F1ED;
+  --sage-softer: #F2F8F6;
+
+  --lavender: #B5A7DD;        /* gentle lavender (less hyper than violet) */
+  --lavender-soft: #ECE7F8;
+
+  /* === ACCENT/PLAY colors (kept saturated for game elements) ===
+     Use these sparingly: ONE per active surface */
+  --yellow: #F4C95D;          /* slightly warmer than before */
   --yellow-dark: #C8881E;
-  --yellow-soft: #FFF3DA;
-  --yellow-softer: #FFFBF3;
+  --yellow-soft: #FBF1D9;
+  --yellow-softer: #FDF8EC;
 
-  --coral: #FF7A6B;
-  --pink: #FF7A6B;
+  --coral: #F58F7E;           /* softer than #FF7A6B */
+  --coral-soft: #FCDDD6;
+  --pink: var(--coral);
 
-  --emerald: #4FD1A5;
-  --green: #4FD1A5;
+  --emerald: #6FB99E;         /* less neon */
+  --green: var(--emerald);
   --green-dark: #2A9D7C;
-  --green-soft: #EAF9F3;
-  --green-softer: #FBFFFD;
+  --green-soft: #E2F0EA;
+  --green-softer: #F1F8F5;
 
-  --violet-soft: #EFEBFF;
-  --violet-softer: #FBFAFF;
+  --violet-soft: #EDE9FA;
+  --violet-softer: #F8F6FC;
 
-  /* Legacy accent colors kept for backwards compat with existing pages */
+  /* Legacy compat */
   --primary-light-old: #8B83FF;
   --primary-dark-old: #4F46E5;
   --orange: #FF6B35;
@@ -49,27 +79,39 @@
   --purple: #9B5DE5;
   --purple-light: #B07FEB;
 
-  --border: rgba(108, 99, 255, 0.1);
+  /* Borders */
+  --border: rgba(45, 42, 69, 0.08);
   --border-strong: rgba(108, 99, 255, 0.18);
+  --border-soft: rgba(45, 42, 69, 0.05);
 
-  --shadow: 0 10px 30px rgba(45, 42, 69, 0.06);
-  --shadow-hover: 0 24px 44px rgba(108, 99, 255, 0.18);
-  --shadow-card: 0 10px 30px rgba(45, 42, 69, 0.06);
-  --shadow-btn: 0 8px 18px rgba(108, 99, 255, 0.32);
-  --shadow-btn-hover: 0 12px 26px rgba(108, 99, 255, 0.4);
-  --shadow-hero: 0 30px 60px rgba(108, 99, 255, 0.2);
+  /* Shadows — layered depth for professional feel */
+  --shadow-sm:   0 2px 4px rgba(45, 42, 69, 0.04);
+  --shadow:      0 4px 12px rgba(45, 42, 69, 0.06), 0 1px 3px rgba(45, 42, 69, 0.04);
+  --shadow-card: 0 8px 24px rgba(45, 42, 69, 0.06), 0 2px 6px rgba(45, 42, 69, 0.04);
+  --shadow-hover:0 16px 36px rgba(108, 99, 255, 0.14), 0 4px 12px rgba(45, 42, 69, 0.06);
+  --shadow-btn:       0 6px 14px rgba(108, 99, 255, 0.28);
+  --shadow-btn-hover: 0 10px 22px rgba(108, 99, 255, 0.38);
+  --shadow-hero:      0 24px 50px rgba(108, 99, 255, 0.18);
+  --shadow-inset:     inset 0 2px 6px rgba(45, 42, 69, 0.05);
 
-  /* Gradients */
+  /* Focus ring (for keyboard nav + ADHD attention guidance) */
+  --focus-ring: 0 0 0 3px rgba(108, 99, 255, 0.35), 0 0 0 6px rgba(108, 99, 255, 0.12);
+
+  /* Gradients — softer, more calming */
   --gradient-primary: linear-gradient(135deg, #6C63FF 0%, #5048C7 100%);
-  --gradient-logo: linear-gradient(135deg, #6C63FF, #9B7BFF);
-  --gradient-warm: linear-gradient(135deg, #FF7A6B 0%, #FFC845 100%);
-  --gradient-cool: linear-gradient(135deg, #4CC9F0 0%, #4FD1A5 100%);
-  --gradient-pink: linear-gradient(135deg, #FF7A6B 0%, #FFC845 100%);
-  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --gradient-logo:    linear-gradient(135deg, #6C63FF, #9B7BFF);
+  --gradient-warm:    linear-gradient(135deg, #F58F7E 0%, #F4C95D 100%);
+  --gradient-cool:    linear-gradient(135deg, #7DBED9 0%, #6FB99E 100%);
+  --gradient-pink:    linear-gradient(135deg, #F58F7E 0%, #F4C95D 100%);
+  --gradient-hero:    linear-gradient(135deg, #7DBED9 0%, #B5A7DD 50%, #F58F7E 100%);
+  --gradient-calm:    linear-gradient(180deg, #FAF6EC 0%, #F1F8FB 50%, #E5F1ED 100%);
+  --gradient-warm-soft:linear-gradient(160deg, #FBF1D9 0%, #FCDDD6 100%);
 
+  /* Fonts */
   --font: 'Nunito', system-ui, -apple-system, sans-serif;
   --font-heading: 'Baloo 2', 'Nunito', sans-serif;
 
+  /* Radii — soft, friendly */
   --radius: 16px;
   --radius-sm: 13px;
   --radius-md: 16px;
@@ -78,9 +120,14 @@
   --radius-2xl: 36px;
   --radius-pill: 999px;
 
+  /* Layout */
   --max-width: 1200px;
   --max-width-narrow: 1100px;
   --header-height: 74px;
+
+  /* Motion — gentle, no harsh snaps for ADHD */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -90,7 +137,14 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
-  background: var(--cream);
+  background-color: var(--cream);
+  /* Subtle ambient pattern — reduces visual monotony without distracting.
+     Two layered dot grids at very low opacity. */
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(108, 99, 255, 0.06) 1px, transparent 0),
+    radial-gradient(circle at 1px 1px, rgba(125, 190, 217, 0.04) 1px, transparent 0);
+  background-size: 40px 40px, 28px 28px;
+  background-position: 0 0, 14px 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -316,5 +370,148 @@ img { max-width: 100%; height: auto; }
 ::-webkit-scrollbar-track { background: var(--cream); }
 ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* ============================================================
+   2026 visual-refresh additions — calming + focusing surfaces
+   ============================================================ */
+
+/* Game wrapper — adds a soft calming gradient backdrop behind every
+   running game. Sustained sessions feel less harsh than pure white. */
+.game-stage {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-calm);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(108, 99, 255, 0.05) 1px, transparent 0),
+    var(--gradient-calm);
+  background-size: 32px 32px, 100% 100%;
+  padding: 20px;
+  box-shadow: var(--shadow-inset);
+}
+
+/* Surface tokens — consistent depth language for all cards */
+.surface {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-soft);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+}
+.surface-soft {
+  background: linear-gradient(160deg, #FFFFFF 0%, var(--cream) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-soft);
+}
+.surface:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Game card on Games page — lift + colored ring on hover */
+.game-card-pro {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+.game-card-pro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), transparent 40%);
+  pointer-events: none;
+  z-index: 1;
+}
+.game-card-pro:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 24px 50px rgba(108, 99, 255, 0.2), 0 8px 16px rgba(45, 42, 69, 0.08);
+}
+
+/* Focus ring — visible keyboard navigation, no distraction otherwise */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+/* Subtle entrance animation — used by any "page in" container */
+@keyframes calmIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.calm-in { animation: calmIn 0.45s var(--ease-out) both; }
+.calm-in-delay-1 { animation: calmIn 0.45s 0.06s var(--ease-out) both; }
+.calm-in-delay-2 { animation: calmIn 0.45s 0.12s var(--ease-out) both; }
+
+/* ============================================================
+   3-2-1 Countdown overlay — used by action games
+   ============================================================ */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(45, 42, 69, 0.85), rgba(45, 42, 69, 0.95));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  border-radius: inherit;
+  color: white;
+  gap: 16px;
+}
+.countdown-label {
+  font-family: var(--font-heading);
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 600;
+  opacity: 0.7;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.countdown-digit {
+  font-family: var(--font-heading);
+  font-size: clamp(80px, 18vw, 180px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -3px;
+  background: linear-gradient(135deg, #FFF 0%, #F4C95D 60%, #F58F7E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+  animation: countdownPop 1s var(--ease-out) both;
+}
+.countdown-go {
+  font-family: var(--font-heading);
+  font-size: clamp(48px, 12vw, 96px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #6FB99E 0%, #7DBED9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 8px 24px rgba(111,185,158,0.5));
+  animation: countdownPop 0.6s var(--ease-out) both;
+}
+@keyframes countdownPop {
+  0%   { transform: scale(0.35); opacity: 0; }
+  50%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.countdown-ring {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.18);
+  animation: countdownSpin 4s linear infinite;
+  pointer-events: none;
+}
+@keyframes countdownSpin {
+  to { transform: rotate(360deg); }
+}
 
 
