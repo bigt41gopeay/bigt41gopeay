@@ -12,11 +12,17 @@ import WorldGame from '../games/WorldGame'
 import NeuroPlanetGame from '../games/NeuroPlanetGame'
 import FlapBirdGame from '../games/FlapBirdGame'
 import AttentionTestGame from '../games/AttentionTestGame'
+import WordSearchGame from '../games/WordSearchGame'
+import ColorMemoryGame from '../games/ColorMemoryGame'
+import NumberRushGame from '../games/NumberRushGame'
 
 const GAME_LIST = [
   { id: 'neuroplanet', emoji: '🪐', title: 'NeuroPlaneta', desc: 'Trijų lygių ADHD draugiškas kelionė kosmose: raidės ir garsai, skiemenų dėlionė, atminties planeta. Lygiai atrakinami iš eilės.', type: 'Visapusiškas', age: '5-10 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #1e1b4b, #6C63FF)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'flapbird', emoji: '🐦', title: 'Paukštelio nuotykiai', desc: 'Pavedk paukštelį tarp vamzdžių spausdamas Tarpą arba bakstelėjęs ekraną. Trumpos ADHD draugiškos sesijos, lavina reakciją ir susikaupimą.', type: 'Reakcija', age: '5-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #FFC845, #FF7A6B)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'attentionTest', emoji: '🧠', title: 'Dėmesio testas (Go/No-Go)', desc: 'Žalias = spausk, raudonas = nespausk. Mokslinė „Go/No-Go" užduotis lavina dėmesį ir impulsų sustabdymą. NĖRA medicininis įrankis — tik savišvietai.', type: 'Dėmesys', age: '7-12 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #4FD1A5, #6C63FF)', badge: 'Mokslinis', players: 'Nauja!' },
+  { id: 'wordSearch', emoji: '🔍', title: 'Žodžių paieška', desc: 'Tempk per raides ir surask paslėptus lietuviškus žodžius. 4 temos (gyvūnai, gamta, šeima, maistas), 8 paieškos kryptys. Lavina vokabulą ir dėmesį.', type: 'Kalbos', age: '6-12 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #6C63FF, #4CC9F0)', badge: 'Naujas!', players: 'Nauja!' },
+  { id: 'colorMemory', emoji: '🎨', title: 'Spalvų atmintis', desc: 'Klasikinis „Simon Says" stiliaus atminties žaidimas. Pakartok spalvų seką, kuri ilgėja kiekvieną raundą. Lavina sekvencinę atmintį.', type: 'Atmintis', age: '5-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #FFC845, #FF7A6B)', badge: 'Naujas!', players: 'Nauja!' },
+  { id: 'numberRush', emoji: '⚡', title: 'Skaičių sprintas', desc: 'Per 60 sek. atsakyk į kuo daugiau matematikos uždavinių. Sunkumas didėja, eilėje teisingi atsakymai duoda bonus.', type: 'Matematika', age: '6-12 m.', difficulty: 'Greitas', bg: 'linear-gradient(135deg, #FF7A6B, #FFC845)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'spell', emoji: '🔤', title: 'Rašyba su paveikslėliais', desc: 'Pamatyk paveikslėlį, išgirsk žodį ir sudėk raides į langelius. Šeima, gyvūnai, gamta, maistas, namai – 5 temos.', type: 'Rašyba', age: '5-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'mathStory', emoji: '🐰', title: 'Matematikos pasakos', desc: 'Zuikis, voverytė ir bitutė pasakoja istorijas. Suskaičiuok daikčius pirštu spaudžiant ir gauk taškus.', type: 'Matematika', age: '5-9 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #A7F3D0, #4CC9F0)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'world', emoji: '🌍', title: 'Pasaulio pažinimas', desc: 'Kaimo, miško, jūros gyvūnai, transportas, metų laikai. „Kas tai?" ir „Sugrupuok" režimai – kategorizavimas su garsais.', type: 'Pasaulio pažinimas', age: '4-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #9B5DE5, #6C63FF)', badge: 'Naujas!', players: 'Nauja!' },
@@ -37,6 +43,9 @@ const GAME_COMPONENTS = {
   neuroplanet: NeuroPlanetGame,
   flapbird: FlapBirdGame,
   attentionTest: AttentionTestGame,
+  wordSearch: WordSearchGame,
+  colorMemory: ColorMemoryGame,
+  numberRush: NumberRushGame,
   spell: SpellGame,
   mathStory: MathStoryGame,
   world: WorldGame,
