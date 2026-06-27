@@ -19,6 +19,10 @@ import CastleDefenseGame from '../games/CastleDefenseGame'
 import SnakesLaddersGame from '../games/SnakesLaddersGame'
 import MusicRoomGame from '../games/MusicRoomGame'
 import MazeGame from '../games/MazeGame'
+import StroopTestGame from '../games/StroopTestGame'
+import SchulteTableGame from '../games/SchulteTableGame'
+import CryptogramGame from '../games/CryptogramGame'
+import KidsSudokuGame from '../games/KidsSudokuGame'
 import TrafficSafetyGame from '../games/TrafficSafetyGame'
 import ArchaeologyGame from '../games/ArchaeologyGame'
 
@@ -33,6 +37,10 @@ const GAME_LIST = [
   { id: 'snakes', emoji: '🪜', title: 'Gyvatukai ir kopėtėlės', desc: 'Klasikinė žaidimo lenta su matematikos klausimais. Rita kauliuką, spręsk uždavinį ir lipk aukštyn iki 30 langelio.', type: 'Stalo žaidimas + matematika', age: '6-10 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #4FD1A5, #6C63FF)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'music', emoji: '🎵', title: 'Muzikos kambariukas', desc: '8 natų pianinas (Do-Si-Do²) su klaviatūros palaikymu. Du režimai: laisvai kurk melodiją arba pakartok pateiktą.', type: 'Muzika', age: '4-12 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #6C63FF, #FF7A6B)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'maze', emoji: '🗺️', title: 'Labirintai', desc: 'Automatiškai sugeneruoti labirintai, 10 lygių (5×5 iki 23×23). Pasiek 🏁 finišą rodyklėmis arba braukimu. Lavina erdvinę orientaciją.', type: 'Loginis', age: '5-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #EFEBFF, #FFC845)', badge: 'Naujas!', players: 'Nauja!' },
+  { id: 'stroop', emoji: '🎨', title: 'Stroop testas', desc: 'Klasikinis vykdomųjų funkcijų testas. Žodis sako vieną spalvą, bet parašyta kita — paspausk parašymo spalvą, ne pavadinimą.', type: 'Smegenų lavinimas', age: '7-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #9B5DE5, #FF7A6B)', badge: 'Mokslinis', players: 'Nauja!' },
+  { id: 'schulte', emoji: '🔢', title: 'Schulte lentelė', desc: 'Klasikinis dėmesio treniruoklis. Surask skaičius 1, 2, 3… iš eilės atsitiktinai išmėtytame tinklelyje. 3 dydžiai: 3×3, 4×4, 5×5.', type: 'Smegenų lavinimas', age: '6-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #6C63FF, #4FD1A5)', badge: 'Mokslinis', players: 'Nauja!' },
+  { id: 'cryptogram', emoji: '🔠', title: 'Šifras', desc: 'Atspėk lietuvišką posakį, kuris paslėptas pakeitimo šifru. Spustelėk slaptą raidę, pasirink tikrąją. Lavina logiką ir pacientiškumą.', type: 'Loginis', age: '8-12 m.', difficulty: 'Sudėtingas', bg: 'linear-gradient(135deg, #4CC9F0, #9B5DE5)', badge: 'Naujas!', players: 'Nauja!' },
+  { id: 'sudoku', emoji: '🔢', title: 'Sudoku vaikams', desc: 'Trys lygiai: 4×4 (lengva), 6×6 (vidutinis), 9×9 (klasika). Užpildyk tinklelį skaičiais — kiekvienas neturi kartotis eilutėje, stulpelyje ir bloke.', type: 'Loginis', age: '7-12 m.', difficulty: 'Progresuojantis', bg: 'linear-gradient(135deg, #FFC845, #4FD1A5)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'traffic', emoji: '🚦', title: 'Saugus eismas', desc: 'Stebėk šviesoforą ir nuspręsk: eiti ar stovėti. Mokomės gatvės taisyklių žaisdami — žalia, raudona, geltona.', type: 'Saugumas', age: '4-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FF7A6B, #4FD1A5)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'archaeology', emoji: '🏺', title: 'Archeologo iššūkis', desc: 'Iškask senovinius radinius (puodus, monetas, brangakmenius) nesulaužant. Trys įrankiai — kuo saugesnis, tuo lėtesnis.', type: 'Atradimai', age: '6-12 m.', difficulty: 'Vidutinis', bg: 'linear-gradient(135deg, #8B5A2B, #FFC845)', badge: 'Naujas!', players: 'Nauja!' },
   { id: 'spell', emoji: '🔤', title: 'Rašyba su paveikslėliais', desc: 'Pamatyk paveikslėlį, išgirsk žodį ir sudėk raides į langelius. Šeima, gyvūnai, gamta, maistas, namai – 5 temos.', type: 'Rašyba', age: '5-9 m.', difficulty: 'Lengvas', bg: 'linear-gradient(135deg, #FFD166, #FF6B8A)', badge: 'Naujas!', players: 'Nauja!' },
@@ -62,6 +70,10 @@ const GAME_COMPONENTS = {
   snakes: SnakesLaddersGame,
   music: MusicRoomGame,
   maze: MazeGame,
+  stroop: StroopTestGame,
+  schulte: SchulteTableGame,
+  cryptogram: CryptogramGame,
+  sudoku: KidsSudokuGame,
   traffic: TrafficSafetyGame,
   archaeology: ArchaeologyGame,
   spell: SpellGame,
