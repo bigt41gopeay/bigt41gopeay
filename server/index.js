@@ -13,6 +13,7 @@ import db from './db.js'
 import { sendEmail, onOrderCreated, onUserRegistered, onMembershipChanged } from './email.js'
 import { createCheckoutSession, handleStripeWebhook, stripeEnabled } from './payments.js'
 import ttsRouter from './tts.js'
+import childrenRouter from './children.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -35,6 +36,10 @@ app.use(express.json())
 
 // Text-to-Speech proxy (must be before static catch-all)
 app.use('/api', ttsRouter)
+
+// Children router requires auth context to be already populated; we attach
+// optionalAuth here so the children handler can call requireParent itself.
+app.use('/api', (req, res, next) => optionalAuth(req, res, next), childrenRouter)
 
 // Serve uploaded images
 app.use('/uploads', express.static(uploadsDir))

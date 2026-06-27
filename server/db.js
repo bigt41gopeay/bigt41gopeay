@@ -240,6 +240,52 @@ db.exec(`
     FOREIGN KEY (affiliate_id) REFERENCES affiliates(id),
     FOREIGN KEY (order_id) REFERENCES orders(id)
   );
+
+  -- ============================================================
+  -- Family / multi-child accounts (2026 redesign)
+  -- ============================================================
+  -- "users" table is the PARENT account (billing entity).
+  -- Children are profiles BELOW each parent — each has their own
+  -- progress, avatar, age. This is the standard SaaS edtech pattern
+  -- (Khan Academy Kids, Lingokids, Duolingo Family) — drives:
+  --   * higher LTV per account (parent buys for multiple kids)
+  --   * stronger retention (parent dashboard = recurring touchpoint)
+  --   * easier compliance (COPPA-style — kids never enter PII)
+  CREATE TABLE IF NOT EXISTS children (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    age INTEGER,
+    avatar TEXT DEFAULT '🐣',
+    pin TEXT DEFAULT '',         -- optional kid-friendly PIN (4 digits) for switching
+    color TEXT DEFAULT '#6C63FF',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_active DATETIME,
+    FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS child_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    child_id INTEGER NOT NULL,
+    game_id TEXT NOT NULL,            -- 'neuroplanet', 'flapbird', etc.
+    score INTEGER DEFAULT 0,
+    duration_s INTEGER DEFAULT 0,
+    accuracy REAL,                    -- 0..1 if applicable
+    meta TEXT DEFAULT '{}',           -- JSON: e.g. {rt_mean, level, errors}
+    played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (child_id) REFERENCES children(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_child_progress_child ON child_progress(child_id);
+  CREATE INDEX IF NOT EXISTS idx_child_progress_played ON child_progress(played_at);
+
+  CREATE TABLE IF NOT EXISTS child_achievements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    child_id INTEGER NOT NULL,
+    achievement_id TEXT NOT NULL,
+    unlocked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(child_id, achievement_id),
+    FOREIGN KEY (child_id) REFERENCES children(id) ON DELETE CASCADE
+  );
 `)
 
 // Migration: add image_url to products if missing

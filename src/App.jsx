@@ -17,6 +17,9 @@ import MyOrders from './pages/MyOrders'
 import GiftCards from './pages/GiftCards'
 import Affiliate from './pages/Affiliate'
 import About from './pages/About'
+import ParentDashboard from './pages/ParentDashboard'
+import ChildSelector from './components/ChildSelector'
+import { setActiveChildId } from './lib/childSession'
 import { saveToken, clearToken, hasToken, api } from './api'
 
 export default function App() {
@@ -24,6 +27,7 @@ export default function App() {
   const [cart, setCart] = useState([])
   const [user, setUser] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
+  const [showChildSelector, setShowChildSelector] = useState(false)
   const [notification, setNotification] = useState(null)
   const [affiliateCode, setAffiliateCode] = useState(null)
 
@@ -66,7 +70,7 @@ export default function App() {
 
     // Deep link to specific page
     const pageParam = params.get('page')
-    if (pageParam && ['home', 'books', 'games', 'courses', 'store', 'membership', 'giftcards', 'affiliate', 'about'].includes(pageParam)) {
+    if (pageParam && ['home', 'books', 'games', 'courses', 'store', 'membership', 'giftcards', 'affiliate', 'about', 'parent'].includes(pageParam)) {
       setPage(pageParam)
     }
 
@@ -91,12 +95,23 @@ export default function App() {
     if (token) saveToken(token)
     setShowLogin(false)
     showNotif(`👋 Sveiki, ${userData.name}!`)
+    // After login, prompt to pick which child is playing
+    setTimeout(() => setShowChildSelector(true), 400)
   }, [])
 
   const handleLogout = useCallback(() => {
     setUser(null)
     clearToken()
+    setActiveChildId(null)
     showNotif('👋 Iki pasimatymo!')
+  }, [])
+
+  // External components (e.g. ParentDashboard "Add child") can open the
+  // selector via a window event. Keeps a clean dependency boundary.
+  useEffect(() => {
+    const onOpen = () => setShowChildSelector(true)
+    window.addEventListener('open-child-selector', onOpen)
+    return () => window.removeEventListener('open-child-selector', onOpen)
   }, [])
 
   function showNotif(message) {
@@ -120,6 +135,8 @@ export default function App() {
         return <Membership user={user} onNavigate={navigate} />
       case 'profile':
         return <Profile user={user} onUserUpdate={setUser} onNavigate={navigate} />
+      case 'parent':
+        return <ParentDashboard user={user} onNavigate={navigate} />
       case 'orders':
         return <MyOrders user={user} />
       case 'giftcards':
@@ -168,6 +185,13 @@ export default function App() {
           onLogin={handleLogin}
         />
       )}
+
+      <ChildSelector
+        open={showChildSelector}
+        onClose={() => setShowChildSelector(false)}
+        onSelected={(child) => showNotif(`${child.avatar || '🐣'} ${child.name} žaidžia šiandien!`)}
+      />
+
 
       {notification && (
         <div style={notificationStyle}>

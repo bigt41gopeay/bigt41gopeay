@@ -93,6 +93,15 @@ export const api = {
   createAdminGiftCard: (data) => request('/admin/giftcards', { method: 'POST', body: JSON.stringify(data) }),
   deleteGiftCard: (id) => request(`/admin/giftcards/${id}`, { method: 'DELETE' }),
 
+  // Children / family
+  getChildren: () => request('/children'),
+  createChild: (data) => request('/children', { method: 'POST', body: JSON.stringify(data) }),
+  updateChild: (id, data) => request(`/children/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteChild: (id) => request(`/children/${id}`, { method: 'DELETE' }),
+  recordProgress: (childId, data) => request(`/children/${childId}/progress`, { method: 'POST', body: JSON.stringify(data) }),
+  getChildStats: (childId) => request(`/children/${childId}/stats`),
+  getChildRecommendations: (childId) => request(`/children/${childId}/recommendations`),
+
   // Affiliates
   applyAffiliate: () => request('/affiliates/apply', { method: 'POST' }),
   getMyAffiliate: () => request('/affiliates/my'),

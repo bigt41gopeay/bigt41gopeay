@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { recordProgress } from '../lib/childSession'
 import MemoryGame from '../games/MemoryGame'
 import MathGame from '../games/MathGame'
 import WordGame from '../games/WordGame'
@@ -95,8 +96,31 @@ const GAME_COMPONENTS = {
 export default function Games() {
   const [activeGame, setActiveGame] = useState(null)
   const [scores, setScores] = useState({})
+  const sessionRef = useRef({ start: 0, gameId: null, score: 0 })
+
+  // Begin a new session whenever the active game changes
+  useEffect(() => {
+    // Flush previous session (if any) when game closes or switches
+    const prev = sessionRef.current
+    if (prev.gameId && prev.score > 0) {
+      const durationS = Math.round((performance.now() - prev.start) / 1000)
+      recordProgress({
+        gameId: prev.gameId,
+        score: prev.score,
+        durationS,
+      }).catch(() => {})
+    }
+    sessionRef.current = {
+      start: performance.now(),
+      gameId: activeGame,
+      score: 0,
+    }
+  }, [activeGame])
 
   const handleScore = (gameId, score) => {
+    if (sessionRef.current.gameId === gameId) {
+      sessionRef.current.score = score
+    }
     setScores(prev => ({
       ...prev,
       [gameId]: Math.max(prev[gameId] || 0, score)

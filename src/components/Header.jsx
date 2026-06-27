@@ -121,6 +121,7 @@ export default function Header({ currentPage, onNavigate, cartCount, user, onLog
               </button>
               {userMenuOpen && (
                 <div style={styles.userDropdown}>
+                  <button onClick={() => { nav('parent'); setUserMenuOpen(false) }} style={{ ...styles.dropdownItem, background: 'var(--violet-soft)', fontWeight: 800 }}>👨‍👩‍👧 Tėvų skydas</button>
                   <button onClick={() => { nav('profile'); setUserMenuOpen(false) }} style={styles.dropdownItem}>👤 Profilis</button>
                   <button onClick={() => { nav('orders'); setUserMenuOpen(false) }} style={styles.dropdownItem}>📦 Mano užsakymai</button>
                   <button onClick={() => { nav('giftcards'); setUserMenuOpen(false) }} style={styles.dropdownItem}>🎁 Dovanų kuponai</button>
