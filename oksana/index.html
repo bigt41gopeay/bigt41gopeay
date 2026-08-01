@@ -164,6 +164,25 @@
   .feature h3 { font-size: 1rem; font-weight: 500; margin-bottom: .2rem; }
   .feature p { font-size: .9rem; color: var(--ink-soft); }
 
+  /* ===== Atsiliepimai ===== */
+  .reviews { background: var(--bg); }
+  .review-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
+  .review-card {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 1.5rem 1.5rem 1.4rem;
+    display: flex; flex-direction: column; gap: .8rem;
+  }
+  .stars { color: var(--accent); letter-spacing: .2em; font-size: .85rem; }
+  .review-card p { font-size: .92rem; color: var(--ink); font-style: italic; line-height: 1.6; }
+  .review-card footer {
+    border: 0; padding: 0; text-align: left;
+    font-size: .78rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  @media (min-width: 960px) {
+    .review-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
   /* ===== Oksanos istorija ===== */
   .story { background: var(--ink); color: var(--bg); text-align: center; }
   .story .initial {
@@ -289,19 +308,49 @@
         <article class="card reveal">
           <div class="card-visual" aria-hidden="true">
             <svg viewBox="0 0 120 120" fill="none">
-              <circle class="lamp-glow" cx="60" cy="55" r="38" fill="#c9944a" opacity=".14"/>
-              <path d="M60 18c-20 0-32 17-32 38 0 16 9 27 18 31h28c9-4 18-15 18-31 0-21-12-38-32-38z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
-              <path d="M31 48h58M29 60h62M32 72h56" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
-              <line x1="60" y1="18" x2="60" y2="4" stroke="#1c1a17" stroke-width="2"/>
-              <ellipse cx="60" cy="90" rx="14" ry="4" fill="#c9944a" opacity=".6"/>
+              <circle class="lamp-glow" cx="60" cy="56" r="40" fill="#c9944a" opacity=".16"/>
+              <path d="M60 16c-22 0-34 19-34 40 0 18 11 30 20 34h28c9-4 20-16 20-34 0-21-12-40-34-40z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <ellipse cx="47" cy="42" rx="6" ry="8" fill="#ece3d4" stroke="#1c1a17" stroke-width=".8" opacity=".8"/>
+              <ellipse cx="70" cy="34" rx="5" ry="6" fill="#ece3d4" stroke="#1c1a17" stroke-width=".8" opacity=".8"/>
+              <ellipse cx="78" cy="56" rx="7" ry="9" fill="#f3e3cc" stroke="#1c1a17" stroke-width=".8" opacity=".9"/>
+              <ellipse cx="55" cy="64" rx="8" ry="10" fill="#f3e3cc" stroke="#1c1a17" stroke-width=".8" opacity=".9"/>
+              <ellipse cx="38" cy="62" rx="5" ry="7" fill="#ece3d4" stroke="#1c1a17" stroke-width=".8" opacity=".8"/>
+              <ellipse cx="66" cy="80" rx="6" ry="6" fill="#f3e3cc" stroke="#1c1a17" stroke-width=".8" opacity=".9"/>
+              <line x1="60" y1="16" x2="60" y2="4" stroke="#1c1a17" stroke-width="2"/>
+              <ellipse cx="60" cy="92" rx="15" ry="4" fill="#c9944a" opacity=".65"/>
             </svg>
           </div>
           <div class="card-body">
-            <h3>ORA — pakabinamas šviestuvas</h3>
-            <p>Sluoksniuota organiška forma, skleidžianti minkštą, šiltą švytėjimą.</p>
+            <h3>ORA — voronoi pakabinamas šviestuvas</h3>
+            <p>Organiškos, korėtos struktūros gaubtas — šviesa krinta gyvais, šiltais raštais.</p>
             <div class="card-meta">
               <span class="price">nuo 59 €</span>
               <span class="tag">Bestseleris</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <circle class="lamp-glow" cx="60" cy="54" r="40" fill="#c9944a" opacity=".18"/>
+              <circle cx="60" cy="54" r="30" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <circle cx="50" cy="44" r="5" fill="#ece3d4" opacity=".9"/>
+              <circle cx="68" cy="50" r="7" fill="#ece3d4" opacity=".7"/>
+              <circle cx="56" cy="66" r="4" fill="#ece3d4" opacity=".9"/>
+              <circle cx="72" cy="66" r="3" fill="#ece3d4" opacity=".8"/>
+              <circle cx="44" cy="58" r="3" fill="#ece3d4" opacity=".7"/>
+              <path d="M42 33a30 30 0 0 0-10 30" stroke="#fff" stroke-width="3" opacity=".7" stroke-linecap="round"/>
+              <line x1="52" y1="88" x2="68" y2="88" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M48 96h24" stroke="#1c1a17" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>LUNA — mėnulio lempa</h3>
+            <p>Tiksli Mėnulio paviršiaus tekstūra, trys šviesos režimai, valdymas palietimu.</p>
+            <div class="card-meta">
+              <span class="price">nuo 35 €</span>
+              <span class="tag">Dovanoms</span>
             </div>
           </div>
         </article>
@@ -317,8 +366,8 @@
             </svg>
           </div>
           <div class="card-body">
-            <h3>KSANA — stalinė lempa</h3>
-            <p>Kompaktiška geometrinė lempa darbo stalui ar naktiniam staleliui.</p>
+            <h3>KSANA — sluoksniuota stalinė lempa</h3>
+            <p>Geometrinė lempa su matomais spausdinimo sluoksniais — darbo stalui ar naktiniam staleliui.</p>
             <div class="card-meta">
               <span class="price">nuo 45 €</span>
               <span class="tag">Nauja</span>
@@ -329,15 +378,14 @@
         <article class="card reveal">
           <div class="card-visual" aria-hidden="true">
             <svg viewBox="0 0 120 120" fill="none">
-              <path d="M46 96V56c0-16 6-28 14-28s14 12 14 28v40" stroke="#1c1a17" stroke-width="2" fill="#faf8f5"/>
-              <path d="M47 64h26M46 76h28M46 88h28" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
-              <path d="M60 28c0-8 4-12 4-12M56 40c0-10-8-14-8-14" stroke="#c9944a" stroke-width="2" stroke-linecap="round"/>
-              <ellipse cx="60" cy="96" rx="16" ry="4" fill="none" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M44 24h32c-4 10 6 16 4 28-2 10-8 14-8 22 0 8 4 12 2 20H46c-2-8 2-12 2-20 0-8-6-12-8-22-2-12 8-18 4-28z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M44 34c12 4 22 4 33-2M42 48c14 5 24 5 36-2M42 62c13 5 24 5 35-2M45 78c11 4 20 4 30-2M46 88c10 3 18 3 28-2" stroke="#1c1a17" stroke-width="1" opacity=".3"/>
+              <path d="M56 24c2-8 3-12 8-16M62 24c4-6 10-8 14-8" stroke="#c9944a" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
           <div class="card-body">
-            <h3>NAVA — vazos ir indeliai</h3>
-            <p>Skulptūriškos vazos džiovintoms gėlėms ir smulkmenoms.</p>
+            <h3>SPIRA — spiralinės vazos</h3>
+            <p>Vientisu spiraliniu būdu spausdintos skulptūriškos vazos džiovintoms gėlėms.</p>
             <div class="card-meta">
               <span class="price">nuo 19 €</span>
               <span class="tag">Aksesuarai</span>
@@ -348,20 +396,20 @@
         <article class="card reveal">
           <div class="card-visual" aria-hidden="true">
             <svg viewBox="0 0 120 120" fill="none">
-              <circle class="lamp-glow" cx="60" cy="60" r="34" fill="#c9944a" opacity=".14"/>
-              <circle cx="60" cy="60" r="28" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
-              <path d="M36 52h48M34 62h52M38 72h44" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
-              <circle cx="60" cy="60" r="8" fill="#c9944a" opacity=".55"/>
-              <line x1="60" y1="88" x2="60" y2="100" stroke="#1c1a17" stroke-width="2"/>
-              <line x1="46" y1="102" x2="74" y2="102" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M46 22l14 8v16l-14 8-14-8V30l14-8z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M78 30l14 8v16l-14 8-14-8V38l14-8z" fill="#f3e3cc" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M46 58l14 8v16l-14 8-14-8V66l14-8z" fill="#f3e3cc" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M78 66l14 8v16l-14 8-14-8V74l14-8z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <circle cx="46" cy="39" r="3" fill="#c9944a" opacity=".6"/>
+              <circle cx="78" cy="83" r="3" fill="#c9944a" opacity=".6"/>
             </svg>
           </div>
           <div class="card-body">
-            <h3>LUNA — naktinė lempa</h3>
-            <p>Mėnulio formos švytintis akcentas vaikų ir miegamojo erdvei.</p>
+            <h3>KORIS — modulinis sienų dekoras</h3>
+            <p>Šešiakampės korio plokštelės — dėliokite savo raštą, pridėkite LED foninę šviesą.</p>
             <div class="card-meta">
-              <span class="price">nuo 35 €</span>
-              <span class="tag">Dovanoms</span>
+              <span class="price">nuo 24 €</span>
+              <span class="tag">Interjerui</span>
             </div>
           </div>
         </article>
@@ -369,14 +417,17 @@
         <article class="card reveal">
           <div class="card-visual" aria-hidden="true">
             <svg viewBox="0 0 120 120" fill="none">
-              <path d="M36 44l24-14 24 14v34l-24 14-24-14V44z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
-              <path d="M36 44l24 14 24-14M60 58v34" stroke="#1c1a17" stroke-width="1.4" opacity=".5"/>
-              <path d="M40 52v22M80 52v22" stroke="#1c1a17" stroke-width="1" opacity=".3"/>
+              <path d="M60 34c-3-10 2-18 10-22 2 8-2 16-10 22z" fill="#f3e3cc" stroke="#1c1a17" stroke-width="1.5"/>
+              <path d="M60 36c-8-4-16-2-22 6 8 4 16 2 22-6z" fill="#f3e3cc" stroke="#1c1a17" stroke-width="1.5"/>
+              <path d="M60 30v18" stroke="#1c1a17" stroke-width="1.5"/>
+              <path d="M40 48h40l-5 44H45l-5-44z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M60 48v44M50 48l-3 44M70 48l3 44" stroke="#1c1a17" stroke-width="1" opacity=".3"/>
+              <path d="M40 60h40" stroke="#1c1a17" stroke-width="1" opacity=".3"/>
             </svg>
           </div>
           <div class="card-body">
-            <h3>KUBO — laikikliai ir dėkliukai</h3>
-            <p>Geometriniai organizieriai raktams, papuošalams, telefonui.</p>
+            <h3>TERRA — geometriniai vazonėliai</h3>
+            <p>Briaunuoti vazonėliai su paslėptu drenažu — sukulentams ir žolelėms virtuvėje.</p>
             <div class="card-meta">
               <span class="price">nuo 14 €</span>
               <span class="tag">Aksesuarai</span>
@@ -387,15 +438,37 @@
         <article class="card reveal">
           <div class="card-visual" aria-hidden="true">
             <svg viewBox="0 0 120 120" fill="none">
+              <circle class="lamp-glow" cx="60" cy="50" r="34" fill="#c9944a" opacity=".14"/>
+              <path d="M34 74c0-22 8-40 26-40s26 18 26 40c0 4-2 6-6 6H40c-4 0-6-2-6-6z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M38 56c14-6 30-6 44 0M36 66c16-6 32-6 48 0" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <ellipse cx="60" cy="80" rx="18" ry="4" fill="#c9944a" opacity=".5"/>
+              <line x1="60" y1="88" x2="60" y2="98" stroke="#1c1a17" stroke-width="2"/>
+              <line x1="46" y1="100" x2="74" y2="100" stroke="#1c1a17" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>NIDA — kopų naktinė lempa</h3>
+            <p>Švelniai banguota forma, įkvėpta Kuršių nerijos kopų. Jauki šviesa vakarui.</p>
+            <div class="card-meta">
+              <span class="price">nuo 39 €</span>
+              <span class="tag">Limituota</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
               <circle class="lamp-glow" cx="60" cy="52" r="34" fill="#c9944a" opacity=".14"/>
               <path d="M60 20c-16 10-26 22-26 36 0 15 12 26 26 26s26-11 26-26c0-14-10-26-26-36z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
               <path d="M36 52h48M35 62h50M38 72h44" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <text x="60" y="60" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="20" fill="#c9944a">O</text>
               <line x1="48" y1="94" x2="72" y2="94" stroke="#1c1a17" stroke-width="2"/>
             </svg>
           </div>
           <div class="card-body">
             <h3>Individualus užsakymas</h3>
-            <p>Turite idėją? Sukursime ir atspausdinsime šviestuvą pagal jūsų viziją.</p>
+            <p>Turite idėją ar radote įkvėpimą internete? Pritaikysime, sukursime ir atspausdinsime jums.</p>
             <div class="card-meta">
               <span class="price">kaina sutartinė</span>
               <span class="tag">Unikalu</span>
@@ -442,6 +515,33 @@
             <p>Spalva, dydis, net užrašas — pritaikome gaminį būtent jūsų namams.</p>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ATSILIEPIMAI (demo turinys) -->
+  <section class="reviews">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Atsiliepimai</p>
+        <h2>Ką sako mūsų klientai</h2>
+      </div>
+      <div class="review-grid">
+        <article class="review-card reveal">
+          <div class="stars" aria-label="5 iš 5 žvaigždučių">★★★★★</div>
+          <p>„ORA šviestuvas tapo mūsų svetainės akcentu — visi svečiai klausia, kur tokį radome. Šviesos raštai ant sienų vakare tiesiog magiški.“</p>
+          <footer>— Greta, Vilnius</footer>
+        </article>
+        <article class="review-card reveal">
+          <div class="stars" aria-label="5 iš 5 žvaigždučių">★★★★★</div>
+          <p>„Mėnulio lempa dukrai — geriausia dovana. Kokybė nustebino: lengva, tvirta, o paviršiaus tekstūra atrodo kaip tikro mėnulio.“</p>
+          <footer>— Tomas, Kaunas</footer>
+        </article>
+        <article class="review-card reveal">
+          <div class="stars" aria-label="5 iš 5 žvaigždučių">★★★★★</div>
+          <p>„Užsakiau individualų šviestuvą pagal savo eskizą — Oksana pasiūlė patobulinimų ir rezultatas pranoko lūkesčius. Labai asmeniškas aptarnavimas.“</p>
+          <footer>— Rūta, Klaipėda</footer>
+        </article>
       </div>
     </div>
   </section>
