@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKSANA — 3D spausdinti šviestuvai ir namų aksesuarai</title>
+<meta name="description" content="OKSANA — modernūs 3D spausdinti šviestuvai ir madingi namų aksesuarai. Minimalistinis dizainas, tvari gamyba, pagaminta Lietuvoje.">
+
+<!-- Open Graph / socialiniams tinklams (FB, IG, TikTok) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="OKSANA — šviesa, kuri kuria namus">
+<meta property="og:description" content="3D spausdinti šviestuvai ir madingi namų aksesuarai. Minimalistinis dizainas kiekvieniems namams.">
+<meta property="og:locale" content="lt_LT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#faf8f5">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #faf8f5;
+    --bg-soft: #f2eee8;
+    --ink: #1c1a17;
+    --ink-soft: #6b6560;
+    --accent: #c9944a;      /* šilta gintaro šviesa */
+    --accent-soft: #f3e3cc;
+    --line: #e5dfd6;
+    --radius: 20px;
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img, svg { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { width: min(100% - 2.5rem, 1080px); margin-inline: auto; }
+
+  /* ===== Antraštė ===== */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 0;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 1.55rem; letter-spacing: .34em; font-weight: 500;
+    text-transform: uppercase;
+  }
+  .logo .o-glow {
+    display: inline-block; position: relative; color: var(--accent);
+  }
+  .nav-cta {
+    font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
+    padding: .6rem 1.15rem; border: 1px solid var(--ink);
+    border-radius: 999px; transition: all .25s ease;
+  }
+  .nav-cta:hover { background: var(--ink); color: var(--bg); }
+
+  /* ===== Hero ===== */
+  .hero { padding: 4.5rem 0 4rem; text-align: center; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: auto 0 -40% 0; height: 90%;
+    background: radial-gradient(ellipse at 50% 100%, var(--accent-soft) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-size: .72rem; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--accent); font-weight: 500; margin-bottom: 1.25rem;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 8vw, 4.4rem);
+    line-height: 1.12; font-weight: 400; margin-bottom: 1.25rem;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .hero p.lead {
+    max-width: 34ch; margin: 0 auto 2.25rem; color: var(--ink-soft);
+    font-size: 1.02rem;
+  }
+  .btn-row { display: flex; flex-direction: column; gap: .8rem; align-items: center; position: relative; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 500;
+    padding: 1rem 2.4rem; border-radius: 999px; transition: all .25s ease;
+    width: min(100%, 320px);
+  }
+  .btn-primary { background: var(--ink); color: var(--bg); }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-ghost { border: 1px solid var(--line); color: var(--ink-soft); }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* Hero lempos iliustracija */
+  .hero-lamp { margin: 3rem auto 0; width: min(78%, 340px); position: relative; }
+  .hero-lamp svg { width: 100%; height: auto; }
+
+  /* ===== Sekcijos ===== */
+  section { padding: 4.5rem 0; }
+  .section-head { text-align: center; margin-bottom: 2.75rem; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 5.5vw, 2.8rem);
+    font-weight: 400; line-height: 1.2;
+  }
+  .section-head p { color: var(--ink-soft); margin-top: .6rem; max-width: 44ch; margin-inline: auto; }
+
+  /* ===== Kolekcija ===== */
+  .products { background: var(--bg-soft); }
+  .grid {
+    display: grid; grid-template-columns: 1fr; gap: 1.4rem;
+  }
+  .card {
+    background: var(--bg); border-radius: var(--radius);
+    overflow: hidden; border: 1px solid var(--line);
+    transition: transform .3s ease, box-shadow .3s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -20px rgba(28,26,23,.25); }
+  .card-visual {
+    aspect-ratio: 4 / 3; display: grid; place-items: center;
+    background: linear-gradient(160deg, #f7f3ec 0%, #ece5da 100%);
+  }
+  .card-visual svg { width: 46%; height: auto; }
+  .card-body { padding: 1.3rem 1.4rem 1.5rem; }
+  .card-body h3 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; }
+  .card-body p { font-size: .88rem; color: var(--ink-soft); margin-top: .3rem; }
+  .card-meta {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;
+  }
+  .price { font-weight: 500; font-size: .95rem; letter-spacing: .03em; }
+  .tag {
+    font-size: .68rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid var(--accent-soft);
+    background: var(--accent-soft); padding: .25rem .7rem; border-radius: 999px;
+  }
+
+  /* ===== Kodėl OKSANA ===== */
+  .features { }
+  .feature-list { display: grid; grid-template-columns: 1fr; gap: 2.2rem; max-width: 640px; margin-inline: auto; }
+  .feature { display: flex; gap: 1.15rem; align-items: flex-start; }
+  .feature-icon {
+    flex: 0 0 auto; width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent);
+    font-family: var(--font-display); font-size: 1.3rem; font-style: italic;
+  }
+  .feature h3 { font-size: 1rem; font-weight: 500; margin-bottom: .2rem; }
+  .feature p { font-size: .9rem; color: var(--ink-soft); }
+
+  /* ===== Oksanos istorija ===== */
+  .story { background: var(--ink); color: var(--bg); text-align: center; }
+  .story .initial {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 4.6rem; line-height: 1; color: var(--accent);
+    display: block; margin-bottom: 1rem;
+  }
+  .story blockquote {
+    font-family: var(--font-display); font-size: clamp(1.25rem, 4.5vw, 1.7rem);
+    font-weight: 400; line-height: 1.5; max-width: 30ch; margin-inline: auto;
+  }
+  .story cite {
+    display: block; margin-top: 1.5rem; font-family: var(--font-body);
+    font-style: normal; font-size: .78rem; letter-spacing: .26em;
+    text-transform: uppercase; color: rgba(250,248,245,.55);
+  }
+
+  /* ===== Socialiniai ===== */
+  .social { text-align: center; }
+  .social-links { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+  .social-btn {
+    display: inline-flex; align-items: center; gap: .55rem;
+    padding: .85rem 1.5rem; border: 1px solid var(--line); border-radius: 999px;
+    font-size: .85rem; font-weight: 500; transition: all .25s ease;
+  }
+  .social-btn:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .social-btn svg { width: 18px; height: 18px; }
+
+  /* ===== Užsakymas / CTA ===== */
+  .order { background: var(--bg-soft); text-align: center; }
+  .order .btn-primary { margin-top: 1.5rem; }
+  .order-note { font-size: .8rem; color: var(--ink-soft); margin-top: 1rem; }
+
+  /* ===== Poraštė ===== */
+  footer {
+    padding: 2.5rem 0 3rem; text-align: center;
+    border-top: 1px solid var(--line);
+  }
+  footer .logo { font-size: 1.1rem; }
+  footer p { font-size: .75rem; color: var(--ink-soft); margin-top: .8rem; letter-spacing: .05em; }
+
+  /* Subtili atsiradimo animacija */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* Švytėjimo animacija */
+  @keyframes glow {
+    0%, 100% { opacity: .55; }
+    50% { opacity: 1; }
+  }
+  .lamp-glow { animation: glow 4s ease-in-out infinite; transform-origin: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lamp-glow { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ===== Planšetė ir darbalaukis ===== */
+  @media (min-width: 640px) {
+    .btn-row { flex-direction: row; justify-content: center; }
+    .btn { width: auto; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 960px) {
+    .grid { grid-template-columns: repeat(3, 1fr); }
+    .feature-list { grid-template-columns: repeat(2, 1fr); max-width: 880px; column-gap: 3.5rem; }
+    section { padding: 6rem 0; }
+    .hero { padding: 6rem 0 5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#" aria-label="Oksana — pradžia"><span class="o-glow">O</span>KSANA</a>
+    <a class="nav-cta" href="#uzsakyti">Užsakyti</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">3D spausdinti šviestuvai · Namų aksesuarai</p>
+      <h1>Šviesa, kuri<br><em>kuria namus</em></h1>
+      <p class="lead">Minimalistinio dizaino šviestuvai ir madingi interjero akcentai — spausdinami po vieną, kuriami jums.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="#kolekcija">Peržiūrėti kolekciją</a>
+        <a class="btn btn-ghost" href="#uzsakyti">Susisiekti</a>
+      </div>
+
+      <div class="hero-lamp" aria-hidden="true">
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle class="lamp-glow" cx="150" cy="128" r="86" fill="#c9944a" opacity=".16"/>
+          <circle class="lamp-glow" cx="150" cy="128" r="56" fill="#c9944a" opacity=".18" style="animation-delay:1s"/>
+          <!-- gaubtas: sluoksniuota 3D spausdinta forma -->
+          <path d="M150 52c-42 0-66 34-66 76 0 30 18 52 36 60h60c18-8 36-30 36-60 0-42-24-76-66-76z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2.5"/>
+          <path d="M92 106h116M87 128h126M90 150h120M100 170h100" stroke="#1c1a17" stroke-width="1.4" opacity=".35"/>
+          <path d="M96 84h108" stroke="#1c1a17" stroke-width="1.4" opacity=".35"/>
+          <!-- šviesa apačioje -->
+          <ellipse cx="150" cy="192" rx="28" ry="8" fill="#c9944a" opacity=".7"/>
+          <!-- laidas -->
+          <line x1="150" y1="52" x2="150" y2="14" stroke="#1c1a17" stroke-width="2.5"/>
+          <!-- pagrindo linija -->
+          <line x1="60" y1="252" x2="240" y2="252" stroke="#1c1a17" stroke-width="1.5" opacity=".2"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- KOLEKCIJA -->
+  <section class="products" id="kolekcija">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Kolekcija</p>
+        <h2>Išskirtinės formos.<br>Šilta šviesa.</h2>
+        <p>Kiekvienas gaminys spausdinamas iš tvarių, augalinės kilmės PLA bioplastikų — po vieną, be sandėlio pertekliaus.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <circle class="lamp-glow" cx="60" cy="55" r="38" fill="#c9944a" opacity=".14"/>
+              <path d="M60 18c-20 0-32 17-32 38 0 16 9 27 18 31h28c9-4 18-15 18-31 0-21-12-38-32-38z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M31 48h58M29 60h62M32 72h56" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <line x1="60" y1="18" x2="60" y2="4" stroke="#1c1a17" stroke-width="2"/>
+              <ellipse cx="60" cy="90" rx="14" ry="4" fill="#c9944a" opacity=".6"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>ORA — pakabinamas šviestuvas</h3>
+            <p>Sluoksniuota organiška forma, skleidžianti minkštą, šiltą švytėjimą.</p>
+            <div class="card-meta">
+              <span class="price">nuo 59 €</span>
+              <span class="tag">Bestseleris</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <circle class="lamp-glow" cx="60" cy="46" r="30" fill="#c9944a" opacity=".14"/>
+              <path d="M42 24h36l-8 40H50l-8-40z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M44 34h32M46 44h28M48 54h24" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <line x1="60" y1="64" x2="60" y2="92" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M40 100c0-6 9-8 20-8s20 2 20 8" stroke="#1c1a17" stroke-width="2" fill="#faf8f5"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>KSANA — stalinė lempa</h3>
+            <p>Kompaktiška geometrinė lempa darbo stalui ar naktiniam staleliui.</p>
+            <div class="card-meta">
+              <span class="price">nuo 45 €</span>
+              <span class="tag">Nauja</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <path d="M46 96V56c0-16 6-28 14-28s14 12 14 28v40" stroke="#1c1a17" stroke-width="2" fill="#faf8f5"/>
+              <path d="M47 64h26M46 76h28M46 88h28" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <path d="M60 28c0-8 4-12 4-12M56 40c0-10-8-14-8-14" stroke="#c9944a" stroke-width="2" stroke-linecap="round"/>
+              <ellipse cx="60" cy="96" rx="16" ry="4" fill="none" stroke="#1c1a17" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>NAVA — vazos ir indeliai</h3>
+            <p>Skulptūriškos vazos džiovintoms gėlėms ir smulkmenoms.</p>
+            <div class="card-meta">
+              <span class="price">nuo 19 €</span>
+              <span class="tag">Aksesuarai</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <circle class="lamp-glow" cx="60" cy="60" r="34" fill="#c9944a" opacity=".14"/>
+              <circle cx="60" cy="60" r="28" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M36 52h48M34 62h52M38 72h44" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <circle cx="60" cy="60" r="8" fill="#c9944a" opacity=".55"/>
+              <line x1="60" y1="88" x2="60" y2="100" stroke="#1c1a17" stroke-width="2"/>
+              <line x1="46" y1="102" x2="74" y2="102" stroke="#1c1a17" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>LUNA — naktinė lempa</h3>
+            <p>Mėnulio formos švytintis akcentas vaikų ir miegamojo erdvei.</p>
+            <div class="card-meta">
+              <span class="price">nuo 35 €</span>
+              <span class="tag">Dovanoms</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <path d="M36 44l24-14 24 14v34l-24 14-24-14V44z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M36 44l24 14 24-14M60 58v34" stroke="#1c1a17" stroke-width="1.4" opacity=".5"/>
+              <path d="M40 52v22M80 52v22" stroke="#1c1a17" stroke-width="1" opacity=".3"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>KUBO — laikikliai ir dėkliukai</h3>
+            <p>Geometriniai organizieriai raktams, papuošalams, telefonui.</p>
+            <div class="card-meta">
+              <span class="price">nuo 14 €</span>
+              <span class="tag">Aksesuarai</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <circle class="lamp-glow" cx="60" cy="52" r="34" fill="#c9944a" opacity=".14"/>
+              <path d="M60 20c-16 10-26 22-26 36 0 15 12 26 26 26s26-11 26-26c0-14-10-26-26-36z" fill="#faf8f5" stroke="#1c1a17" stroke-width="2"/>
+              <path d="M36 52h48M35 62h50M38 72h44" stroke="#1c1a17" stroke-width="1" opacity=".35"/>
+              <line x1="48" y1="94" x2="72" y2="94" stroke="#1c1a17" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>Individualus užsakymas</h3>
+            <p>Turite idėją? Sukursime ir atspausdinsime šviestuvą pagal jūsų viziją.</p>
+            <div class="card-meta">
+              <span class="price">kaina sutartinė</span>
+              <span class="tag">Unikalu</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- KODĖL OKSANA -->
+  <section class="features">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Kodėl OKSANA</p>
+        <h2>Daugiau nei šviesa</h2>
+      </div>
+      <div class="feature-list">
+        <div class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">O</div>
+          <div>
+            <h3>Originalus dizainas</h3>
+            <p>Kiekviena forma kuriama mūsų studijoje — tokios kitur nerasite.</p>
+          </div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">K</div>
+          <div>
+            <h3>Kokybė be kompromisų</h3>
+            <p>Preciziškas 3D spausdinimas, patikrintos LED sistemos, tvirtos medžiagos.</p>
+          </div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">S</div>
+          <div>
+            <h3>Spausdinta tvariai</h3>
+            <p>Augalinės kilmės PLA bioplastikas — gaminame tik tiek, kiek užsakoma.</p>
+          </div>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">A</div>
+          <div>
+            <h3>Asmeniška kiekviena detalė</h3>
+            <p>Spalva, dydis, net užrašas — pritaikome gaminį būtent jūsų namams.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OKSANOS ISTORIJA -->
+  <section class="story">
+    <div class="wrap reveal">
+      <span class="initial" aria-hidden="true">O</span>
+      <blockquote>
+        „Kiekvienas šviestuvas gimsta sluoksnis po sluoksnio — kaip ir jaukūs namai. Noriu, kad mano kurta šviesa taptų jūsų istorijos dalimi.“
+      </blockquote>
+      <cite>— Oksana, įkūrėja</cite>
+    </div>
+  </section>
+
+  <!-- SOCIALINIAI TINKLAI -->
+  <section class="social">
+    <div class="wrap reveal">
+      <p class="eyebrow">Sekite mus</p>
+      <h2>Įkvėpimas kasdien</h2>
+      <p style="color:var(--ink-soft); margin-top:.6rem;">Naujienos, užkulisiai ir specialūs pasiūlymai — mūsų socialiniuose tinkluose.</p>
+      <div class="social-links">
+        <a class="social-btn" href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
+          Facebook
+        </a>
+        <a class="social-btn" href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.88 5.88 0 0 0-2.13 1.38A5.88 5.88 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.13a5.88 5.88 0 0 0 2.13 1.38c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.88 5.88 0 0 0 2.13-1.38 5.88 5.88 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.88 5.88 0 0 0-1.38-2.13A5.88 5.88 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path d="M12 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.41" cy="5.59" r="1.44"/></svg>
+          Instagram
+        </a>
+        <a class="social-btn" href="https://www.tiktok.com/" target="_blank" rel="noopener" aria-label="TikTok">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.3 0 .58.05.85.13V9.4a6.33 6.33 0 0 0-.85-.05A6.34 6.34 0 0 0 5.1 20.14a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.14-.14z"/></svg>
+          TikTok
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- UŽSAKYMAS -->
+  <section class="order" id="uzsakyti">
+    <div class="wrap reveal">
+      <p class="eyebrow">Užsakymai</p>
+      <h2>Norite šviesos savo namuose?</h2>
+      <p style="color:var(--ink-soft); margin-top:.6rem; max-width:40ch; margin-inline:auto;">Parašykite mums žinutę — atsakysime per 24 val. ir padėsime išsirinkti ar sukurti jūsų šviestuvą.</p>
+      <a class="btn btn-primary" href="mailto:info@oksana.lt?subject=U%C5%BEsakymas%20%E2%80%94%20OKSANA">Rašyti žinutę</a>
+      <p class="order-note">Arba parašykite mums per Facebook, Instagram ar TikTok ✨</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="logo"><span class="o-glow">O</span>KSANA</span>
+    <p>© 2026 OKSANA · 3D spausdinti šviestuvai ir namų aksesuarai · Pagaminta Lietuvoje 🇱🇹</p>
+  </div>
+</footer>
+
+<script>
+  // Subtilus elementų atsiradimas slenkant
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
