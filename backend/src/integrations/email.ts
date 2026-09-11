@@ -1,7 +1,10 @@
 // Email Reporting — SMTP integration with HTML reports
+// Mail is delivered straight to the configured SMTP server (STARTTLS / TLS + AUTH),
+// not through the local sendmail/postfix, whose unauthenticated relaying gets bounced.
 // ~/missioncontrol/backend/src/integrations/email.ts
 
 import { db } from '../db';
+import { sendSmtp, verifySmtp, extractAddress, type SmtpOptions } from './smtpClient';
 
 export interface EmailConfig {
   id: string;
@@ -63,14 +66,12 @@ export async function testEmailConnection(): Promise<{ success: boolean; message
   if (!emailConfig || !emailConfig.enabled) {
     return { success: false, message: 'Email not configured or disabled' };
   }
+  const missing = validateSmtpConfig(emailConfig);
+  if (missing) return { success: false, message: missing };
   try {
-    const { Bun } = await import('bun');
-    const proc = Bun.spawn(['/usr/bin/openssl', 's_client', '-connect', `${emailConfig.smtp.host}:${emailConfig.smtp.port}`, '-starttls', 'smtp'], {
-      stdout: 'pipe', stderr: 'pipe', timeout: 10000,
-    });
-    const output = await new Response(proc.stdout).text();
-    const success = output.includes('220') || output.includes('250');
-    return { success, message: success ? 'SMTP connection successful' : 'SMTP connection failed' };
+    const { extensions } = await verifySmtp(toSmtpOptions(emailConfig));
+    const auth = emailConfig.smtp.user && emailConfig.smtp.pass ? 'authenticated' : 'no authentication';
+    return { success: true, message: `SMTP connection to ${emailConfig.smtp.host}:${emailConfig.smtp.port} successful (${auth}; ${extensions.join(', ')})` };
   } catch (e: any) {
     return { success: false, message: e.message };
   }
@@ -84,50 +85,51 @@ export async function sendEmail(report: Omit<EmailReport, 'id' | 'status'>): Pro
     persistEmailReport(fullReport);
     return fullReport;
   }
+  const missing = validateSmtpConfig(emailConfig);
+  if (missing) {
+    fullReport.status = 'failed';
+    fullReport.error = missing;
+    persistEmailReport(fullReport);
+    return fullReport;
+  }
   try {
-    const { Bun } = await import('bun');
-    const proc = Bun.spawn(['/usr/sbin/sendmail', '-t'], { stdin: 'pipe', stdout: 'pipe', stderr: 'pipe' });
-    const emailContent = buildEmailContent(fullReport);
-    await proc.stdin.write(emailContent);
-    await proc.stdin.end();
-    const exitCode = await proc.exited;
-    if (exitCode === 0) {
-      fullReport.status = 'sent';
-      fullReport.sentAt = new Date().toISOString();
-    } else {
-      fullReport.status = 'failed';
-      fullReport.error = `sendmail exited with code ${exitCode}`;
-    }
+    await sendSmtp(toSmtpOptions(emailConfig), {
+      from: emailConfig.from,
+      to: emailConfig.to,
+      subject: fullReport.subject,
+      html: fullReport.htmlBody,
+      text: fullReport.body,
+    });
+    fullReport.status = 'sent';
+    fullReport.sentAt = new Date().toISOString();
   } catch (e: any) {
-    try {
-      await sendViaAppleMail(fullReport);
-      fullReport.status = 'sent';
-      fullReport.sentAt = new Date().toISOString();
-    } catch (e2: any) {
-      fullReport.status = 'failed';
-      fullReport.error = e2.message;
-    }
+    fullReport.status = 'failed';
+    fullReport.error = e.message;
+    console.error(`[Email] Failed to send "${fullReport.subject}": ${e.message}`);
   }
   persistEmailReport(fullReport);
   return fullReport;
 }
 
-async function sendViaAppleMail(report: EmailReport) {
-  const { Bun } = await import('bun');
-  const script = `tell application "Mail"
-    set newMessage to make new outgoing message with properties {subject:"${report.subject.replace(/"/g, '\\"')}", content:"${report.body.replace(/"/g, '\\"').substring(0, 500)}...", visible:false}
-    tell newMessage
-      ${emailConfig!.to.map(t => `make new to recipient at end of to recipients with properties {address:"${t}"}`).join('\n      ')}
-      send
-    end tell
-  end tell`;
-  const proc = Bun.spawn(['osascript', '-e', script], { stdout: 'pipe', stderr: 'pipe' });
-  await proc.exited;
+function validateSmtpConfig(cfg: EmailConfig): string | null {
+  if (!cfg.smtp?.host) return 'SMTP host is not configured';
+  if (!cfg.smtp.port || Number.isNaN(Number(cfg.smtp.port))) return 'SMTP port is not configured';
+  if (!cfg.from || !extractAddress(cfg.from)) return 'From address is missing or invalid';
+  if (!cfg.to || cfg.to.filter(Boolean).length === 0) return 'No recipient addresses configured';
+  const bad = cfg.to.filter(Boolean).find(t => !extractAddress(t));
+  if (bad) return `Invalid recipient address: ${bad}`;
+  return null;
 }
 
-function buildEmailContent(report: EmailReport): string {
-  const to = emailConfig!.to.join(', ');
-  return `To: ${to}\nFrom: ${emailConfig!.from}\nSubject: ${report.subject}\nContent-Type: text/html; charset=utf-8\nMIME-Version: 1.0\n\n${report.htmlBody}`;
+function toSmtpOptions(cfg: EmailConfig): SmtpOptions {
+  return {
+    host: cfg.smtp.host.trim(),
+    port: Number(cfg.smtp.port),
+    secure: cfg.smtp.secure !== false,
+    user: cfg.smtp.user || undefined,
+    pass: cfg.smtp.pass || undefined,
+    timeoutMs: 20000,
+  };
 }
 
 export async function sendJobCompleteReport(job: any): Promise<EmailReport> {

@@ -143,7 +143,8 @@ backend/src/
 │   ├── shortcutsBridge.ts       # macOS shortcuts
 │   └── routes.ts                # Automation API routes
 ├── integrations/
-│   ├── email.ts                 # SMTP email
+│   ├── email.ts                 # SMTP email reports
+│   ├── smtpClient.ts            # SMTP client (STARTTLS/TLS + AUTH)
 │   ├── slack.ts                 # Slack webhooks
 │   ├── telegram.ts              # Telegram bot
 │   ├── n8n.ts                   # n8n webhooks

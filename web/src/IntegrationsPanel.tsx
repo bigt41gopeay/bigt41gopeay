@@ -204,6 +204,8 @@ export function IntegrationsPanel({ token }: { token: string }) {
               </div>
               <div className="help-text">
                 For Gmail: Use App Password (not your regular password). Enable 2FA → Security → App Passwords.<br/>
+                Port 587 uses STARTTLS, port 465 uses implicit SSL/TLS. Keep "Use TLS/SSL" on for both.<br/>
+                The From address must belong to the SMTP account, otherwise the provider rejects or bounces the mail.<br/>
                 For other providers: Check your SMTP settings in account preferences.
               </div>
             </div>
