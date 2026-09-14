@@ -1,32 +1,4 @@
-# Dependencies
-node_modules/
-*.lock
-
-# Build
-dist/
-build/
-
-# Environment
+node_modules
+dist
 .env
-.env.local
-
-# Database
-*.db
-*.db-journal
-
-# Logs
-*.log
-logs/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Backup
-.backup-*/
+*.local
